@@ -1,0 +1,6 @@
+*.pyc
+__pycache___
+*.swp
+*.swo
+.pytest_cache
+env
