@@ -10,6 +10,15 @@ class TestExpectCall:
         self.ctx = Context()
         self.mock = self.ctx.make_mock("mock")
 
+    def assert_unsatisfied_match(self, excinfo, mock, expected, actual):
+        assert excinfo.match("at {}:\d+\n\t"
+            "    Mock: {}\n\t"
+            "Expected: {}\n\t"
+            "  Actual: {}".format(
+                __file__,
+                mock.replace("(", "\(").replace(")", "\)"),
+                expected, actual))
+
     ### Tests
 
     def test_when_one_expect_call_and_one_mock_call__then_pass(self):
@@ -21,8 +30,7 @@ class TestExpectCall:
         self.mock.expect_call()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
-            "#1. mock(): to be called once (expected) != never called (actual)"
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called once", "never called")
 
     def test_when_one_expect_call_and_two_mock_calls__then_fail(self):
         self.mock.expect_call()
@@ -30,8 +38,7 @@ class TestExpectCall:
         self.mock()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
-            "#1. mock(): to be called once (expected) != called twice (actual)"
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called once", "called twice")
 
     def test_when_two_same_expect_calls_and_one_mock_call__then_fail(self):
         self.mock.expect_call()
@@ -39,8 +46,7 @@ class TestExpectCall:
         self.mock()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
-            "#2. mock(): to be called once (expected) != never called (actual)"
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called once", "never called")
 
     def test_when_three_different_expect_calls_and_only_one_mock_not_called__then_fail(self):
         self.mock.expect_call()
@@ -50,16 +56,14 @@ class TestExpectCall:
         self.mock(1, 2)
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
-            "#2. mock(1, 2, a='spam'): to be called once (expected) != never called (actual)"
+        self.assert_unsatisfied_match(excinfo, "mock(1, 2, a='spam')", "to be called once", "never called")
 
     def test_when_expected_to_be_never_called_and_one_mock_call__then_fail(self):
         self.mock.expect_call().times(0)
         self.mock()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
-            "#1. mock(): to be never called (expected) != called once (actual)"
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be never called", "called once")
 
     def test_when_mock_called_with_no_expectations_set__then_raise_exception(self):
         with pytest.raises(TypeError) as excinfo:
@@ -72,8 +76,7 @@ class TestExpectCall:
             self.mock()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
-            "#1. mock(): to be called 3 times (expected) != called 4 times (actual)"
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called 3 times", "called 4 times")
 
 
 class TestExpectCallOnceWithSideEffects:

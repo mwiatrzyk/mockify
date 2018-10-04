@@ -1,3 +1,4 @@
+import traceback
 import itertools
 
 from . import exc
@@ -16,10 +17,8 @@ class Context:
         if unsatisfied_expectations:
             raise exc.Unsatisfied(unsatisfied_expectations)
 
-    def _append_expectation(self, mock_call):
-        expectation = _Expectation(len(self._expectations) + 1, mock_call)
+    def _append_expectation(self, expectation):
         self._expectations.append(expectation)
-        return expectation
 
     def _find_all_unsatisfied_expectations(self):
         return list(filter(lambda x: not x._is_satisfied(), self._expectations))
@@ -49,8 +48,12 @@ class _Mock:
         return expectation._consume(*args, **kwargs)
 
     def expect_call(self, *args, **kwargs):
+        stack = traceback.extract_stack()
+        frame_summary = stack[-2]
         mock_call = _MockCall(self._name, args, kwargs)
-        return self._ctx._append_expectation(mock_call)
+        expectation = _Expectation(frame_summary, len(self._ctx._expectations) + 1, mock_call)
+        self._ctx._append_expectation(expectation)
+        return expectation
 
 
 class _MockCall:
@@ -74,12 +77,17 @@ class _MockCall:
 
 class _Expectation:
 
-    def __init__(self, id_, mock_call):
+    def __init__(self, frame_summary, id_, mock_call):
         self._id = id_
+        self._frame_summary = frame_summary
         self._mock_call = mock_call
         self._expected_calls = 1
         self._actual_calls = 0
         self._action = None
+
+    @property
+    def _fileinfo(self):
+        return "{}:{}".format(self._frame_summary.filename, self._frame_summary.lineno)
 
     def _is_satisfied(self):
         return self._expected_calls == self._actual_calls

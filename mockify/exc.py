@@ -4,8 +4,8 @@ class Unsatisfied(AssertionError):
         self._expectations = expectations
 
     def _format_error(self, expectation):
-        return "#{}. {}: {} (expected) != {} (actual)".format(
-            expectation._id,
+        return "at {}\n\t    Mock: {}\n\tExpected: {}\n\t  Actual: {}".format(
+            expectation._fileinfo,
             expectation._mock_call,
             self.__format_expected_calls(expectation._expected_calls),
             self.__format_actual_calls(expectation._actual_calls))
@@ -28,5 +28,4 @@ class Unsatisfied(AssertionError):
 
     def __str__(self):
         expectations_gen = (self._format_error(x) for x in self._expectations)
-        return "Following expectations were not satisfied:\n\t"\
-            "{}".format("\n\t".join(expectations_gen))
+        return "\n".join(expectations_gen)
