@@ -1,6 +1,7 @@
 import pytest
 
 from mockify import exc, Context
+from mockify.actions import Return, Raise, Invoke
 
 
 class TestExpectCall:
@@ -73,3 +74,36 @@ class TestExpectCall:
             self.ctx.assert_satisfied()
         assert str(excinfo.value) == "Following expectations were not satisfied:\n\t"\
             "#1. mock(): to be called 3 times (expected) != called 4 times (actual)"
+
+
+class TestExpectCallOnceWithSideEffects:
+
+    def setup_method(self):
+        self.ctx = Context()
+        self.mock = self.ctx.make_mock("mock")
+
+    ### Tests
+
+    def test_when_expected_to_be_called_once_and_return_value__then_calling_a_mock_returns_that_value(self):
+        self.mock.expect_call(1, 2).will_once(Return(3))
+        assert self.mock(1, 2) == 3
+        self.ctx.assert_satisfied()
+
+    def test_when_expected_to_be_called_once_and_raise_exception__then_calling_a_mock_raises_that_exception(self):
+        self.mock.expect_call(1, 2).will_once(Raise(RuntimeError("an error")))
+        with pytest.raises(RuntimeError) as excinfo:
+            self.mock(1, 2)
+        assert str(excinfo.value) == "an error"
+        self.ctx.assert_satisfied()
+
+    def test_when_expected_to_be_called_once_and_invoke_function__then_calling_a_mock_invokes_that_function(self):
+
+        def func(a, b, c=None):
+            cache.append((a, b, c))
+            return 123
+
+        cache = []
+        self.mock.expect_call(1, 2, c="spam").will_once(Invoke(func))
+        assert self.mock(1, 2, c="spam") == 123
+        assert cache == [(1, 2, "spam")]
+        self.ctx.assert_satisfied()

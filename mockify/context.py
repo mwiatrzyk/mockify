@@ -46,7 +46,7 @@ class _Mock:
         expectation = self._ctx._find_next_expectation_for_mock_call(mock_call)
         if expectation is None:
             raise TypeError("Uninterested mock called: {}".format(mock_call))
-        expectation._consume()
+        return expectation._consume(*args, **kwargs)
 
     def expect_call(self, *args, **kwargs):
         mock_call = _MockCall(self._name, args, kwargs)
@@ -79,12 +79,18 @@ class _Expectation:
         self._mock_call = mock_call
         self._expected_calls = 1
         self._actual_calls = 0
+        self._action = None
 
     def _is_satisfied(self):
         return self._expected_calls == self._actual_calls
 
-    def _consume(self):
+    def _consume(self, *args, **kwargs):
         self._actual_calls += 1
+        if self._action is not None:
+            return self._action(*args, **kwargs)
 
     def times(self, cardinality):
         self._expected_calls = cardinality
+
+    def will_once(self, action):
+        self._action = action
