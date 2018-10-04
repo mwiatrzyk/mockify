@@ -14,7 +14,7 @@ class Context:
     def assert_satisfied(self):
         unsatisfied_expectations = self._find_all_unsatisfied_expectations()
         if unsatisfied_expectations:
-            raise exc.UnsatisfiedExpectationsError(unsatisfied_expectations)
+            raise exc.Unsatisfied(unsatisfied_expectations)
 
     def _append_expectation(self, mock_call):
         expectation = _Expectation(len(self._expectations) + 1, mock_call)

@@ -1,4 +1,4 @@
-class UnsatisfiedExpectationsError(AssertionError):
+class Unsatisfied(AssertionError):
 
     def __init__(self, expectations):
         self._expectations = expectations
@@ -10,25 +10,21 @@ class UnsatisfiedExpectationsError(AssertionError):
             self.__format_expected_calls(expectation._expected_calls),
             self.__format_actual_calls(expectation._actual_calls))
 
-    def __format_counter(self, counter):
-        if counter == 1:
-            return "once"
-        elif counter == 2:
-            return "twice"
+    def __format_call_count(self, count, prefix=""):
+        if count == 0:
+            return "{}never called".format(prefix)
+        elif count == 1:
+            return "{}called once".format(prefix)
+        elif count == 2:
+            return "{}called twice".format(prefix)
         else:
-            return "{} times".format(counter)
+            return "{}called {} times".format(prefix, count)
 
-    def __format_expected_calls(self, counter):
-        if counter == 0:
-            return "to be never called"
-        else:
-            return "to be called {}".format(self.__format_counter(counter))
+    def __format_expected_calls(self, count):
+        return self.__format_call_count(count, prefix="to be ")
 
-    def __format_actual_calls(self, counter):
-        if counter == 0:
-            return "never called"
-        else:
-            return "called {}".format(self.__format_counter(counter))
+    def __format_actual_calls(self, count):
+        return self.__format_call_count(count)
 
     def __str__(self):
         expectations_gen = (self._format_error(x) for x in self._expectations)
