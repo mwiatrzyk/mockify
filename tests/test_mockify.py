@@ -2,13 +2,10 @@ import pytest
 
 from mockify import exc, Context
 from mockify.actions import Return, Raise, Invoke
+from mockify.cardinality import AtLeast, AtMost, Between
 
 
-class TestExpectCall:
-
-    def setup_method(self):
-        self.ctx = Context()
-        self.mock = self.ctx.make_mock("mock")
+class TestBase:
 
     def assert_unsatisfied_match(self, excinfo, mock, expected, actual):
         assert excinfo.match("at {}:\d+\n\t"
@@ -18,6 +15,13 @@ class TestExpectCall:
                 __file__,
                 mock.replace("(", "\(").replace(")", "\)"),
                 expected, actual))
+
+
+class TestExpectCall(TestBase):
+
+    def setup_method(self):
+        self.ctx = Context()
+        self.mock = self.ctx.make_mock("mock")
 
     ### Tests
 
@@ -79,7 +83,7 @@ class TestExpectCall:
         self.assert_unsatisfied_match(excinfo, "mock()", "to be called 3 times", "called 4 times")
 
 
-class TestExpectCallOnceWithSideEffects:
+class TestExpectCallOnceWithSideEffects(TestBase):
 
     def setup_method(self):
         self.ctx = Context()
@@ -110,3 +114,42 @@ class TestExpectCallOnceWithSideEffects:
         assert self.mock(1, 2, c="spam") == 123
         assert cache == [(1, 2, "spam")]
         self.ctx.assert_satisfied()
+
+
+class TestExpectCallWithCardinality(TestBase):
+
+    def setup_method(self):
+        self.ctx = Context()
+        self.mock = self.ctx.make_mock("mock")
+
+    ### Tests
+
+    def test_when_expected_to_be_called_at_least_twice_and_called_once__then_fail(self):
+        self.mock.expect_call().times(AtLeast(2))
+        self.mock()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called at least twice", "called once")
+
+    def test_when_expected_to_be_called_at_most_twice_and_called_three_times__then_fail(self):
+        self.mock.expect_call().times(AtMost(2))
+        for _ in range(3):
+            self.mock()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called at most twice", "called 3 times")
+
+    def test_when_expected_to_be_called_at_least_twice_but_no_more_than_three_times_and_called_once__then_fail(self):
+        self.mock.expect_call().times(Between(2, 3))
+        self.mock()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called at least twice but no more than 3 times", "called once")
+
+    def test_when_expected_to_be_called_at_least_twice_but_no_more_than_three_times_and_called_4_times__then_fail(self):
+        self.mock.expect_call().times(Between(2, 3))
+        for _ in range(4):
+            self.mock()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called at least twice but no more than 3 times", "called 4 times")

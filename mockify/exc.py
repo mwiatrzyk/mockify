@@ -7,24 +7,22 @@ class Unsatisfied(AssertionError):
         return "at {}\n\t    Mock: {}\n\tExpected: {}\n\t  Actual: {}".format(
             expectation._fileinfo,
             expectation._mock_call,
-            self.__format_expected_calls(expectation._expected_calls),
-            self.__format_actual_calls(expectation._actual_calls))
+            self.__format_expected_calls(expectation),
+            self.__format_actual_calls(expectation))
 
-    def __format_call_count(self, count, prefix=""):
+    def __format_expected_calls(self, expectation):
+        return str(expectation._expected_calls)
+
+    def __format_actual_calls(self, expectation):
+        count = expectation._actual_calls
         if count == 0:
-            return "{}never called".format(prefix)
+            return "never called"
         elif count == 1:
-            return "{}called once".format(prefix)
+            return "called once"
         elif count == 2:
-            return "{}called twice".format(prefix)
+            return "called twice"
         else:
-            return "{}called {} times".format(prefix, count)
-
-    def __format_expected_calls(self, count):
-        return self.__format_call_count(count, prefix="to be ")
-
-    def __format_actual_calls(self, count):
-        return self.__format_call_count(count)
+            return "called {} times".format(count)
 
     def __str__(self):
         expectations_gen = (self._format_error(x) for x in self._expectations)

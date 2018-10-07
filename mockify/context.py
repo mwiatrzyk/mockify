@@ -1,7 +1,8 @@
 import traceback
 import itertools
 
-from . import exc
+from . import exc, _utils
+from .cardinality import Exactly
 
 
 class Context:
@@ -81,7 +82,7 @@ class _Expectation:
         self._id = id_
         self._frame_summary = frame_summary
         self._mock_call = mock_call
-        self._expected_calls = 1
+        self._expected_calls = Exactly(1)
         self._actual_calls = 0
         self._action = None
 
@@ -90,7 +91,7 @@ class _Expectation:
         return "{}:{}".format(self._frame_summary.filename, self._frame_summary.lineno)
 
     def _is_satisfied(self):
-        return self._expected_calls == self._actual_calls
+        return self._expected_calls._satisfies_actual(self._actual_calls)
 
     def _consume(self, *args, **kwargs):
         self._actual_calls += 1
@@ -98,6 +99,8 @@ class _Expectation:
             return self._action(*args, **kwargs)
 
     def times(self, cardinality):
+        if not _utils.is_cardinality_object(cardinality):
+            cardinality = Exactly(cardinality)
         self._expected_calls = cardinality
 
     def will_once(self, action):
