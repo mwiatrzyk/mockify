@@ -2,7 +2,7 @@ import traceback
 import itertools
 
 from . import exc, _utils
-from .cardinality import Exactly
+from .cardinality import Exactly, AtLeast
 
 
 class Context:
@@ -82,9 +82,18 @@ class _Expectation:
         self._id = id_
         self._frame_summary = frame_summary
         self._mock_call = mock_call
-        self._expected_calls = Exactly(1)
         self._actual_calls = 0
         self._action = None
+        self._repeated_action = None
+        self.__expected_calls = None
+
+    @property
+    def _expected_calls(self):
+        return self.__expected_calls or Exactly(1)
+
+    @_expected_calls.setter
+    def _expected_calls(self, value):
+        self.__expected_calls = value
 
     @property
     def _fileinfo(self):
@@ -97,11 +106,19 @@ class _Expectation:
         self._actual_calls += 1
         if self._action is not None:
             return self._action(*args, **kwargs)
+        elif self._repeated_action is not None:
+            return self._repeated_action(*args, **kwargs)
 
     def times(self, cardinality):
         if not _utils.is_cardinality_object(cardinality):
             cardinality = Exactly(cardinality)
         self._expected_calls = cardinality
+        return self
 
     def will_once(self, action):
         self._action = action
+
+    def will_repeatedly(self, action):
+        self._repeated_action = action
+        if self.__expected_calls is None:
+            self._expected_calls = AtLeast(0)

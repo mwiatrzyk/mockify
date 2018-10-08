@@ -11,6 +11,8 @@ class Exactly(Base):
             return "to be never called"
         elif self._expected == 1:
             return "to be called once"
+        elif self._expected == 2:
+            return  "to be called twice"
         else:
             return "to be called {} times".format(self._expected)
 

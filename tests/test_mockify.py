@@ -7,6 +7,10 @@ from mockify.cardinality import AtLeast, AtMost, Between
 
 class TestBase:
 
+    def setup_method(self):
+        self.ctx = Context()
+        self.mock = self.ctx.make_mock("mock")
+
     def assert_unsatisfied_match(self, excinfo, mock, expected, actual):
         assert excinfo.match("at {}:\d+\n\t"
             "    Mock: {}\n\t"
@@ -18,12 +22,6 @@ class TestBase:
 
 
 class TestExpectCall(TestBase):
-
-    def setup_method(self):
-        self.ctx = Context()
-        self.mock = self.ctx.make_mock("mock")
-
-    ### Tests
 
     def test_when_one_expect_call_and_one_mock_call__then_pass(self):
         self.mock.expect_call()
@@ -83,13 +81,7 @@ class TestExpectCall(TestBase):
         self.assert_unsatisfied_match(excinfo, "mock()", "to be called 3 times", "called 4 times")
 
 
-class TestExpectCallOnceWithSideEffects(TestBase):
-
-    def setup_method(self):
-        self.ctx = Context()
-        self.mock = self.ctx.make_mock("mock")
-
-    ### Tests
+class TestExpectCallWithSingleAction(TestBase):
 
     def test_when_expected_to_be_called_once_and_return_value__then_calling_a_mock_returns_that_value(self):
         self.mock.expect_call(1, 2).will_once(Return(3))
@@ -116,13 +108,24 @@ class TestExpectCallOnceWithSideEffects(TestBase):
         self.ctx.assert_satisfied()
 
 
+class TestExpectCallWithRepeatedAction(TestBase):
+
+    def test_when_repeated_action_specified_and_no_cardinality__then_mock_can_be_executed_any_number_of_times(self):
+        self.mock.expect_call().will_repeatedly(Return(123))
+        self.ctx.assert_satisfied()
+        assert self.mock() == 123
+        assert self.mock() == 123
+        self.ctx.assert_satisfied()
+
+    def test_when_repeated_action_specified_to_be_executed_given_amount_of_times_and_actual_call_count_differs__then_fail(self):
+        self.mock.expect_call().times(2).will_repeatedly(Return(123))
+        self.mock()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called twice", "called once")
+
+
 class TestExpectCallWithCardinality(TestBase):
-
-    def setup_method(self):
-        self.ctx = Context()
-        self.mock = self.ctx.make_mock("mock")
-
-    ### Tests
 
     def test_when_expected_to_be_called_at_least_twice_and_called_once__then_fail(self):
         self.mock.expect_call().times(AtLeast(2))
