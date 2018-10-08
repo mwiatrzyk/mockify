@@ -1,5 +1,6 @@
 import traceback
 import itertools
+import collections
 
 from . import exc, _utils
 from .cardinality import Exactly, AtLeast
@@ -83,7 +84,7 @@ class _Expectation:
         self._frame_summary = frame_summary
         self._mock_call = mock_call
         self._actual_calls = 0
-        self._action = None
+        self._actions = collections.deque()
         self._repeated_action = None
         self.__expected_calls = None
 
@@ -104,8 +105,8 @@ class _Expectation:
 
     def _consume(self, *args, **kwargs):
         self._actual_calls += 1
-        if self._action is not None:
-            return self._action(*args, **kwargs)
+        if self._actions:
+            return self._actions.popleft()(*args, **kwargs)
         elif self._repeated_action is not None:
             return self._repeated_action(*args, **kwargs)
 
@@ -116,9 +117,13 @@ class _Expectation:
         return self
 
     def will_once(self, action):
-        self._action = action
+        self._actions.append(action)
+        self._expected_calls = Exactly(len(self._actions))
+        return self
 
     def will_repeatedly(self, action):
         self._repeated_action = action
-        if self.__expected_calls is None:
+        if self._actions:
+            self._expected_calls = AtLeast(len(self._actions))
+        elif self.__expected_calls is None:
             self._expected_calls = AtLeast(0)

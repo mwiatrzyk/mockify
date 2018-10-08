@@ -107,6 +107,23 @@ class TestExpectCallWithSingleAction(TestBase):
         assert cache == [(1, 2, "spam")]
         self.ctx.assert_satisfied()
 
+    def test_when_will_once_set_twice_on_one_expectations__then_mock_must_be_executed_twice_each_time_returning_next_value_in_sequence(self):
+        self.mock.expect_call().\
+            will_once(Return("first")).\
+            will_once(Return("second"))
+        assert self.mock() == "first"
+        assert self.mock() == "second"
+        self.ctx.assert_satisfied()
+
+    def test_when_will_once_set_twice_and_mock_called_once__then_fail(self):
+        self.mock.expect_call().\
+            will_once(Return(1)).\
+            will_once(Return(2))
+        assert self.mock() == 1
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called twice", "called once")
+
 
 class TestExpectCallWithRepeatedAction(TestBase):
 
@@ -123,6 +140,21 @@ class TestExpectCallWithRepeatedAction(TestBase):
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
         self.assert_unsatisfied_match(excinfo, "mock()", "to be called twice", "called once")
+
+
+class TestExpectCallWithSingleAndRepeatedActionsSimultaneously(TestBase):
+
+    def test_when_expectation_has_both_single_and_repeated_action__then_it_must_be_called_at_least_once(self):
+        self.mock.expect_call().\
+            will_once(Return(1)).\
+            will_repeatedly(Return(2))
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called at least once", "never called")
+        assert self.mock() == 1
+        assert self.mock() == 2
+        assert self.mock() == 2
+        self.ctx.assert_satisfied()
 
 
 class TestExpectCallWithCardinality(TestBase):

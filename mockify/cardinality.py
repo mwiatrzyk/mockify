@@ -23,7 +23,10 @@ class Exactly(Base):
 class AtLeast(Base):
 
     def __str__(self):
-        return "to be called at least twice"
+        if self._expected == 1:
+            return "to be called at least once"
+        else:
+            return "to be called at least twice"
 
     def _satisfies_actual(self, actual):
         return actual >= self._expected
