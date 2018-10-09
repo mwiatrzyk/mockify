@@ -2,6 +2,7 @@ import pytest
 
 from mockify import exc, Context
 from mockify.actions import Return, Raise, Invoke
+from mockify.matchers import _
 from mockify.cardinality import AtLeast, AtMost, Between
 
 
@@ -205,3 +206,32 @@ class TestExpectCallWithCardinality(TestBase):
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
         self.assert_unsatisfied_match(excinfo, "mock()", "to be called at least twice but no more than 3 times", "called 4 times")
+
+
+class TestExpectCallWithAnyMatcher(TestBase):
+
+    def test_when_expecting_to_be_called_with_any_argument_value__then_accept_any_argument(self):
+        self.mock.expect_call(_).times(2)
+        self.mock(1)
+        self.mock(2)
+        self.ctx.assert_satisfied()
+
+    def test_when_called_with_different_number_of_args__then_fail(self):
+        self.mock.expect_call(_, _)
+        with pytest.raises(TypeError) as excinfo:
+            self.mock(1, 2, 3)
+        assert str(excinfo.value) == "Uninterested mock called: mock(1, 2, 3)"
+
+    def test_expect_mock_to_be_called_twice_with_any_arg_and_then_one_more_time_with_given_arg(self):
+        self.mock.expect_call(_).times(2)
+        self.mock.expect_call("spam")
+        self.mock(1)
+        self.mock(2)
+        self.mock("spam")
+        self.ctx.assert_satisfied()
+
+    def test_when_expecting_to_be_called_with_any_argument_but_never_called__then_fail(self):
+        self.mock.expect_call(_)
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock(_)", "to be called once", "never called")
