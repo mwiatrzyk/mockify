@@ -144,7 +144,7 @@ class TestExpectCallWithRepeatedAction(TestBase):
 
 class TestExpectCallWithSingleAndRepeatedActionsSimultaneously(TestBase):
 
-    def test_when_expectation_has_both_single_and_repeated_action__then_it_must_be_called_at_least_once(self):
+    def test_when_expectation_has_one_single_and_one_repeated_action__then_it_must_be_called_at_least_once(self):
         self.mock.expect_call().\
             will_once(Return(1)).\
             will_repeatedly(Return(2))
@@ -155,6 +155,23 @@ class TestExpectCallWithSingleAndRepeatedActionsSimultaneously(TestBase):
         assert self.mock() == 2
         assert self.mock() == 2
         self.ctx.assert_satisfied()
+
+    def test_when_expectation_has_one_single_and_one_repeated_action_with_cardinality__then_it_must_be_called_as_specified_by_cardinality(self):
+        self.mock.expect_call().\
+            will_once(Return(1)).\
+            will_repeatedly(Return(2)).\
+            times(3)
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called 3 times", "never called")
+        assert self.mock() == 1
+        assert self.mock() == 2
+        assert self.mock() == 2
+        self.ctx.assert_satisfied()
+        assert self.mock() == 2
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called 3 times", "called 4 times")
 
 
 class TestExpectCallWithCardinality(TestBase):

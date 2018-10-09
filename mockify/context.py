@@ -127,3 +127,4 @@ class _Expectation:
             self._expected_calls = AtLeast(len(self._actions))
         elif self.__expected_calls is None:
             self._expected_calls = AtLeast(0)
+        return self
