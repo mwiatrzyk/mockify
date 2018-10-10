@@ -1,7 +1,6 @@
 test:
     script:
-    - apt-get install python-virtualenv
-    - virtualenv -p python3 env/
-    - source env/bin/activate
+    - apt-get update -qy
+    - apt-get install -y python-pip
     - pip install -r requirements.txt
     - pytest
