@@ -56,10 +56,10 @@ class TestExpectCall(TestBase):
         self.mock.expect_call(1, 2, a="spam")
         self.mock.expect_call(1, 2)
         self.mock()
-        self.mock(1, 2)
+        self.mock(1, 2, a="spam")
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
-        self.assert_unsatisfied_match(excinfo, "mock(1, 2, a='spam')", "to be called once", "never called")
+        self.assert_unsatisfied_match(excinfo, "mock(1, 2)", "to be called once", "never called")
 
     def test_when_expected_to_be_never_called_and_one_mock_call__then_fail(self):
         self.mock.expect_call().times(0)
@@ -235,3 +235,36 @@ class TestExpectCallWithAnyMatcher(TestBase):
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.ctx.assert_satisfied()
         self.assert_unsatisfied_match(excinfo, "mock(_)", "to be called once", "never called")
+
+
+class TestExpectCallOrder(TestBase):
+
+    def test_by_default_expectations_must_be_fulfilled_in_order_defined_by_expect_calls(self):
+        ctx = Context()
+        mock = ctx.make_mock("mock")
+        mock.expect_call(1)
+        mock.expect_call(3)
+        with pytest.raises(TypeError) as excinfo:
+            mock(3)
+        assert str(excinfo.value) == "Unexpected mock called: mock(1) (expected) != mock(3) (called)"
+
+    def test_when_unordered_flag_is_set__then_expectations_can_be_resolved_in_any_order(self):
+        ctx = Context(ordered=False)
+        mock = ctx.make_mock("mock")
+        mock.expect_call(3)
+        mock.expect_call(1)
+        mock.expect_call(2)
+        mock(1)
+        mock(3)
+        mock(2)
+        ctx.assert_satisfied()
+
+    def test_with_unordered_flag_and_single_expectation__check_if_assertion_fails_when_mock_called_twice(self):
+        ctx = Context(ordered=False)
+        mock = ctx.make_mock("mock")
+        mock.expect_call()
+        mock()
+        mock()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            ctx.assert_satisfied()
+        self.assert_unsatisfied_match(excinfo, "mock()", "to be called once", "called twice")

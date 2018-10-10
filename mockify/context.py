@@ -8,32 +8,53 @@ from .cardinality import Exactly, AtLeast
 
 class Context:
 
-    def __init__(self):
+    def __init__(self, ordered=True):
+        self._ordered = ordered
         self._expectations = []
 
     def make_mock(self, name):
         return _Mock(self, name)
 
     def assert_satisfied(self):
-        unsatisfied_expectations = self._find_all_unsatisfied_expectations()
+        unsatisfied_expectations = self.__find_all_unsatisfied_expectations()
         if unsatisfied_expectations:
             raise exc.Unsatisfied(unsatisfied_expectations)
 
-    def _append_expectation(self, expectation):
+    def _register_expectation(self, expectation):
         self._expectations.append(expectation)
 
-    def _find_all_unsatisfied_expectations(self):
-        return list(filter(lambda x: not x._is_satisfied(), self._expectations))
+    def _find_expectation_for(self, mock_call):
+        all_matching = self.__find_all_for(mock_call)
+        if not all_matching:
+            raise TypeError("Uninterested mock called: {}".format(mock_call))
+        if self._ordered:
+            return self.__find_ordered(all_matching, mock_call)
+        else:
+            return self.__find_unordered(all_matching)
 
-    def _find_next_expectation_for_mock_call(self, mock_call):
-        last = None
-        for expectation in self._expectations:
-            if expectation._mock_call == mock_call:
-                if not expectation._is_satisfied():
-                    return expectation
-                else:
-                    last = expectation
-        return last
+    def __find_ordered(self, matching, mock_call):
+        next_expected = self.__find_next_expected()
+        for expectation in matching:
+            if not expectation._is_satisfied() and (next_expected is None or expectation is next_expected):
+                return expectation
+        if next_expected is not None and matching[-1] is not next_expected:
+            raise TypeError("Unexpected mock called: {} (expected) != {} (called)".format(next_expected._mock_call, mock_call))
+        return matching[-1]
+
+    def __find_unordered(self, matching):
+        for expectation in matching:
+            if not expectation._is_satisfied():
+                return expectation
+        return matching[-1]
+
+    def __find_all_for(self, mock_call):
+        return list(filter(lambda x: x._mock_call == mock_call, self._expectations))
+
+    def __find_next_expected(self):
+        return next(filter(lambda x: not x._is_satisfied(), self._expectations), None)
+
+    def __find_all_unsatisfied_expectations(self):
+        return list(filter(lambda x: not x._is_satisfied(), self._expectations))
 
 
 class _Mock:
@@ -44,17 +65,15 @@ class _Mock:
 
     def __call__(self, *args, **kwargs):
         mock_call = _MockCall(self._name, args, kwargs)
-        expectation = self._ctx._find_next_expectation_for_mock_call(mock_call)
-        if expectation is None:
-            raise TypeError("Uninterested mock called: {}".format(mock_call))
+        expectation = self._ctx._find_expectation_for(mock_call)
         return expectation._consume(*args, **kwargs)
 
     def expect_call(self, *args, **kwargs):
         stack = traceback.extract_stack()
         frame_summary = stack[-2]
         mock_call = _MockCall(self._name, args, kwargs)
-        expectation = _Expectation(frame_summary, len(self._ctx._expectations) + 1, mock_call)
-        self._ctx._append_expectation(expectation)
+        expectation = _Expectation(frame_summary, mock_call)
+        self._ctx._register_expectation(expectation)
         return expectation
 
 
@@ -73,14 +92,14 @@ class _MockCall:
 
     def __eq__(self, other):
         return self._name == other._name and\
+            len(self._args) == len(other._args) and\
             self._args == other._args and\
             self._kwargs == other._kwargs
 
 
 class _Expectation:
 
-    def __init__(self, frame_summary, id_, mock_call):
-        self._id = id_
+    def __init__(self, frame_summary, mock_call):
         self._frame_summary = frame_summary
         self._mock_call = mock_call
         self._actual_calls = 0
