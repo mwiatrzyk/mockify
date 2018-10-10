@@ -1,4 +1,6 @@
 test:
     script:
+    - virtualenv -p python3 env/
+    - source enn/bin/activate
     - pip install -r requirements.txt
     - pytest
