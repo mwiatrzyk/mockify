@@ -47,7 +47,7 @@ class Expectation:
         return self._call_count.is_satisfied()
 
     def times(self, cardinality):
-        if isinstance(cardinality, int):
+        if not _utils.is_cardinality_object(cardinality):
             cardinality = Exactly(cardinality)
         self._call_count = cardinality
         self._times_called = True
