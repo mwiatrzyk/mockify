@@ -1,7 +1,7 @@
 import collections
 
 from .. import _utils
-from ..cardinality import Exactly, AtLeast
+from ..cardinality import Base as CardinalityBase, Exactly, AtLeast
 
 
 class Expectation:
@@ -10,13 +10,13 @@ class Expectation:
         self._mock_call = mock_call
         self._filename = filename
         self._lineno = lineno
-        self._actual_calls = 0
         self._actions = collections.deque()
         self._repeated_action = None
-        self.__expected_calls = None
+        self._call_count = Exactly(1)
+        self._times_called = False
 
     def __call__(self, *args, **kwargs):
-        self._actual_calls += 1
+        self._call_count.update()
         action = self.__get_action()
         if action is not None:
             return action(*args, **kwargs)
@@ -40,35 +40,28 @@ class Expectation:
         return self._lineno
 
     @property
-    def expected_calls(self):
-        return self.__expected_calls or Exactly(1)
-
-    @expected_calls.setter
-    def expected_calls(self, value):
-        self.__expected_calls = value
-
-    @property
-    def actual_calls(self):
-        return self._actual_calls
+    def call_count(self):
+        return self._call_count
 
     def is_satisfied(self):
-        return self.expected_calls._satisfies_actual(self._actual_calls)
+        return self._call_count.is_satisfied()
 
     def times(self, cardinality):
-        if not _utils.is_cardinality_object(cardinality):
+        if isinstance(cardinality, int):
             cardinality = Exactly(cardinality)
-        self.expected_calls = cardinality
+        self._call_count = cardinality
+        self._times_called = True
         return self
 
     def will_once(self, action):
         self._actions.append(action)
-        self.expected_calls = Exactly(len(self._actions))
+        self._call_count = Exactly(len(self._actions))
         return self
 
     def will_repeatedly(self, action):
         self._repeated_action = action
         if self._actions:
-            self.expected_calls = AtLeast(len(self._actions))
-        elif self.__expected_calls is None:
-            self.expected_calls = AtLeast(0)
+            self._call_count = AtLeast(len(self._actions))
+        elif not self._times_called:
+            self._call_count = AtLeast(0)
         return self

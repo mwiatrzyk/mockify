@@ -20,11 +20,10 @@ class ExpectationStub:
         self.mock_call = mock_call
         self.filename = filename
         self.lineno = lineno
-        self.expected_calls = Exactly(1)
-        self.actual_calls = 0
+        self.call_count = Exactly(1)
 
     def __call__(self, *args, **kwargs):
-        self.actual_calls += 1
+        self.call_count.update()
 
     def __eq__(self, other):
         return self.mock_call == other.mock_call and\
@@ -32,7 +31,7 @@ class ExpectationStub:
             self.lineno == other.lineno
 
     def is_satisfied(self):
-        return self.expected_calls._satisfies_actual(self.actual_calls)
+        return self.call_count.is_satisfied()
 
 
 class TestContext:
