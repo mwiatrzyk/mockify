@@ -1,34 +1,30 @@
-============
-Mockify v0.1
-============
+Mockify
+=======
 
-I. About
---------
+Mocking library for Python.
 
-Mockify is a Python mocking library with syntax similar to Google Mock (a.k.a.
-GMock) C++ library that I was using during writing code in C++. I started
-writing Mockify when I noticed that ``unittest.mock`` from Python standard
-library does not have such expressive API that GMock has and for what I liked
-it. And since GMock is fun and pretty easy to use, why not try mocking in
-similar way in Python?
+About
+-----
 
-II. Features
-------------
+The purpose of using Mockify is the same as for Python's standard
+:mod:`unittest.mock` mocking library - to mimic behaviour of things during
+testing. But Mockify uses a different approach to achieve that goal.
 
-1) Easy to use, expressive syntax::
+Mockify does not have multiple ``assert_called_*`` methods that are executed to
+check if a method was called. Instead, it uses ``expect_call`` method to record
+expectations on a mock function.  
 
-    >>> from mockify import Context
-    >>> ctx = Context()
-    >>> foo = ctx.make_mock("foo")
-    >>> foo.expect_call(1, 2).times(2)
-    <Expectation: mock_call=foo(1, 2), expected='to be called twice', actual='never called'>
-    >>> foo.expect_call(3, 4)
-    <Expectation: mock_call=foo(3, 4), expected='to be called once', actual='never called'>
-    >>> foo(1, 2)
-    >>> foo(1, 2)
-    >>> foo(3, 4)
-    >>> ctx.assert_satisfied()
+These expectations are recorded on common (for selected mock functions) context
+object, that acts as a registry and call tracker.
 
-2) Support for ordered and unordered expectation resolving.
+Documentation
+-------------
 
-3) Support for side effects and matchers.
+Newest documentation can be found at https://mockify.readthedocs.org/.
+
+License
+-------
+
+This software is released under the terms of the MIT license.
+
+See **LICENSE.txt** for details.

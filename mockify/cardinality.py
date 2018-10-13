@@ -43,10 +43,7 @@ class AtLeast(Base):
         self._minimal = minimal
 
     def format_expected(self):
-        if self._minimal == 0:
-            return "to be called zero or more times"
-        else:
-            return "to be called at least {}".format(format_call_count(self._minimal))
+        return "to be called at least {}".format(format_call_count(self._minimal))
 
     def is_satisfied(self):
         return self._minimal <= self._actual

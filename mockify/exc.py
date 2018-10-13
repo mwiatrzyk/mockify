@@ -1,42 +1,41 @@
-class UninterestedMockCall(TypeError):
+class UninterestedCall(TypeError):
 
-    def __init__(self, mock_call):
-        self._mock_call = mock_call
-
-    def __str__(self):
-        return "Uninterested mock call: {}".format(self._mock_call)
-
-
-class UnexpectedMockCall(TypeError):
-
-    def __init__(self, expectation, actual_mock_call):
-        self._expectation = expectation
-        self._actual_mock_call = actual_mock_call
-
-    def __str__(self):
-        return "Unexpected mock called:\n\tExpected: {} (at {}:{})\n\t  Actual: {}".\
-            format(self._expectation.mock_call, self._expectation.filename, self._expectation.lineno,
-                self._actual_mock_call)
-
-
-class Unsatisfied(AssertionError):
-
-    def __init__(self, expectations):
-        self._unsatisfied_expectations = list(x for x in expectations if not x.is_satisfied())
-        self._total_count = len(expectations)
+    def __init__(self, call):
+        self._call = call
 
     @property
-    def expectations(self):
-        return self._unsatisfied_expectations
-
-    def _format_error(self, expectation):
-        return "at {}:{}\n\t    Mock: {}\n\tExpected: {}\n\t  Actual: {}".format(
-            expectation.filename, expectation.lineno,
-            expectation.mock_call,
-            expectation.call_count.format_expected(),
-            expectation.call_count.format_actual())
+    def call(self):
+        return self._call
 
     def __str__(self):
-        expectations_gen = (self._format_error(x) for x in self._unsatisfied_expectations)
-        return "{} out of total {} expectations are not satisfied:\n".format(len(self._unsatisfied_expectations), self._total_count)\
-            + "\n".join(expectations_gen)
+        return "at {}:{}: {}".format(self._call.filename, self._call.lineno, self._call)
+
+
+class UnsatisfiedAssertion(AssertionError):
+
+    def __init__(self, unsatisfied_expectations):
+        self._unsatisfied_expectations = unsatisfied_expectations
+
+    @property
+    def unsatisfied_expectations(self):
+        return self._unsatisfied_expectations
+
+    def _format_error(self, index, expectation):
+        expected_call = expectation.expected_call
+        formatted_action = expectation.format_action()
+        heading = "#{} at {}:{}".format(index, expected_call.filename, expected_call.lineno)
+        return "{}\n"\
+            "{}\n"\
+            "      Mock: {}\n"\
+            "{}"\
+            "  Expected: {}\n"\
+            "    Actual: {}".format(
+                heading, '-' * len(heading),
+                expected_call,
+                "    Action: {}\n".format(formatted_action) if formatted_action else '',
+                expectation.format_expected(),
+                expectation.format_actual())
+
+    def __str__(self):
+        expectations_gen = (self._format_error(i+1, x) for i, x in enumerate(self._unsatisfied_expectations))
+        return '\n\n' + '\n\n'.join(expectations_gen)
