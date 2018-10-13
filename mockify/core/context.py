@@ -36,9 +36,9 @@ class Context:
         return tuple(self.make_mock(name) for name in names)
 
     def assert_satisfied(self):
-        unsatisfied_expectations = self.__find_all_unsatisfied()
-        if unsatisfied_expectations:
-            raise exc.Unsatisfied(unsatisfied_expectations)
+        for expectation in self._expectations:
+            if not expectation.is_satisfied():
+                raise exc.Unsatisfied(self._expectations)
 
     def __find_expectation_for(self, mock_call):
         all_matching = self.__find_all_for(mock_call)
@@ -69,6 +69,3 @@ class Context:
 
     def __find_next_expected(self):
         return next(filter(lambda x: not x.is_satisfied(), self._expectations), None)
-
-    def __find_all_unsatisfied(self):
-        return list(filter(lambda x: not x.is_satisfied(), self._expectations))

@@ -286,3 +286,19 @@ class TestExpectCallOrder(TestBase):
         with pytest.raises(exc.Unsatisfied) as excinfo:
             ctx.assert_satisfied()
         self.assert_unsatisfied_match(excinfo, "mock()", "to be called once", "called twice")
+
+
+class TestComplexExpectCalls:
+
+    def test_resolve_sequence_of_expect_calls_having_matchers_cardinality_and_side_effects(self):
+        ctx = Context()
+        foo, bar = ctx.make_mocks("foo", "bar")
+        foo.expect_call(_).times(2)
+        bar.expect_call(1, 2).will_once(Return(3))
+        foo.expect_call("spam").times(AtLeast(2)).will_repeatedly(Return(True))
+        foo(123)
+        foo(456)
+        assert bar(1, 2) == 3
+        assert foo("spam") == True
+        assert foo("spam") == True
+        ctx.assert_satisfied()

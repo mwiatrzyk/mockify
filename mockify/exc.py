@@ -22,11 +22,12 @@ class UnexpectedMockCall(TypeError):
 class Unsatisfied(AssertionError):
 
     def __init__(self, expectations):
-        self._expectations = expectations
+        self._unsatisfied_expectations = list(x for x in expectations if not x.is_satisfied())
+        self._total_count = len(expectations)
 
     @property
     def expectations(self):
-        return self._expectations
+        return self._unsatisfied_expectations
 
     def _format_error(self, expectation):
         return "at {}:{}\n\t    Mock: {}\n\tExpected: {}\n\t  Actual: {}".format(
@@ -36,5 +37,6 @@ class Unsatisfied(AssertionError):
             expectation.call_count.format_actual())
 
     def __str__(self):
-        expectations_gen = (self._format_error(x) for x in self._expectations)
-        return "\n".join(expectations_gen)
+        expectations_gen = (self._format_error(x) for x in self._unsatisfied_expectations)
+        return "{} out of total {} expectations are not satisfied:\n".format(len(self._unsatisfied_expectations), self._total_count)\
+            + "\n".join(expectations_gen)
