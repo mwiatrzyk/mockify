@@ -248,6 +248,15 @@ class TestExpectCallOrder(TestBase):
             mock(3)
         assert str(excinfo.value) == "Unexpected mock called: mock(1) (expected) != mock(3) (called)"
 
+    def test_when_two_mocks_are_used__expectations_must_be_fulfilled_in_order_defined_by_expect_calls(self):
+        ctx = Context()
+        first, second = ctx.make_mocks("first", "second")
+        second.expect_call()
+        first.expect_call()
+        with pytest.raises(TypeError) as excinfo:
+            first()
+        assert str(excinfo.value) == "Unexpected mock called: second() (expected) != first() (called)"
+
     def test_when_unordered_flag_is_set__then_expectations_can_be_resolved_in_any_order(self):
         ctx = Context(ordered=False)
         mock = ctx.make_mock("mock")
