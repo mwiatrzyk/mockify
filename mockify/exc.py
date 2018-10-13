@@ -1,3 +1,24 @@
+class UninterestedMockCall(TypeError):
+
+    def __init__(self, mock_call):
+        self._mock_call = mock_call
+
+    def __str__(self):
+        return "Uninterested mock call: {}".format(self._mock_call)
+
+
+class UnexpectedMockCall(TypeError):
+
+    def __init__(self, expectation, actual_mock_call):
+        self._expectation = expectation
+        self._actual_mock_call = actual_mock_call
+
+    def __str__(self):
+        return "Unexpected mock called:\n\tExpected: {} (at {}:{})\n\t  Actual: {}".\
+            format(self._expectation.mock_call, self._expectation.filename, self._expectation.lineno,
+                self._actual_mock_call)
+
+
 class Unsatisfied(AssertionError):
 
     def __init__(self, expectations):

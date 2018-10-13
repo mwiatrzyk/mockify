@@ -43,7 +43,7 @@ class Context:
     def __find_expectation_for(self, mock_call):
         all_matching = self.__find_all_for(mock_call)
         if not all_matching:
-            raise TypeError("Uninterested mock called: {}".format(mock_call))
+            raise exc.UninterestedMockCall(mock_call)
         if self._ordered:
             return self.__find_ordered(all_matching, mock_call)
         else:
@@ -55,7 +55,7 @@ class Context:
             if not expectation.is_satisfied() and (next_expected is None or expectation is next_expected):
                 return expectation
         if next_expected is not None and matching[-1] is not next_expected:
-            raise TypeError("Unexpected mock called: {} (expected) != {} (called)".format(next_expected.mock_call, mock_call))
+            raise exc.UnexpectedMockCall(next_expected, mock_call)
         return matching[-1]
 
     def __find_unordered(self, matching):

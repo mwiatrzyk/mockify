@@ -69,9 +69,9 @@ class TestExpectCall(TestBase):
         self.assert_unsatisfied_match(excinfo, "mock()", "to be never called", "called once")
 
     def test_when_mock_called_with_no_expectations_set__then_raise_exception(self):
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(exc.UninterestedMockCall) as excinfo:
             self.mock()
-        assert str(excinfo.value) == "Uninterested mock called: mock()"
+        assert str(excinfo.value) == "Uninterested mock call: mock()"
 
     def test_when_expected_to_be_called_3_times_but_mock_called_4_times__then_fail(self):
         self.mock.expect_call().times(3)
@@ -218,9 +218,9 @@ class TestExpectCallWithAnyMatcher(TestBase):
 
     def test_when_called_with_different_number_of_args__then_fail(self):
         self.mock.expect_call(_, _)
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(exc.UninterestedMockCall) as excinfo:
             self.mock(1, 2, 3)
-        assert str(excinfo.value) == "Uninterested mock called: mock(1, 2, 3)"
+        assert str(excinfo.value) == "Uninterested mock call: mock(1, 2, 3)"
 
     def test_expect_mock_to_be_called_twice_with_any_arg_and_then_one_more_time_with_given_arg(self):
         self.mock.expect_call(_).times(2)
@@ -239,6 +239,15 @@ class TestExpectCallWithAnyMatcher(TestBase):
 
 class TestExpectCallOrder(TestBase):
 
+    def assert_unexpected_match(self, excinfo, expected, called):
+        def fix(value):
+            return value.replace("(", "\(").replace(")", "\)")
+        assert excinfo.match("Unexpected mock called:\n\t"
+            "Expected: {} \(at .+?:\d+\)\n\t"
+            "  Actual: {}".format(fix(expected), fix(called)))
+
+    ### Tests
+
     def test_by_default_expectations_must_be_fulfilled_in_order_defined_by_expect_calls(self):
         ctx = Context()
         mock = ctx.make_mock("mock")
@@ -246,7 +255,7 @@ class TestExpectCallOrder(TestBase):
         mock.expect_call(3)
         with pytest.raises(TypeError) as excinfo:
             mock(3)
-        assert str(excinfo.value) == "Unexpected mock called: mock(1) (expected) != mock(3) (called)"
+        self.assert_unexpected_match(excinfo, "mock(1)", "mock(3)")
 
     def test_when_two_mocks_are_used__expectations_must_be_fulfilled_in_order_defined_by_expect_calls(self):
         ctx = Context()
@@ -255,7 +264,7 @@ class TestExpectCallOrder(TestBase):
         first.expect_call()
         with pytest.raises(TypeError) as excinfo:
             first()
-        assert str(excinfo.value) == "Unexpected mock called: second() (expected) != first() (called)"
+        self.assert_unexpected_match(excinfo, "second()", "first()")
 
     def test_when_unordered_flag_is_set__then_expectations_can_be_resolved_in_any_order(self):
         ctx = Context(ordered=False)
