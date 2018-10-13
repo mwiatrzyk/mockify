@@ -3,4 +3,4 @@ test:
     - apt-get update -qy
     - apt-get install -y python3-pip
     - pip3 install -r requirements.txt
-    - pytest
+    - pytest --doctest-glob='*.rst'

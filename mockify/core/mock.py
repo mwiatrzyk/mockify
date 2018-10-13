@@ -11,6 +11,9 @@ class MockCall:
         self._args = args
         self._kwargs = kwargs
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         args_gen = (repr(x) for x in self._args)
         kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(self._kwargs.items()))

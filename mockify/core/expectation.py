@@ -15,6 +15,10 @@ class Expectation:
         self._call_count = Exactly(1)
         self._times_called = False
 
+    def __repr__(self):
+        return "<Expectation: mock_call={!r}, expected={!r}, actual={!r}>".\
+            format(self._mock_call, self._call_count.format_expected(), self._call_count.format_actual())
+
     def __call__(self, *args, **kwargs):
         self._call_count.update()
         action = self.__get_action()
