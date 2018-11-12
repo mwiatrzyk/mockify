@@ -38,4 +38,4 @@ class UnsatisfiedAssertion(AssertionError):
 
     def __str__(self):
         expectations_gen = (self._format_error(i+1, x) for i, x in enumerate(self._unsatisfied_expectations))
-        return '\n\n' + '\n\n'.join(expectations_gen)
+        return 'Following expectations have failed:\n\n' + '\n\n'.join(expectations_gen)

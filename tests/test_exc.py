@@ -15,7 +15,7 @@ class TestUnsatisfiedAssertion:
         first = Expectation(Call('foo', filename='foo.py', lineno=1))
         uut = exc.UnsatisfiedAssertion([first])
         assert str(uut) ==\
-            "\n\n"\
+            "Following expectations have failed:\n\n"\
             "#1 at foo.py:1\n"\
             "--------------\n"\
             "      Mock: foo()\n"\
@@ -27,7 +27,7 @@ class TestUnsatisfiedAssertion:
         first.will_once(Return(123))
         uut = exc.UnsatisfiedAssertion([first])
         assert str(uut) ==\
-            "\n\n"\
+            "Following expectations have failed:\n\n"\
             "#1 at foo.py:1\n"\
             "--------------\n"\
             "      Mock: foo()\n"\
@@ -40,7 +40,7 @@ class TestUnsatisfiedAssertion:
         second = Expectation(Call('spam', filename='spam.py', lineno=1))
         uut = exc.UnsatisfiedAssertion([first, second])
         assert str(uut) ==\
-            "\n\n"\
+            "Following expectations have failed:\n\n"\
             "#1 at foo.py:1\n"\
             "--------------\n"\
             "      Mock: foo()\n"\

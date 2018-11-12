@@ -33,6 +33,13 @@ class FunctionMock:
         if unsatisfied_expectations:
             raise exc.UnsatisfiedAssertion(unsatisfied_expectations)
 
+    def assert_not_satisfied(self):
+        try:
+            self.assert_satisfied()
+            raise AssertionError("function mock {!r} is expected not to be satisfied, but it is".format(self._name))
+        except exc.UnsatisfiedAssertion:
+            pass
+
     def _extract_owning_method_call_location(self):
         stack = traceback.extract_stack()
         frame_summary = stack[-3]

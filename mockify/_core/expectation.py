@@ -15,6 +15,10 @@ class Expectation:
         self._expected_call = expected_call
         self._subexpect = _DefaultSubexpect()
 
+    def __repr__(self):
+        return "<Expectation: call={}, expected={!r}, actual={!r}>".\
+            format(self.expected_call, self.format_expected(), self.format_actual())
+
     def __call__(self, call):
         return self._next_subexpect._consume(call)
 
@@ -129,6 +133,10 @@ class _TimesSubexpect:
             self._cardinality = Exactly(cardinality)
         else:
             self._cardinality = cardinality
+
+    def __repr__(self):
+        return "<Times: expected={!r}, actual={!r}>".\
+            format(self._format_expected(), self._format_actual())
 
     def _consume(self, call):
         self._cardinality.update()
