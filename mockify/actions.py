@@ -9,6 +9,7 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
+
 class Return:
     """Makes mock returning given value each time it is called.
 

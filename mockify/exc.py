@@ -9,6 +9,7 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
+
 class UninterestedCall(TypeError):
 
     def __init__(self, call):

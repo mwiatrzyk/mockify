@@ -9,58 +9,41 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
-from ._utils import format_call_count
+from mockify import _utils
 
 
-class Base:
-
-    def __init__(self):
-        self._actual = 0
-
-    def format_actual(self):
-        if self._actual == 0:
-            return "never called"
-        else:
-            return "called {}".format(format_call_count(self._actual))
-
-    def update(self):
-        self._actual += 1
-
-
-class Exactly(Base):
+class Exactly:
 
     def __init__(self, expected):
         if expected < 0:
             raise TypeError("value of 'expected' must be >= 0")
-        super().__init__()
         self._expected = expected
+
+    def __eq__(self, actual):
+        return self._expected == actual
 
     def format_expected(self):
         if self._expected == 0:
             return "to be never called"
         else:
-            return "to be called {}".format(format_call_count(self._expected))
-
-    def is_satisfied(self):
-        return self._expected == self._actual
+            return "to be called {}".format(_utils.format_call_count(self._expected))
 
 
-class AtLeast(Base):
+class AtLeast:
 
     def __init__(self, minimal):
         if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
-        super().__init__()
         self._minimal = minimal
+
+    def __eq__(self, actual):
+        return actual >= self._minimal
 
     def format_expected(self):
         return "to be called at least {}".format(format_call_count(self._minimal))
 
-    def is_satisfied(self):
-        return self._minimal <= self._actual
 
-
-class AtMost(Base):
+class AtMost:
 
     def __new__(cls, maximal):
         if maximal < 0:
@@ -81,7 +64,7 @@ class AtMost(Base):
         return self._maximal >= self._actual
 
 
-class Between(Base):
+class Between:
 
     def __new__(cls, minimal, maximal):
         if minimal > maximal:

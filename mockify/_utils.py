@@ -9,6 +9,9 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
+_next_id = 0
+
+
 def is_cardinality_object(obj):
     return hasattr(obj, "_actual")
 
@@ -20,3 +23,9 @@ def format_call_count(count):
         return "twice"
     else:
         return "{} times".format(count)
+
+
+def next_unique_id():
+    global _next_id
+    _next_id += 1
+    return _next_id
