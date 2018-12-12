@@ -9,7 +9,7 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
-_next_id = 0
+import traceback
 
 
 def is_cardinality_object(obj):
@@ -25,7 +25,21 @@ def format_call_count(count):
         return "{} times".format(count)
 
 
-def next_unique_id():
-    global _next_id
-    _next_id += 1
-    return _next_id
+def format_actual_call_count(count):
+    if count == 0:
+        return 'never called'
+    else:
+        return 'called ' + format_call_count(count)
+
+
+def format_expected_call_count(count):
+    if count == 0:
+        return 'to be never called'
+    else:
+        return 'to be called ' + format_call_count(count)
+
+
+def extract_filename_and_lineno_from_stack(offset=0):
+    stack = traceback.extract_stack()
+    frame = stack[-2 + offset]
+    return frame.filename, frame.lineno

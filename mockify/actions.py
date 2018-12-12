@@ -58,7 +58,7 @@ class Invoke:
         self._func = func
 
     def __str__(self):
-        return "Invoke({})".format(self._func.__name__)
+        return "Invoke(<function {}>)".format(self._func.__name__)
 
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)

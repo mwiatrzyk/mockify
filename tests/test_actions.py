@@ -11,71 +11,70 @@
 
 import pytest
 
-from mockify import exc
-from mockify.mock import FunctionMock
-from mockify.actions import Raise, Invoke
-
-from tests.mixins import AssertUnsatisfiedAssertionMatchMixin
+from mockify.actions import Return, Raise, Invoke
 
 
-class TestActionsBase(AssertUnsatisfiedAssertionMatchMixin):
+class TestReturn:
 
     def setup_method(self):
-        self.foo = FunctionMock('foo')
-
-
-class TestRaise(TestActionsBase):
-
-    def test_when_expected_to_once_raise_exception_and_never_called__then_fail(self):
-        self.foo.expect_call().will_once(Raise(Exception('an error')))
-        with pytest.raises(exc.UnsatisfiedAssertion) as excinfo:
-            self.foo.assert_satisfied()
-        self.assert_unsatisfied_assertion_match(excinfo,
-            ('foo()', "Raise(Exception('an error',))", 'to be called once', 'never called'))
-
-    def test_when_expected_to_once_raise_exception_and_called_twice__then_fail(self):
-        self.foo.expect_call().will_once(Raise(Exception('an error')))
-        for _ in range(2):
-            with pytest.raises(Exception) as excinfo:
-                self.foo()
-            assert str(excinfo.value) == 'an error'
-        with pytest.raises(exc.UnsatisfiedAssertion) as excinfo:
-            self.foo.assert_satisfied()
-        self.assert_unsatisfied_assertion_match(excinfo,
-            ('foo()', "Raise(Exception('an error',))", 'to be called once', 'called twice'))
-
-    def test_when_expected_to_once_raise_exception_and_called_once__then_pass(self):
-        self.foo.expect_call().will_once(Raise(Exception('an error')))
-        with pytest.raises(Exception) as excinfo:
-            self.foo()
-        assert str(excinfo.value) == 'an error'
-        self.foo.assert_satisfied()
-
-
-class TestInvoke(TestActionsBase):
-
-    def setup_method(self):
-        super().setup_method()
-        self.args = []
-        self.kwargs = []
-
-    def func(self, *args, **kwargs):
-        self.args.append(args)
-        self.kwargs.append(kwargs)
-        return 'OK'
+        self.uut = Return(123)
 
     ### Tests
 
-    def test_when_expected_to_once_invoke_function_and_called__then_pass_givin_all_args_to_function_and_returning_its_result(self):
-        self.foo.expect_call(1, 2, a=3).will_once(Invoke(self.func))
-        assert self.foo(1, 2, a=3) == 'OK'
-        assert self.args == [(1, 2)]
-        assert self.kwargs == [{'a': 3}]
-        self.foo.assert_satisfied()
+    def test_string_representation(self):
+        assert str(self.uut) == 'Return(123)'
 
-    def test_when_expected_to_once_invoke_function_and_never_called__then_fail(self):
-        self.foo.expect_call().will_once(Invoke(self.func))
-        with pytest.raises(exc.UnsatisfiedAssertion) as excinfo:
-            self.foo.assert_satisfied()
-        self.assert_unsatisfied_assertion_match(excinfo,
-            ('foo()', "Invoke(func)", 'to be called once', 'never called'))
+    def test_when_called_without_args__then_return_given_value(self):
+        assert self.uut() == 123
+
+    def test_when_called_with_positional_and_named_args__then_return_given_value(self):
+        assert self.uut(1, 2, c=3) == 123
+
+
+class TestRaise:
+
+    def setup_method(self):
+        self.exc = Exception('an error')
+        self.uut = Raise(self.exc)
+
+    ### Tests
+
+    def test_string_representation(self):
+        assert str(self.uut) == "Raise(Exception('an error',))"
+
+    def test_when_called_without_args__then_raise_given_exception(self):
+        with pytest.raises(Exception) as excinfo:
+            self.uut()
+        assert excinfo.value is self.exc
+
+    def test_when_called_with_args_and_kwargs__then_raise_given_exception(self):
+        with pytest.raises(Exception) as excinfo:
+            self.uut(1, 2, c=3)
+        assert excinfo.value is self.exc
+
+
+class TestInvoke:
+
+    def setup_method(self):
+
+        def func(*args, **kwargs):
+            self.called_with.append((args, kwargs))
+            return self.return_value
+
+        self.func = func
+        self.uut = Invoke(self.func)
+        self.called_with = []
+        self.return_value = 123
+
+    ### Tests
+
+    def test_string_representation(self):
+        assert str(self.uut) == "Invoke(<function func>)"
+
+    def test_when_called_without_params__then_trigger_func_without_params(self):
+        assert self.uut() == self.return_value
+        assert self.called_with == [(tuple(), {})]
+
+    def test_when_called_with_args_and_kwargs__then_trigger_func_with_same_args_and_kwargs(self):
+        assert self.uut(1, 2, c=3) == self.return_value
+        assert self.called_with == [((1, 2), {'c': 3})]
