@@ -46,19 +46,12 @@ class TestRegistry:
             self.call_foo()
         assert excinfo.value.call is self.foo_call
 
-    def test_calling_assert_unsatisfied_when_registry_is_satisfied_causes_exception(self):
-        self.uut.assert_satisfied()
-        with pytest.raises(exc.Satisfied):
-            self.uut.assert_unsatisfied()
-
-    def test_assert_satisfied_and_assert_unsatisfied_can_be_called_with_mock_name_to_check_if_given_mock_is_either_satisfied_or_unsatisfied(self):
+    def test_assert_satisfied_can_be_called_with_mock_name_to_check_if_given_mock_is_satisfied(self):
         self.expect_call_foo()
         self.expect_call_bar()
         self.call_bar()
-        self.uut.assert_unsatisfied()
         with pytest.raises(exc.Unsatisfied):
             self.uut.assert_satisfied()
-        self.uut.assert_unsatisfied('foo')
         self.uut.assert_satisfied('bar')
         self.call_foo()
         self.uut.assert_satisfied('foo')

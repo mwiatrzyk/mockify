@@ -2,16 +2,30 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def assert_satisfied(*mocks):
-    """Context manager for verifying multiple mocks at once.
+def assert_satisfied(*subjects):
+    """Context manager for verifying multiple subjects at once.
 
-    It ensures, that all mocks are not satisfied before entering scope, and all
-    are satisfied after leaving scope. This allows to have more clean tests.
+    Each passed subject must have ``assert_satisfied`` method defined, so it
+    can be used with :class:`mockify.mock.function.Function` or
+    :class:`mockify.engine.Registry` instances for example.
 
-    This is very handy helper when there are two or more mocks to be checked.
+    Basically, the role of this helper is to ensure that all subjects become
+    satisfied after leaving wrapped context. For example:
+
+        >>> from mockify.mock.function import Function
+        >>> foo = Function('foo')
+        >>> bar = Function('bar')
+        >>> foo.expect_call()
+        <mockify.Expectation(foo())>
+        >>> bar.expect_call().times(0)
+        <mockify.Expectation(bar())>
+        >>> with assert_satisfied(foo, bar):
+        ...     foo()
+
+    And that's it - you don't have to explicitly check if ``foo`` and ``bar``
+    are satisfied, because the helper will do it for you. And also it
+    emphasizes part of code that actually uses given mocks.
     """
-    for mock in mocks:
-        mock.assert_not_satisfied()
     yield
-    for mock in mocks:
-        mock.assert_satisfied()
+    for subject in subjects:
+        subject.assert_satisfied()

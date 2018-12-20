@@ -49,7 +49,9 @@ class AtLeast(TimesBase):
         return self.__class__(self._minimal + minimal)
 
     def format_expected(self):
-        if self._minimal > 0:
+        if self._minimal == 0:
+            return "to be called optionally"
+        else:
             return "to be called at least {}".format(_utils.format_call_count(self._minimal))
 
 

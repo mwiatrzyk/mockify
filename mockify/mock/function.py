@@ -137,17 +137,6 @@ class Function:
         filename, lineno = _utils.extract_filename_and_lineno_from_stack(-1)
         return self._registry.expect_call(call, filename, lineno)
 
-    def assert_unsatisfied(self):
-        """Assert that this function mock is unsatisfied.
-
-        If mock is already satisfied, then
-        :exc:`mockify.exc.Satisfied` will be raised.
-
-        See :meth:`mockify.engine.Registry.assert_unsatisfied` for more
-        information.
-        """
-        self._registry.assert_unsatisfied(self._name)
-
     def assert_satisfied(self):
         """Assert that this function mock is satisfied.
 

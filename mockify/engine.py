@@ -132,16 +132,6 @@ class Registry:
         if unsatisfied:
             raise exc.Unsatisfied(unsatisfied)
 
-    def assert_unsatisfied(self, name=None):
-        try:
-            self.assert_satisfied(name)
-        except exc.Unsatisfied:
-            pass
-        except:
-            raise
-        else:
-            raise exc.Satisfied(self)
-
 
 class Expectation:
 

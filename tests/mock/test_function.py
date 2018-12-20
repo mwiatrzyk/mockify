@@ -37,9 +37,6 @@ class RegistryStub:
         self.expectations.append(expectation)
         return expectation
 
-    def assert_unsatisfied(self, name):
-        self.assert_unsatisfied_params.append(name)
-
     def assert_satisfied(self, name):
         self.assert_satisfied_params.append(name)
 
@@ -94,10 +91,6 @@ class TestFunction:
         assert expect.call.kwargs == {'c': 3}
         assert expect.filename == __file__
         assert expect.lineno > 0
-
-    def test_when_assert_unsatisfied_is_called__then_registry_assert_unsatisfied_is_called_with_function_name(self):
-        self.uut.assert_unsatisfied()
-        self.assert_registry_assert_unsatisfied_called_once()
 
     def test_when_assert_sastisfied_is_called__then_registry_assert_satisfied_is_called_with_function_name(self):
         self.uut.assert_satisfied()
