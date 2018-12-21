@@ -74,7 +74,7 @@ class TestRegistry:
         self.call_foo()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.uut.assert_satisfied()
-        unsatisfied_expectations = excinfo.value.unsatisfied_expectations
+        unsatisfied_expectations = excinfo.value.expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] is foo_expect
 
@@ -82,7 +82,7 @@ class TestRegistry:
         foo_expect = self.expect_call_foo()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.uut.assert_satisfied()
-        unsatisfied_expectations = excinfo.value.unsatisfied_expectations
+        unsatisfied_expectations = excinfo.value.expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] is foo_expect
 
@@ -99,7 +99,7 @@ class TestRegistry:
         self.call_foo()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.uut.assert_satisfied()
-        unsatisfied_expectations = excinfo.value.unsatisfied_expectations
+        unsatisfied_expectations = excinfo.value.expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] is bar_expect
 
@@ -116,7 +116,7 @@ class TestRegistry:
         self.call_foo()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.uut.assert_satisfied()
-        unsatisfied_expectations = excinfo.value.unsatisfied_expectations
+        unsatisfied_expectations = excinfo.value.expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] is second_expect
 
@@ -127,6 +127,6 @@ class TestRegistry:
             self.call_foo()
         with pytest.raises(exc.Unsatisfied) as excinfo:
             self.uut.assert_satisfied()
-        unsatisfied_expectations = excinfo.value.unsatisfied_expectations
+        unsatisfied_expectations = excinfo.value.expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] is second_expect

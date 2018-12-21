@@ -49,7 +49,7 @@ class Function:
         >>> foo.assert_satisfied()
         Traceback (most recent call last):
             ...
-        mockify.exc.Unsatisfied: following 1 expectation(-s) are not satisfied:
+        mockify.exc.Unsatisfied: following expectation is not satisfied:
         <BLANKLINE>
         at <doctest mockify.mock.function.Function[2]>:1
         ------------------------------------------------
@@ -84,7 +84,7 @@ class Function:
         >>> reg.assert_satisfied()
         Traceback (most recent call last):
             ...
-        mockify.exc.Unsatisfied: following 2 expectation(-s) are not satisfied:
+        mockify.exc.Unsatisfied: following 2 expectations are not satisfied:
         <BLANKLINE>
         at <doctest mockify.mock.function.Function[11]>:1
         -------------------------------------------------

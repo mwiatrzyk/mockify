@@ -11,8 +11,11 @@
 
 
 class UninterestedCall(TypeError):
-    """Raised when mock is called but there were no matching expectations
-    found.
+    """Raised when uninterested mock is called.
+
+    Mockify requires each mock call to have matching expectation recorded. If
+    none is found during call, then this exception is raised, terminating the
+    test.
 
     :param call:
         Instance of :class:`mockify.engine.Call` class representing mock call
@@ -35,15 +38,27 @@ class OversaturatedCall(TypeError):
     This exception will be thrown only if mock has actions defined as it does
     not know what to do next if all expected actions were already executed.
 
+    :param expectation:
+        Instance of :class:`mockify.engine.Expectation` class representing
+        expectation that was oversaturated.
+
     :param call:
         Instance of :class:`mockify.engine.Call` class representing mock call
     """
 
-    def __init__(self, call):
+    def __init__(self, expectation, call):
+        self._expectation = expectation
         self._call = call
 
     def __str__(self):
-        return str(self.call)
+        return "at {}: {}: no more actions recorded for call: {}".format(
+            self.expectation.format_location(),
+            str(self.expectation.expected_call),
+            self.call)
+
+    @property
+    def expectation(self):
+        return self._expectation
 
     @property
     def call(self):
@@ -51,15 +66,33 @@ class OversaturatedCall(TypeError):
 
 
 class Unsatisfied(AssertionError):
+    """Raised by :meth:`mockify.engine.Registry.assert_satisfied` method when
+    there is at least one unsatisfied expectation.
 
-    def __init__(self, unsatisfied_expectations):
-        self._unsatisfied_expectations = unsatisfied_expectations
+    This exception displays explanatory information to the user:
+
+        * file location where unsatisfied expectation was recorded
+        * expected call pattern
+        * expected call count
+        * actual call count
+        * next action to be executed (if any)
+
+    :param expectations:
+        List of :class:`mockify.engine.Expectation` instances representing all
+        unsatisfied expectations.
+    """
+
+    def __init__(self, expectations):
+        self._expectations = expectations
 
     def __str__(self):
+        if len(self.expectations) == 1:
+            prefix = 'following expectation is not satisfied:\n\n'
+        else:
+            prefix = 'following {} expectations are not satisfied:\n\n'.format(len(self.expectations))
         expectations_gen = map(
-            lambda x: self.__format_expectation(x), self.unsatisfied_expectations)
-        return 'following {} expectation(-s) are not satisfied:\n\n'.\
-            format(len(self.unsatisfied_expectations)) + '\n\n'.join(expectations_gen)
+            lambda x: self.__format_expectation(x), self.expectations)
+        return prefix + '\n\n'.join(expectations_gen)
 
     def __format_expectation(self, expectation):
         rows = ["at {}".format(expectation.format_location())]
@@ -71,18 +104,5 @@ class Unsatisfied(AssertionError):
         return '\n'.join(rows)
 
     @property
-    def unsatisfied_expectations(self):
-        return self._unsatisfied_expectations
-
-
-class Satisfied(AssertionError):
-
-    def __init__(self, registry):
-        self._registry = registry
-
-    def __str__(self):
-        return "some expectations registered in {!r} are unexpectedly satisfied".format(self.registry)
-
-    @property
-    def registry(self):
-        return self._registry
+    def expectations(self):
+        return self._expectations
