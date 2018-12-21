@@ -11,7 +11,7 @@
 
 
 class Return:
-    """Makes mock returning given value each time it is called.
+    """Used to record value a mock should return once called.
 
     :param value:
         Value to be returned
@@ -28,10 +28,10 @@ class Return:
 
 
 class Raise:
-    """Makes mock raising given exception each time it is called.
+    """Used to record exception a mock should raise once called.
 
     :param exc:
-        Instance of exception to be raised.
+        Instance of exception to be raised
     """
 
     def __init__(self, exc):
@@ -45,13 +45,14 @@ class Raise:
 
 
 class Invoke:
-    """Makes mock invoking given function each time it is called.
+    """Used to trigger custom function once mock is called.
 
-    All positional and keyword args are passed to given function in same
-    order.
+    When this is used, all positional and named arguments will be passed to
+    ``func`` once mock is called, and ``func`` return value produced will be
+    use as mock call return value.
 
     :param func:
-        Function to be executed.
+        Function to be executed
     """
 
     def __init__(self, func):

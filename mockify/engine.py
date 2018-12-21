@@ -103,12 +103,43 @@ class Call:
 
 
 class Registry:
+    """Expectation database.
+
+    This class is used as a backend for higher level mocking utilities (a.k.a.
+    frontends), like :class:`mockify.mock.function.Function` mocking class. It
+    provides methods to record, lookup and verifying of expectations.
+
+    There can be many instances of registry classes, or one that can be shared
+    between various frontends. For example, you can create one registry in
+    setup code, then create various mocks inside your tests, to finally trigger
+    :meth:`assert_satisfied` of that single registry in test's teardown code.
+    Or you can just use frontends with their defaults. It is completely up to
+    you.
+
+    :param expectation_class:
+        Expectation class to be used.
+
+        By default, this will be :class:`Expectation`, but you can use your own
+        if needed.
+    """
 
     def __init__(self, expectation_class=None):
         self._expects = []
         self._expectation_class = expectation_class or Expectation
 
     def __call__(self, call):
+        """Call a mock.
+
+        When this method is called, registry performs a lookup of matching
+        expectation and consumes it if found.
+
+        If there were no matching expectations, then
+        :exc:`mockify.exc.UninterestedCall` exception is raised.
+
+        :param call:
+            Instance of :class:`mockify.engine.Call` class representing mock
+            being called
+        """
         matching_expects = list(filter(lambda x: x.match(call), self._expects))
         if not matching_expects:
             raise exc.UninterestedCall(call)
@@ -119,11 +150,42 @@ class Registry:
             return matching_expects[-1](call)
 
     def expect_call(self, call, filename, lineno):
+        """Register expectation.
+
+        Returns :class:`Expectation` (or its subclass) instance representing
+        newly created expectation.
+
+        :param call:
+            Instance of :class:`mockify.engine.Call` class representing exact
+            mock call or a pattern (if created with matchers) that is expected
+            to be executed
+
+        :param filename:
+            Path to file were expectation is created
+
+        :param lineno:
+            Line number (inside ``filename``) where expectation is created
+        """
         expect = self._expectation_class(call, filename, lineno)
         self._expects.append(expect)
         return expect
 
     def assert_satisfied(self, name=None):
+        """Assert that all expectations are satisfied.
+
+        If there is at least one unsatisfied expectation, then this method will
+        raise :exc:`mockify.exc.Unsatisfied` exception containing list of
+        failed expectations.
+
+        This method can be called as many times as you want.
+
+        :param name:
+            Mock name.
+
+            If this is given, then method performs a lookup of expectations
+            matching ``name`` and checks if only that expectations are
+            satisfied.
+        """
         unsatisfied = []
         keyfunc = lambda x: name is None or x.expected_call.name == name
         for expect in filter(keyfunc, self._expects):
@@ -134,6 +196,23 @@ class Registry:
 
 
 class Expectation:
+    """Class representing single expectation.
+
+    Instances of this class are normally created by registry objects using
+    :meth:`Registry.expect_call` method. Each instance of this class is
+    correlated with exactly one :class:`mockify.engine.Call` object
+    representing expected mock call pattern.
+
+    :param call:
+        Instance of :class:`mockify.engine.Call` representing expected mock
+        call pattern
+
+    :param filename:
+        File name were this expectation was created
+
+    :param lineno:
+        Line number where this expectation was created
+    """
 
     class _ProxyBase:
 
@@ -300,12 +379,16 @@ class Expectation:
 
     @property
     def expected_call(self):
+        """Instance of :class:`mockify.engine.Call` representing expected mock
+        call pattern."""
         return self._expected_call
 
     def match(self, call):
+        """Check if :param:`expected_call` matches ``call``."""
         return self._expected_call == call
 
     def is_satisfied(self):
+        """Check if this expectation is satisfied."""
         tmp = self._next_proxy
         while tmp is not None:
             if not tmp._is_satisfied():
@@ -314,26 +397,77 @@ class Expectation:
         return True
 
     def format_actual(self):
+        """Return text saying how many times this expectation was consumed so
+        far."""
         return _utils.format_actual_call_count(self._total_calls)
 
     def format_expected(self):
+        """Return text saying how many times this expectation is expected to be
+        consumed."""
         return self._next_proxy._format_expected()
 
     def format_action(self):
+        """Return text representation of next action to be executed.
+
+        Returns ``None`` if there were no actions recorded or all were consumed.
+        """
         if hasattr(self._next_proxy, '_format_action'):
             return self._next_proxy._format_action()
 
     def format_location(self):
+        """Return text representing file and line location of this expectation
+        object.
+
+        Basically, it just returns ``[filename]:[lineno]``.
+        """
         return "{}:{}".format(self._filename, self._lineno)
 
     def times(self, expected_count):
+        """Record how many times this expectation is expected to be
+        executed.
+
+        If this method is used, no actions can be recorded.
+
+        :param expected_count:
+            Expected call count.
+
+            This can be either integer number (exact call count) or instance of
+            one of classes from :mod:`mockify.times` module.
+        """
         self._next_proxy = tmp = self._TimesProxy(expected_count, self)
         return tmp
 
     def will_once(self, action):
+        """Attach action to be executed when this expectation gets consumed.
+        
+        This method can be used several times, making action chains. Once
+        expectation is consumed, next action is executed and removed from the
+        list. If there are no more actions, another call will fail with
+        :exc:`mockify.exc.OversaturatedCall` exception.
+
+        After this method is used, you can also use :meth:`will_repeatedly` to
+        record repeated action.
+
+        :param action:
+            Action to be executed.
+
+            See :mod:`mockify.actions` for details.
+        """
         self._next_proxy = tmp = self._ActionProxy(action, self)
         return tmp
 
     def will_repeatedly(self, action):
+        """Attach repeated action to be executed when this expectation is called.
+        
+        This method is used to record one action that gets executed each time
+        this expectation object is called. By default, when repeated action is
+        recorded expectation can be called any number of times (including
+        zero). This can be changed using :meth:`times`.
+
+        :param action:
+            Action to be executed.
+
+            See :mod:`mockify.actions` for details.
+        """
         self._next_proxy = tmp = self._RepeatedActionProxy(action, self)
         return tmp
