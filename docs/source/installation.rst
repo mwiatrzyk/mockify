@@ -1,12 +1,4 @@
 Installation
 ============
 
-Using *virtualenv* and *pip*
-----------------------------
-
-Todo.
-
-Using Git submodules
---------------------
-
-Todo.
+This will prepared once first official release is ready.

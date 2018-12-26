@@ -30,14 +30,14 @@ class TestAtLeast:
         assert str(excinfo.value) == "value of 'minimal' must be >= 0"
 
     def test_at_least_with_zero_matches_any_number_of_calls(self):
-        assert AtLeast(0) == 0
-        assert AtLeast(0) == 1
-        assert AtLeast(0) == 2
+        assert AtLeast(0).is_satisfied(0)
+        assert AtLeast(0).is_satisfied(1)
+        assert AtLeast(0).is_satisfied(2)
 
     def test_at_least_with_positive_value_matches_call_count_only_if_it_is_greater_or_equal(self):
-        assert AtLeast(1) != 0
-        assert AtLeast(1) == 1
-        assert AtLeast(1) == 2
+        assert not AtLeast(1).is_satisfied(0)
+        assert AtLeast(1).is_satisfied(1)
+        assert AtLeast(1).is_satisfied(2)
 
     def test_format_expected(self):
         assert AtLeast(0).format_expected() == 'to be called optionally'
@@ -57,9 +57,9 @@ class TestAtMost:
         assert isinstance(AtMost(0), Exactly)
 
     def test_at_most_with_positive_value_matches_call_count_only_if_it_is_not_greater(self):
-        assert AtMost(1) == 0
-        assert AtMost(1) == 1
-        assert AtMost(1) != 2
+        assert AtMost(1).is_satisfied(0)
+        assert AtMost(1).is_satisfied(1)
+        assert not AtMost(1).is_satisfied(2)
 
     def test_format_expected(self):
         assert AtMost(0).format_expected() == 'to be never called'
@@ -90,7 +90,7 @@ class TestBetween:
         assert uut.format_expected() == 'to be called at most once'
 
     def test_between_with_range_matches_call_count_only_from_range(self):
-        assert Between(1, 2) != 0
-        assert Between(1, 2) == 1
-        assert Between(1, 2) == 2
-        assert Between(1, 2) != 3
+        assert not Between(1, 2).is_satisfied(0)
+        assert Between(1, 2).is_satisfied(1)
+        assert Between(1, 2).is_satisfied(2)
+        assert not Between(1, 2).is_satisfied(3)

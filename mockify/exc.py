@@ -18,7 +18,8 @@ class UninterestedCall(TypeError):
     test.
 
     :param call:
-        Instance of :class:`mockify.engine.Call` class representing mock call
+        Instance of :class:`mockify.engine.Call` class representing uinterested
+        mock call
     """
 
     def __init__(self, call):
@@ -29,6 +30,8 @@ class UninterestedCall(TypeError):
 
     @property
     def call(self):
+        """Instance of :class:`mockify.engine.Call` passed to
+        :class:`UninterestedCall` constructor."""
         return self._call
 
 
@@ -40,10 +43,11 @@ class OversaturatedCall(TypeError):
 
     :param expectation:
         Instance of :class:`mockify.engine.Expectation` class representing
-        expectation that was oversaturated.
+        expectation that was oversaturated
 
     :param call:
         Instance of :class:`mockify.engine.Call` class representing mock call
+        that oversaturated ``expectation``
     """
 
     def __init__(self, expectation, call):
@@ -58,10 +62,14 @@ class OversaturatedCall(TypeError):
 
     @property
     def expectation(self):
+        """Instance of :class:`mockify.engine.Expectation` passed to
+        :class:`OversaturatedCall` constructor."""
         return self._expectation
 
     @property
     def call(self):
+        """Instance of :class:`mockify.engine.Call` passed to
+        :class:`OversaturatedCall` constructor."""
         return self._call
 
 
@@ -79,7 +87,7 @@ class Unsatisfied(AssertionError):
 
     :param expectations:
         List of :class:`mockify.engine.Expectation` instances representing all
-        unsatisfied expectations.
+        unsatisfied expectations
     """
 
     def __init__(self, expectations):
@@ -105,4 +113,6 @@ class Unsatisfied(AssertionError):
 
     @property
     def expectations(self):
+        """Instance of :class:`mockify.engine.Expectation` passed to
+        :class:`Unsatisfied` constructor."""
         return self._expectations

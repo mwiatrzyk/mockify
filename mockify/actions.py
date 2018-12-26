@@ -9,9 +9,27 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
+"""Module containing predefined actions that can be used as argument for
+:meth:`Expectation.will_once` or :meth:`Expectation.will_repeatedly`.
+
+Basically, any class containing following methods is considered an **action**:
+
+    ``__str__(self)``
+
+        Returning string representation of an action.
+
+        This is used for error reporting.
+
+    ``__call__(self, *args, **kwargs)``
+
+        Method that is called when mock is called.
+
+        Entire action logic goes in here.
+"""
+
 
 class Return:
-    """Used to record value a mock should return once called.
+    """Makes mock returning given value when called.
 
     :param value:
         Value to be returned
@@ -28,7 +46,7 @@ class Return:
 
 
 class Raise:
-    """Used to record exception a mock should raise once called.
+    """Makes mock raising given exception when called.
 
     :param exc:
         Instance of exception to be raised
@@ -45,11 +63,10 @@ class Raise:
 
 
 class Invoke:
-    """Used to trigger custom function once mock is called.
+    """Makes mock invoking given function when called.
 
-    When this is used, all positional and named arguments will be passed to
-    ``func`` once mock is called, and ``func`` return value produced will be
-    use as mock call return value.
+    When mock is called, all arguments (if there are any) are passed to the
+    ``func`` and its return value is returned as mock's return value.
 
     :param func:
         Function to be executed

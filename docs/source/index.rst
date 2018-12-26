@@ -37,4 +37,4 @@ User's Guide
 
    installation
    tutorial
-   examples
+   api

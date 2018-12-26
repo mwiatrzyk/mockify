@@ -16,9 +16,9 @@ def assert_satisfied(*subjects):
         >>> foo = Function('foo')
         >>> bar = Function('bar')
         >>> foo.expect_call()
-        <mockify.Expectation(foo())>
+        <mockify.Expectation: foo()>
         >>> bar.expect_call().times(0)
-        <mockify.Expectation(bar())>
+        <mockify.Expectation: bar()>
         >>> with assert_satisfied(foo, bar):
         ...     foo()
 

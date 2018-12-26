@@ -23,7 +23,7 @@ class TimesStub:
         self._expected = expected
         self._func = func
 
-    def __eq__(self, actual):
+    def is_satisfied(self, actual):
         return self._func(actual)
 
     def format_expected(self):
