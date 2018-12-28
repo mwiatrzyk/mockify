@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/_core/expectation.py
+# mockify/engine.py
 #
 # Copyright (C) 2018 Maciej Wiatrzyk
 #

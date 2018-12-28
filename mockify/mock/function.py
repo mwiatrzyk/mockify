@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/mock.py
+# mockify/mock/function.py
 #
 # Copyright (C) 2018 Maciej Wiatrzyk
 #
