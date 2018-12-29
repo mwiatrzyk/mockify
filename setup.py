@@ -5,7 +5,7 @@ with open("README.rst", "r") as fd:
 
 setuptools.setup(
     name="mockify",
-    version="0.1.1",
+    version="0.1.2",
     author="Maciej Wiatrzyk",
     author_email="maciej.wiatrzyk@gmail.com",
     description="Mocking library for Python inspired by Google Mock C++ mocking toolkit",
