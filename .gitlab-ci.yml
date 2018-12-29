@@ -11,9 +11,19 @@ before_script:
 build_docs:
     stage: test
     script:
-        - pushd docs && make html && popd
+        - cd docs
+        - make html
 
 run_tests:
     stage: test
     script:
         - pytest
+
+make_package:
+    stage: package
+    script:
+        - python3 setup.py sdist bdist_wheel
+    only:
+        - tags
+    except:
+        - branches
