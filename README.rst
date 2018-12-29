@@ -21,6 +21,11 @@ Documentation
 
 Newest documentation can be found at https://mockify.readthedocs.org/.
 
+Source
+------
+
+Source code is available at https://gitlab.com/zef1r/mockify/.
+
 License
 -------
 
