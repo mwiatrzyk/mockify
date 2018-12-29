@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/mock/test_function_mock.py
+# tests/mock/test_function.py
 #
 # Copyright (C) 2018 Maciej Wiatrzyk
 #

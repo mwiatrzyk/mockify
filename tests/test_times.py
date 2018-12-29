@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/test_cardinality.py
+# tests/test_times.py
 #
 # Copyright (C) 2018 Maciej Wiatrzyk
 #
