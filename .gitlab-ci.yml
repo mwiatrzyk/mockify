@@ -1,6 +1,19 @@
-test:
-    script:
+stages:
+    - test
+    - package
+    - deploy
+
+before_script:
     - apt-get update -qy
     - apt-get install -y python3-pip
     - pip3 install -r requirements.txt
-    - pytest
+
+build_docs:
+    stage: test
+    script:
+        - pushd docs && make html && popd
+
+run_tests:
+    stage: test
+    script:
+        - pytest
