@@ -38,3 +38,4 @@ User's Guide
    installation
    tutorial
    api
+   license

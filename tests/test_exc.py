@@ -8,6 +8,9 @@ class ExpectationStub:
         self.expected_call = call
         self.location = location
 
+    def format_action(self):
+        return
+
     def format_location(self):
         return self.location
 

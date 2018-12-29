@@ -105,8 +105,12 @@ class Unsatisfied(AssertionError):
     def __format_expectation(self, expectation):
         rows = ["at {}".format(expectation.format_location())]
         rows.append('-' * len(rows[0]))
+        rows.append(
+            "{:>13}".format("Pattern: ") + str(expectation.expected_call))
+        action = expectation.format_action()
+        if action is not None:
+            rows.append("{:>13}".format("Action: ") + action)
         rows.extend([
-            "{:>13}".format("Pattern: ") + str(expectation.expected_call),
             "{:>13}".format("Expected: ") + expectation.format_expected(),
             "{:>13}".format("Actual: ") + expectation.format_actual()])
         return '\n'.join(rows)

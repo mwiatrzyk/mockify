@@ -305,11 +305,12 @@ class Expectation:
             elif self._next_proxy is not None:
                 return self._next_proxy._format_action()
 
-        def _format_expected(self):
+        def _format_expected(self, minimal=None):
+            minimal = minimal or 0
             if self._next_proxy is None:
-                return _utils.format_expected_call_count(len(self._actions))
+                return self._expected_count.adjust_by(minimal).format_expected()
             else:
-                return self._next_proxy._format_expected(minimal=len(self._actions))
+                return self._next_proxy._format_expected(minimal=minimal + len(self._actions))
 
         def will_once(self, action):
             self._actions.append(action)
@@ -349,13 +350,15 @@ class Expectation:
             return str(self._action)
 
         def _format_expected(self, minimal=None):
-            if self._expected_count is not None:
-                if minimal is None:
-                    return self._expected_count.format_expected()
-                else:
+            minimal = minimal or 0
+            if self._next_proxy is None:
+                if self._expected_count is not None:
                     return self._expected_count.adjust_by(minimal).format_expected()
-            elif minimal is not None:
-                return AtLeast(minimal).format_expected()
+                elif minimal > 0:
+                    return AtLeast(minimal).format_expected()
+            elif self._expected_count is not None:
+                return self._next_proxy._format_expected(
+                    minimal=minimal + self._expected_count.minimal)
 
         def times(self, expected_count):
             self._expected_count = _wrap_expected_count(expected_count)

@@ -57,6 +57,14 @@ thing required from such class is to implement following interface:
 
         This is used by :class:`mockify.exc.Unsatisfied` exception when error
         message is being rendered.
+
+    ``minimal(sefl)`` *(property)*
+        Property containing minimal call count that is considered valid for
+        given instance.
+
+        For example, for :class:`AtLeast` or :class:`Exactly` it would be just
+        its constructor argument, for :class`AtMost` it will be 0, for
+        :class:`Between` it will be its ``minimal`` argument.
 """
 
 from mockify import _utils
@@ -77,6 +85,10 @@ class Exactly:
         if expected < 0:
             raise TypeError("value of 'expected' must be >= 0")
         self._expected = expected
+
+    @property
+    def minimal(self):
+        return self._expected
 
     def is_satisfied(self, actual):
         return self._expected == actual
@@ -102,6 +114,10 @@ class AtLeast:
         if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
         self._minimal = minimal
+
+    @property
+    def minimal(self):
+        return self._minimal
 
     def is_satisfied(self, actual):
         return actual >= self._minimal
@@ -136,6 +152,10 @@ class AtMost:
 
     def __init__(self, maximal):
         self._maximal = maximal
+
+    @property
+    def minimal(self):
+        return 0
 
     def is_satisfied(self, actual):
         return actual <= self._maximal
@@ -175,6 +195,10 @@ class Between:
     def __init__(self, minimal, maximal):
         self._minimal = minimal
         self._maximal = maximal
+
+    @property
+    def minimal(self):
+        return self._minimal
 
     def is_satisfied(self, actual):
         return actual >= self._minimal and\
