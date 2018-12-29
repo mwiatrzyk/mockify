@@ -1,21 +1,20 @@
 Mockify
 =======
 
-Mocking library for Python.
+Mocking library for Python inspired by Google Mock C++ mocking toolkit.
 
 About
 -----
 
-The purpose of using Mockify is the same as for Python's standard
-:mod:`unittest.mock` mocking library - to mimic behaviour of things during
-testing. But Mockify uses a different approach to achieve that goal.
+The purpose of using Mockify is the same as for Python's ``unittest.mock``
+module - to mimic behaviour of things during testing. But Mockify uses a
+different approach to do that.
 
 Mockify does not have multiple ``assert_called_*`` methods that are executed to
 check if a method was called. Instead, it uses ``expect_call`` method to record
-expectations on a mock function.  
-
-These expectations are recorded on common (for selected mock functions) context
-object, that acts as a registry and call tracker.
+expectations on mocks *before* they are called, and after unit under test is
+executed, mocks are checked if all recorded expectations are satisfied using
+one ``assert_satisfied`` assertion method.
 
 Documentation
 -------------
