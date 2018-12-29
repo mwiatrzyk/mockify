@@ -1,6 +1,6 @@
 stages:
     - test
-    - package
+    - stage
     - deploy
 
 before_script:
@@ -19,10 +19,19 @@ run_tests:
     script:
         - pytest
 
-make_package:
-    stage: package
+.build_package:
     script:
+        - pip3 install twine
         - python3 setup.py sdist bdist_wheel
+
+test_deploy:
+    stage: stage
+    extends: .build_package
+    variables:
+        TWINE_USERNAME: $TEST_PYPI_USER
+        TWINE_PASSWORD: $TEST_PYPI_PASS
+    script:
+        - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
     only:
         - tags
     except:
