@@ -19,7 +19,7 @@ build_docs:
 run_tests:
     stage: test
     script:
-        - pytest
+        - pytest docs/ mockify/ tests/
 
 test_deploy:
     stage: stage
