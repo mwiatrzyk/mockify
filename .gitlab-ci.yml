@@ -1,12 +1,12 @@
+image: python:3.6-slim
+
 stages:
     - test
     - stage
     - deploy
 
 before_script:
-    - apt-get update -qy
-    - apt-get install -y python3-pip
-    - pip3 install -r requirements.txt
+    - pip install -r requirements.txt
 
 build_docs:
     stage: test
@@ -25,8 +25,8 @@ test_deploy:
         TWINE_USERNAME: $TEST_PYPI_USER
         TWINE_PASSWORD: $TEST_PYPI_PASS
     script:
-        - pip3 install twine
-        - python3 setup.py sdist bdist_wheel
+        - pip install twine
+        - python setup.py sdist bdist_wheel
         - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
     only:
         - tags
