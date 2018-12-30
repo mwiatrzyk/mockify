@@ -11,6 +11,7 @@ before_script:
 build_docs:
     stage: test
     script:
+        - apt-get install make
         - cd docs
         - make html
 
