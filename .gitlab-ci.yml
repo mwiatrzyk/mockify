@@ -3,6 +3,7 @@ image: python:3.6-slim
 stages:
     - test
     - stage
+    - verify
     - deploy
 
 before_script:
@@ -21,7 +22,7 @@ run_tests:
     script:
         - pytest docs/ mockify/ tests/
 
-test_deploy:
+deploy_to_test_pypi:
     stage: stage
     variables:
         TWINE_USERNAME: $TEST_PYPI_USER
@@ -29,7 +30,33 @@ test_deploy:
     script:
         - pip install twine
         - python setup.py sdist bdist_wheel
-        - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+        - twine upload --repository-url https://test.pypi.org/simple/ dist/*
+    only:
+        - tags
+    except:
+        - branches
+
+install_from_test_pypi:
+    stage: verify
+    script:
+        - rm -rf mockify/
+        - pip install --index-url https://test.pypi.org/simple/ mockify
+        - pytest tests/
+    only:
+        - tags
+    except:
+        - branches
+
+deploy_to_pypi:
+    stage: deploy
+    when: manual
+    variables:
+        TWINE_USERNAME: $PYPI_USER
+        TWINE_PASSWORD: $PYPI_PASS
+    script:
+        - pip install twine
+        - python setup.py sdist bdist_wheel
+        - twine upload dist/*
     only:
         - tags
     except:
