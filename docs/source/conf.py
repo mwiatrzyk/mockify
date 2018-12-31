@@ -21,6 +21,8 @@ root_dir = os.path.join(this_dir, '..', '..')
 
 sys.path.insert(0, root_dir)
 
+import mockify
+
 
 # -- Project information -----------------------------------------------------
 
@@ -29,9 +31,10 @@ copyright = '2018, Maciej Wiatrzyk'
 author = 'Maciej Wiatrzyk'
 
 # The short X.Y version
-version = '0.1'
+version = mockify.version[:mockify.version.rfind('.')]
+
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = mockify.version
 
 
 # -- General configuration ---------------------------------------------------
