@@ -60,6 +60,10 @@ class Function:
         return self._registry(
             Call(self._name, args or None, kwargs or None))
 
+    @property
+    def name(self):
+        return self._name
+
     def expect_call(self, *args, **kwargs):
         """Record call expectation.
 
@@ -79,3 +83,46 @@ class Function:
         with ``name`` given via constructor as an argument.
         """
         self._registry.assert_satisfied(self._name)
+
+
+class FunctionFactory:
+    """Helper factory class for easier function mocks creating.
+
+    This helper can be created with no params or with
+    :class:`mockify.engine.Registry` instance as parameter. It provides an easy
+    way of function mock creating by simply getting factory attributes that
+    become function mock names. Once such attribute is get for the first time,
+    :class:`Function` instance is created, and later it is just returned.
+
+    This allows to create function mocks as easy as in this example:
+
+        >>> factory = FunctionFactory()
+        >>> factory.foo.expect_call()
+        <mockify.Expectation: foo()>
+        >>> factory.bar.expect_call(1, 2)
+        <mockify.Expectation: bar(1, 2)>
+
+    Then pass to some unit under test:
+
+        >>> def unit_under_test(foo, bar):
+        ...     foo()
+        ...     bar(1, 2)
+        >>> unit_under_test(factory.foo, factory.bar)
+
+    To finally check if all mocks registered in one :class:`FunctionFactory`
+    object are satisfied using one single call:
+
+        >>> factory.assert_satisfied()
+    """
+
+    def __init__(self, registry=None):
+        self._registry = registry or Registry()
+        self._function_mocks = {}
+
+    def __getattr__(self, name):
+        if name not in self._function_mocks:
+            self._function_mocks[name] = Function(name, registry=self._registry)
+        return self._function_mocks[name]
+
+    def assert_satisfied(self):
+        self._registry.assert_satisfied(*self._function_mocks.keys())

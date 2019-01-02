@@ -170,7 +170,7 @@ class Registry:
         self._expects.append(expect)
         return expect
 
-    def assert_satisfied(self, name=None):
+    def assert_satisfied(self, *names):
         """Assert that all expectations are satisfied.
 
         If there is at least one unsatisfied expectation, then this method will
@@ -179,16 +179,13 @@ class Registry:
 
         This method can be called as many times as you want.
 
-        :param name:
-            This is optional.
+        .. versionchanged:: 0.2
 
-            If this is given, then method performs a lookup of expectations
-            having expected calls matching ``name`` and verifies only found
-            expectations. When called with ``name``, this method may pass for
-            some ``name``'s, but can still fail if called without parameter.
+            Accept names of mocks to check using positional args instead of one
+            arg as in previous version.
         """
         unsatisfied = []
-        keyfunc = lambda x: name is None or x.expected_call.name == name
+        keyfunc = lambda x: not names or x.expected_call.name in names
         for expect in filter(keyfunc, self._expects):
             if not expect.is_satisfied():
                 unsatisfied.append(expect)

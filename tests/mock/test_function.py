@@ -15,7 +15,7 @@ import pytest
 
 from mockify import exc
 from mockify.engine import Call, Registry
-from mockify.mock.function import Function
+from mockify.mock.function import Function, FunctionFactory
 
 
 ExpectationStub = collections.namedtuple('ExpectationStub', 'call, filename, lineno')
@@ -37,8 +37,8 @@ class RegistryStub:
         self.expectations.append(expectation)
         return expectation
 
-    def assert_satisfied(self, name):
-        self.assert_satisfied_params.append(name)
+    def assert_satisfied(self, *names):
+        self.assert_satisfied_params.append(names)
 
 
 class TestFunction:
@@ -62,7 +62,7 @@ class TestFunction:
 
     def assert_registry_assert_satisfied_called_once(self):
         assert len(self.registry.assert_satisfied_params) == 1
-        assert self.registry.assert_satisfied_params[0] == 'uut'
+        assert self.registry.assert_satisfied_params[0] == ('uut',)
 
     ### Tests
 
@@ -95,3 +95,40 @@ class TestFunction:
     def test_when_assert_sastisfied_is_called__then_registry_assert_satisfied_is_called_with_function_name(self):
         self.uut.assert_satisfied()
         self.assert_registry_assert_satisfied_called_once()
+
+
+class TestFunctionFactory:
+
+    def setup_method(self):
+        self.registry = RegistryStub()
+        self.uut = FunctionFactory(registry=self.registry)
+
+    ### Tests
+
+    def test_when_property_is_read__then_function_mock_of_same_name_is_created(self):
+        foo = self.uut.foo
+
+        assert isinstance(foo, Function)
+        assert foo.name == 'foo'
+
+    def test_when_property_is_read_twice__then_same_function_mock_is_returned(self):
+        foo = self.uut.foo
+
+        assert foo is self.uut.foo
+
+    def test_when_reading_foo_and_bar__these_are_two_different_mocks(self):
+        foo = self.uut.foo
+        bar = self.uut.bar
+
+        assert foo.name == 'foo'
+        assert bar.name == 'bar'
+        assert foo is not bar
+
+    def test_when_assert_satisfied_called_on_factory_with_foo_bar_mocks__then_registry_assert_satisfied_is_called_with_foo_bar_names_as_arguments(self):
+        foo = self.uut.foo
+        bar = self.uut.bar
+
+        self.uut.assert_satisfied()
+
+        assert len(self.registry.assert_satisfied_params) == 1
+        assert set(self.registry.assert_satisfied_params[0]) == {'foo', 'bar'}
