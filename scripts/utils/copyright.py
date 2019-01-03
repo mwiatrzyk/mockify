@@ -5,8 +5,12 @@ import glob
 import shutil
 import argparse
 
-_MARKER = '# ' + '-' * 75
-_TEMPLATE =\
+from datetime import datetime
+
+YEAR_STARTED = 2018
+COPYRIGHT_HOLDER = 'Maciej Wiatrzyk'
+MARKER = '# ' + '-' * 75
+TEMPLATE =\
 """{marker}
 # {filename}
 #
@@ -24,11 +28,13 @@ def scan(path):
     return iter(glob.glob(os.path.join(path, '**', '*.py'), recursive=True))
 
 
-def insert_copyright(source, year, holder):
+def insert_copyright(source):
 
     def write_copyright(dst):
-        dst.write(_TEMPLATE.format(
-            marker=_MARKER, filename=source, year=year, holder=holder))
+        dst.write(TEMPLATE.format(
+            marker=MARKER, filename=source,
+            year="{} - {}".format(YEAR_STARTED, datetime.now().year),
+            holder=COPYRIGHT_HOLDER))
 
     def write_rest(src, dst):
         line = src.readline()
@@ -39,9 +45,9 @@ def insert_copyright(source, year, holder):
     def process_file(src, dst):
         line = src.readline()
         if line:
-            if line.startswith(_MARKER):
+            if line.startswith(MARKER):
                 line = src.readline()
-                while not line.startswith(_MARKER):
+                while not line.startswith(MARKER):
                     line = src.readline()
                 write_copyright(dst)
                 write_rest(src, dst)
@@ -60,17 +66,15 @@ def insert_copyright(source, year, holder):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description='Tool for appending copyright notice to Python files')
+        description='Tool for updating copyright notice in Python files')
     parser.add_argument('path', metavar='PATH', help='path to directory to look for *.py files')
-    parser.add_argument('--holder', metavar='STRING', help='copyright holder')
-    parser.add_argument('--year', type=int, metavar='NUMBER', help='copyright year')
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     for filename in scan(args.path):
-        insert_copyright(filename, args.year, args.holder)
+        insert_copyright(filename)
 
 
 if __name__ == '__main__':
