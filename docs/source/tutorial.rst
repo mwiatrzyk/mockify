@@ -4,8 +4,12 @@ Tutorial
 Creating mocks
 --------------
 
-Function mocks
-^^^^^^^^^^^^^^
+Function mock
+^^^^^^^^^^^^^
+
+This is the most basic mocking utility Mockify provides. Function mocks are
+simply used to mock normal Python functions. You'll need such mocks for example
+to test code that uses callbacks.
 
 To create function mock you need to import function mock utility::
 
@@ -16,6 +20,38 @@ Now you can create function mock using following boilerplate pattern::
     >>> foo = Function('foo')
 
 Most examples in this tutorial use function mocks.
+
+Using function mock factory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 0.2
+
+You can also create function mocks in easier way by using
+:class:`mockify.mock.function.FunctionFactory` class. Objects of this class
+simplify function mock creation by allowing it to be created by just attribute
+reading. For example, to create ``foo`` and ``bar`` function mocks you just
+need to execute following code::
+
+    >>> from mockify.mock.function import FunctionFactory
+    >>> factory = FunctionFactory()
+    >>> foo = factory.foo
+    >>> bar = factory.bar
+
+Now both ``foo`` and ``bar`` are instances of
+:class:`mockify.mock.function.Function` class. Of course you do not have to
+assign factory attribute to a variable - you can pass it directly, or even pass
+entire factory object to code being under test if needed.
+
+Besides simplified way of creating mocks, this class also supports checking if
+all created mocks are satisfied. So, you can check these created mocks
+separately::
+
+    >>> foo.assert_satisfied()
+    >>> bar.assert_satisfied()
+
+Or all at once using ``factory`` object::
+
+    >>> factory.assert_satisfied()
 
 Recording and verifying expectations
 ------------------------------------
