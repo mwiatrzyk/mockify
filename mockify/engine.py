@@ -181,8 +181,9 @@ class Registry:
 
         .. versionchanged:: 0.2
 
-            Accept names of mocks to check using positional args instead of one
-            arg as in previous version.
+            Accepts names of mocks to check as positional args. If one or more
+            names are given, then this method limits checking only to mocks of
+            matching names.
         """
         unsatisfied = []
         keyfunc = lambda x: not names or x.expected_call.name in names
