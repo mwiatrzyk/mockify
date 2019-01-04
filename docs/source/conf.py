@@ -27,7 +27,7 @@ import mockify
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = '2018, Maciej Wiatrzyk'
+copyright = '2018 - 2019, Maciej Wiatrzyk'
 author = 'Maciej Wiatrzyk'
 
 # The short X.Y version
