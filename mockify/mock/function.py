@@ -125,4 +125,10 @@ class FunctionFactory:
         return self._function_mocks[name]
 
     def assert_satisfied(self):
+        """Check if all function mocks registered by this factory are satisfied.
+
+        This method simply calls
+        :meth:`mockify.engine.Registry.assert_satisfied` with names of all
+        created mocks as arguments.
+        """
         self._registry.assert_satisfied(*self._function_mocks.keys())
