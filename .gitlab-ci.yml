@@ -20,7 +20,7 @@ build_docs:
 run_tests:
     stage: test
     script:
-        - pytest docs/ mockify/ tests/
+        - scripts/runtest.sh
 
 deploy_to_test_pypi:
     stage: stage
