@@ -27,20 +27,20 @@ class TestObject:
         assert excinfo.value.call.name == self.uut.foo.name
 
     def test_record_one_expectation_then_invoke_it_and_assert_that_object_is_satisfied(self):
-        self.uut.__methods__['foo'].expect_call(1, 2)
+        self.uut.expect_call('foo', 1, 2)
         self.uut.foo(1, 2)
         self.uut.assert_satisfied()
 
     def test_when_two_method_call_expectations_recorded_and_only_one_satisfied__then_object_is_not_satisfied(self):
-        self.uut.__methods__['foo'].expect_call(1, 2)
-        self.uut.__methods__['bar'].expect_call()
+        self.uut.expect_call('foo', 1, 2)
+        self.uut.expect_call('bar')
         self.uut.foo(1, 2)
         with pytest.raises(exc.Unsatisfied):
             self.uut.assert_satisfied()
 
     def test_when_two_method_call_expectations_recorded_and_both_call__then_object_mock_is_satisfied(self):
-        self.uut.__methods__['foo'].expect_call()
-        self.uut.__methods__['bar'].expect_call()
+        self.uut.expect_call('foo')
+        self.uut.expect_call('bar')
         self.uut.foo()
         self.uut.bar()
         self.uut.assert_satisfied()

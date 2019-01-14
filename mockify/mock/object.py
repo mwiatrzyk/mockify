@@ -43,9 +43,8 @@ class Object:
         else:
             raise AttributeError("mock object {!r} has no property {!r}".format(self._name, name))
 
-    @property
-    def __methods__(self):
-        return self._methods
+    def expect_call(self, _name_, *args, **kwargs):
+        self._methods[_name_].expect_call(*args, **kwargs)
 
     def expect_set(self, name, value):
         self._properties[name].fset.expect_call(value)
