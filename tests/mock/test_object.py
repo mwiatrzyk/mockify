@@ -6,14 +6,21 @@ from mockify.mock.object import Object
 from mockify.mock.function import Function
 
 
+class UUT(Object):
+    __methods__ = ['foo', 'bar']
+    __properties__ = ['spam']
+
+
 class TestObject:
 
     def setup_method(self):
-        self.uut = Object('uut', 
-                methods=['foo', 'bar'],
-                properties=['spam'])
+        self.uut = UUT('uut')
 
     ### Tests
+
+    def test_when_object_is_constructed_directly__type_error_is_raised_due_to_lack_of_methods_and_or_property_names_definition_in_class(self):
+        with pytest.raises(TypeError):
+            obj = Object('obj')
 
     def test_when_accessing_attribute_that_is_neither_method_nor_property__then_attribute_error_is_raised(self):
         with pytest.raises(AttributeError) as excinfo:

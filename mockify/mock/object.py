@@ -3,6 +3,8 @@ from mockify.mock.function import Function
 
 
 class Object:
+    __methods__ = None
+    __properties__ = None
 
     class _Property:
 
@@ -18,11 +20,13 @@ class Object:
         def fget(self):
             return self._fget
 
-    def __init__(self, name, methods=None, properties=None, registry=None):
+    def __init__(self, name, registry=None):
+        if not self.__methods__ or not self.__properties__:
+            raise TypeError("missing '__methods__' and/or '__properties__' attributes in class definition")
         self._name = name
         self._registry = registry or Registry()
-        self._methods = dict(self.__create_methods(methods))
-        self._properties = dict(self.__create_properties(properties))
+        self._methods = dict(self.__create_methods(self.__methods__))
+        self._properties = dict(self.__create_properties(self.__properties__))
 
     def __create_methods(self, names):
         for name in names:
