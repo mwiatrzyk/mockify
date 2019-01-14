@@ -8,10 +8,15 @@ class Object:
 
         def __init__(self, name, registry):
             self._fset = Function(name + '.fset', registry=registry)
+            self._fget = Function(name + '.fget', registry=registry)
 
         @property
         def fset(self):
             return self._fset
+
+        @property
+        def fget(self):
+            return self._fget
 
     def __init__(self, name, methods=None, properties=None, registry=None):
         self._name = name
@@ -30,6 +35,8 @@ class Object:
     def __getattr__(self, name):
         if name in self._methods:
             return self._methods[name]
+        elif name in self._properties:
+            return self._properties[name].fget()
         else:
             raise AttributeError(
                 "mock object {!r} has no attribute named {!r}".
@@ -44,10 +51,13 @@ class Object:
             raise AttributeError("mock object {!r} has no property {!r}".format(self._name, name))
 
     def expect_call(self, _name_, *args, **kwargs):
-        self._methods[_name_].expect_call(*args, **kwargs)
+        return self._methods[_name_].expect_call(*args, **kwargs)
 
     def expect_set(self, name, value):
-        self._properties[name].fset.expect_call(value)
+        return self._properties[name].fset.expect_call(value)
+
+    def expect_get(self, name):
+        return self._properties[name].fget.expect_call()
 
     def assert_satisfied(self):
         self._registry.assert_satisfied()

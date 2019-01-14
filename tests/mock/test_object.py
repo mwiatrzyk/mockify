@@ -1,6 +1,7 @@
 import pytest
 
 from mockify import exc
+from mockify.actions import Return
 from mockify.mock.object import Object
 from mockify.mock.function import Function
 
@@ -31,6 +32,12 @@ class TestObject:
         self.uut.foo(1, 2)
         self.uut.assert_satisfied()
 
+    def test_expect_method_to_be_called_twice_and_call_it_twice(self):
+        self.uut.expect_call('foo', 1, 2).times(2)
+        for _ in range(2):
+            self.uut.foo(1, 2)
+        self.uut.assert_satisfied()
+
     def test_when_two_method_call_expectations_recorded_and_only_one_satisfied__then_object_is_not_satisfied(self):
         self.uut.expect_call('foo', 1, 2)
         self.uut.expect_call('bar')
@@ -59,3 +66,26 @@ class TestObject:
         self.uut.expect_set('spam', 1)
         self.uut.spam = 1
         self.uut.assert_satisfied()
+
+    def test_expect_property_to_be_set_twice_and_set_it_twice(self):
+        self.uut.expect_set('spam', 1).times(2)
+        for _ in range(2):
+            self.uut.spam = 1
+        self.uut.assert_satisfied()
+
+    def test_when_reading_property_with_no_read_expectations_set__then_fail_with_uninterested_call(self):
+        with pytest.raises(exc.UninterestedCall) as excinfo:
+            spam = self.uut.spam
+        assert excinfo.value.call.name == 'uut.spam.fget'
+
+    def test_when_property_is_expected_to_be_read_once_and_it_is_read_once__then_object_is_satisfied(self):
+        self.uut.expect_get('spam').will_once(Return(1))
+        assert self.uut.spam == 1
+        self.uut.assert_satisfied()
+
+    def test_when_property_is_expected_to_be_read_and_write_once_and_it_is_not_written__then_object_is_not_satisfied(self):
+        self.uut.expect_set('spam', 1)
+        self.uut.expect_get('spam').will_once(Return(1))
+        assert self.uut.spam == 1
+        with pytest.raises(exc.Unsatisfied):
+            self.uut.assert_satisfied()
