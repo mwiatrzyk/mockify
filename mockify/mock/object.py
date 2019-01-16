@@ -9,6 +9,7 @@
 # See LICENSE.txt for details.
 # ---------------------------------------------------------------------------
 
+from mockify import exc
 from mockify.engine import Registry
 from mockify.mock.function import Function
 
@@ -19,10 +20,10 @@ class Object:
     This class requires custom subclass to be created and have following
     attributes defined:
 
-        __methods__
+        ``__methods__``
             Containing list of method names
 
-        __properties__
+        ``__properties__``
             Containing list of property names
 
     For example, if you want to mock Python class that has methods ``foo`` and
@@ -55,6 +56,7 @@ class Object:
     class _Property:
 
         def __init__(self, name, registry):
+            self._name = name
             self._fset = Function(name + '.fset', registry=registry)
             self._fget = Function(name + '.fget', registry=registry)
 
@@ -65,6 +67,18 @@ class Object:
         @property
         def fget(self):
             return self._fget
+
+        def trigger_getter(self):
+            try:
+                return self._fget()
+            except exc.UninterestedCall as e:
+                raise exc.UninterestedGetterCall(self._name)
+
+        def trigger_setter(self, value):
+            try:
+                return self._fset(value)
+            except exc.UninterestedCall as e:
+                raise exc.UninterestedSetterCall(self._name, value)
 
     def __init__(self, name, registry=None):
         if not self.__methods__ or not self.__properties__:
@@ -86,7 +100,7 @@ class Object:
         if name in self._methods:
             return self._methods[name]
         elif name in self._properties:
-            return self._properties[name].fget()
+            return self._properties[name].trigger_getter()
         else:
             raise AttributeError(
                 "mock object {!r} has no attribute named {!r}".
@@ -96,7 +110,7 @@ class Object:
         if name.startswith('_'):
             super().__setattr__(name, value)
         elif name in self._properties:
-            self._properties[name].fset(value)
+            self._properties[name].trigger_setter(value)
         else:
             raise AttributeError("mock object {!r} has no property {!r}".format(self._name, name))
 

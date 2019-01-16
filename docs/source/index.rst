@@ -18,7 +18,7 @@ so I decided to start writing my own toolkit.
 
 Currently, Mockify is supplied with following features:
 
-    * Creating mocks of standalone functions (more will come soon...)
+    * Creating mocks of standalone functions and Python objects
     * Recording call expectations with fixed arguments and using **matchers**
     * Checking if expectations are satisfied using one single
       ``assert_satisfied`` assertion method

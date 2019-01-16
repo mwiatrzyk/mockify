@@ -35,6 +35,62 @@ class UninterestedCall(TypeError):
         return self._call
 
 
+class UninterestedPropertyAccess(TypeError):
+    """Base class for exceptions signalling uninterested property access.
+    
+    This situation occurs when object property is accessed without previous
+    matching expectation being recorded.
+    
+    .. versionadded:: 0.3
+
+    :param name:
+        Property name
+    """
+
+    def __init__(self, name):
+        self._name = name
+
+    def __str__(self):
+        return self._name
+
+    @property
+    def name(self):
+        """Name of property being accessed."""
+        return self._name
+
+
+class UninterestedGetterCall(UninterestedPropertyAccess):
+    """Raised when uninterested property getter is called.
+
+    This will be raised if some system under test gets mock property that has
+    no expectations set.
+    
+    .. versionadded:: 0.3
+    """
+
+
+class UninterestedSetterCall(UninterestedPropertyAccess):
+    """Raised when uninterested property setter is called.
+
+    This will be raised if some system under test sets mock property that has
+    no matching expectations set.
+    
+    .. versionadded:: 0.3
+    """
+
+    def __init__(self, name, value):
+        super().__init__(name)
+        self._value = value
+
+    def __str__(self):
+        return "{} = {!r}".format(self._name, self._value)
+
+    @property
+    def value(self):
+        """Value property was set to."""
+        return self._value
+
+
 class OversaturatedCall(TypeError):
     """Raised when mock is called more times than expected.
 

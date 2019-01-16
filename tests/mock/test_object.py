@@ -71,8 +71,10 @@ class TestObject:
         self.uut.assert_satisfied()
 
     def test_when_property_set_while_no_expectations_are_recorded__then_fail_with_uninterested_call(self):
-        with pytest.raises(exc.UninterestedCall):
+        with pytest.raises(exc.UninterestedSetterCall) as excinfo:
             self.uut.spam = 1
+
+        assert str(excinfo.value) == 'uut.spam = 1'
 
     def test_when_setting_property_not_listed_in_properties_list__then_fail_with_attribute_error(self):
         with pytest.raises(AttributeError) as excinfo:
@@ -92,9 +94,9 @@ class TestObject:
         self.uut.assert_satisfied()
 
     def test_when_reading_property_with_no_read_expectations_set__then_fail_with_uninterested_call(self):
-        with pytest.raises(exc.UninterestedCall) as excinfo:
+        with pytest.raises(exc.UninterestedGetterCall) as excinfo:
             spam = self.uut.spam
-        assert excinfo.value.call.name == 'uut.spam.fget'
+        assert str(excinfo.value) == 'uut.spam'
 
     def test_when_property_is_expected_to_be_read_once_and_it_is_read_once__then_object_is_satisfied(self):
         self.uut.expect_get('spam').will_once(Return(1))

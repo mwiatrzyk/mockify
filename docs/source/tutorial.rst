@@ -1,15 +1,15 @@
 Tutorial
 ========
 
-Creating mocks
---------------
+Mocking functions
+-----------------
 
-Function mock
-^^^^^^^^^^^^^
+Using ``Function`` class
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-This is the most basic mocking utility Mockify provides. Function mocks are
-simply used to mock normal Python functions. You'll need such mocks for example
-to test code that uses callbacks.
+This is the most basic mocking utility. Instances of
+:class:`mockify.mock.function.Function` are simply used to mock normal Python
+functions. You'll need such mocks for example to test code that uses callbacks.
 
 To create function mock you need to import function mock utility::
 
@@ -19,10 +19,14 @@ Now you can create function mock using following boilerplate pattern::
 
     >>> foo = Function('foo')
 
+In the code above we have created function mock named *foo* and assigned it to
+variable of same name. Now object ``foo`` can be used like a normal Python
+function.
+
 Most examples in this tutorial use function mocks.
 
-Using function mock factory
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using ``FunctionFactory`` class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. versionadded:: 0.2
 
@@ -42,16 +46,62 @@ Now both ``foo`` and ``bar`` are instances of
 assign factory attribute to a variable - you can pass it directly, or even pass
 entire factory object to code being under test if needed.
 
-Besides simplified way of creating mocks, this class also supports checking if
-all created mocks are satisfied. So, you can check these created mocks
-separately::
+Besides simplified mock creation this class also provides
+:meth:`mockify.mock.function.FunctionFactory.assert_satisfied` method that
+checks if all mocks created by the factory are satisfied. Of course you can
+still do this by checking each individually::
 
     >>> foo.assert_satisfied()
     >>> bar.assert_satisfied()
 
-Or all at once using ``factory`` object::
+But you will also achieve same result with this::
 
     >>> factory.assert_satisfied()
+
+Mocking objects
+---------------
+
+.. versionadded:: 0.3
+
+To mock Python objects you need :class:`mockify.mock.object.Object` class::
+
+    >>> from mockify.mock.object import Object
+
+This class later needs to be subclassed and supplied with list of methods
+and/or properties. For example, if you wish to mock Python class having methods
+``foo`` and ``bar`` and one property named ``spam``, then the subclass would
+look like this::
+
+    >>> class Mock(Object):
+    ...     __methods__ = ['foo', 'bar']
+    ...     __properties__ = ['spam']
+
+These lists are made to allow later differentiation betwee non existing
+properties (for which :exc:`AttributeError` is raised) and uninterested method
+call or property access.
+
+Once you have such ``Mock`` class, you can instantiate it in similar way to
+:class:`mockify.mock.function.Function` class, but this time giving it a name
+of an object::
+
+    >>> mock = Mock('mock')
+
+Once you have a ``mock`` object, you can inject it into some code being under
+test. For example, let's have following function that interacts with some
+``obj`` object::
+
+    >>> def uut(obj):
+    ...     for x in obj.spam:
+    ...         obj.foo(x)
+    ...     return obj.bar()
+
+Let's now call it giving previously created ``mock`` as an argument. The call
+will fail with unexpected property read::
+
+    >>> uut(mock)
+    Traceback (most recent call last):
+        ...
+    mockify.exc.UninterestedGetterCall: mock.spam
 
 Recording and verifying expectations
 ------------------------------------

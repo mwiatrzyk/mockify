@@ -32,6 +32,13 @@ You use a frontend to do the same much easier::
     :members:
     :show-inheritance:
 
+``mockify.mock.object`` - Frontends for mocking objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: mockify.mock.object
+    :members:
+    :show-inheritance:
+
 ``mockify.engine`` - Library core
 ---------------------------------
 
