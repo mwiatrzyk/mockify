@@ -37,10 +37,10 @@ class UninterestedCall(TypeError):
 
 class UninterestedPropertyAccess(TypeError):
     """Base class for exceptions signalling uninterested property access.
-    
+
     This situation occurs when object property is accessed without previous
     matching expectation being recorded.
-    
+
     .. versionadded:: 0.3
 
     :param name:
@@ -64,7 +64,7 @@ class UninterestedGetterCall(UninterestedPropertyAccess):
 
     This will be raised if some system under test gets mock property that has
     no expectations set.
-    
+
     .. versionadded:: 0.3
     """
 
@@ -74,7 +74,7 @@ class UninterestedSetterCall(UninterestedPropertyAccess):
 
     This will be raised if some system under test sets mock property that has
     no matching expectations set.
-    
+
     .. versionadded:: 0.3
     """
 

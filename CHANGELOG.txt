@@ -1,3 +1,8 @@
+v0.3.1
+------
+
+* Added frontend for mocking Python objects
+
 v0.2.1
 ------
 
