@@ -96,12 +96,44 @@ test. For example, let's have following function that interacts with some
     ...     return obj.bar()
 
 Let's now call it giving previously created ``mock`` as an argument. The call
-will fail with unexpected property read::
+will fail on first access to mock object attribute::
 
     >>> uut(mock)
     Traceback (most recent call last):
         ...
     mockify.exc.UninterestedGetterCall: mock.spam
+
+To make *uut* function pass, we have to record expectations for:
+
+    * ``spam`` property to be read once
+    * ``foo`` to be called zero or more times (depending on what ``spam`` returns)
+    * ``bar`` to be called once and to return value that will also be used as
+      *uut* function return value
+
+We can of course create several combinations of expectations listed above (due
+to use of loop by *uut* function), but for the sake of simplicity let's
+configure ``spam`` to return ``[1]`` list, forcing ``foo`` to be called once
+with ``1``::
+
+    >>> from mockify.actions import Return
+    >>> mock.expect_get('spam').will_once(Return([1]))
+    <mockify.Expectation: mock.spam.fget()>
+    >>> mock.expect_call('foo', 1)
+    <mockify.Expectation: mock.foo(1)>
+    >>> mock.expect_call('bar').will_once(Return(True))
+    <mockify.Expectation: mock.bar()>
+
+
+Let's now call our ``uut`` function again. Since we have covered all methods by
+our expectations, the mock call will now pass returning ``True`` (as we've set
+``bar`` to return ``True``)::
+
+    >>> uut(mock)
+    True
+
+And our mock will be satisfied now::
+
+    >>> mock.assert_satisfied()
 
 Recording and verifying expectations
 ------------------------------------
