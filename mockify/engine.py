@@ -13,6 +13,7 @@
 storing and tracking call expectations."""
 
 import weakref
+import warnings
 import itertools
 import traceback
 import collections
@@ -121,11 +122,26 @@ class Registry:
 
         Used to give custom subclass of :class:`Expectation` to be used inside
         this registry.
+
+    :param uninterested_call_strategy:
+        Setup the way how uninterested calls are treated.
+
+        Following values are available:
+
+            * *fail* - issue :exc:`mockify.exc.UninterestedCall` exception on
+              each unexpectedly called mock (default)
+            * *ignore* - do nothing with uninterested calls
+            * *warn* - issue a warning on each uninterested call
+
+        .. versionadded:: 0.4
     """
 
-    def __init__(self, expectation_class=None):
+    def __init__(self,
+            expectation_class=None,
+            uninterested_call_strategy='fail'):
         self._expects = []
         self._expectation_class = expectation_class or Expectation
+        self._uninterested_call_strategy = uninterested_call_strategy
 
     def __call__(self, call):
         """Call a mock.
@@ -142,12 +158,22 @@ class Registry:
         """
         matching_expects = list(filter(lambda x: x.match(call), self._expects))
         if not matching_expects:
-            raise exc.UninterestedCall(call)
+            return self._handle_uninterested_call(call)
         for expect in matching_expects:
             if not expect.is_satisfied():
                 return expect(call)
         else:
             return matching_expects[-1](call)
+
+    def _handle_uninterested_call(self, call):
+        if self._uninterested_call_strategy == 'fail':
+            raise exc.UninterestedCall(call)
+        elif self._uninterested_call_strategy == 'warn':
+            warnings.warn('Uninterested mock called: {}'.format(str(call)))
+        elif self._uninterested_call_strategy == 'ignore':
+            return
+        else:
+            raise ValueError("Invalid uninterested call strategy: {}".format(self._uninterested_call_strategy))
 
     def expect_call(self, call, filename, lineno):
         """Register expectation.

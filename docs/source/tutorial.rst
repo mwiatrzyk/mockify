@@ -392,6 +392,47 @@ fail::
         ...
     mockify.exc.UninterestedCall: foo({'jsonrpc': '2.0'})
 
+Dealing with unexpected calls
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 0.4
+
+Now you can change a default strategy for handling uninterested calls for
+your mocks.
+
+To change a strategy you need to create a custom
+:class:`mockify.engine.Registry` object and use it as a **registry** for your
+mock classes.
+
+For example, you can change the strategy to *ignore*, so all unexpected mock
+calls will simply be ignored::
+
+    >>> from mockify.engine import Registry
+
+    >>> registry = Registry(uninterested_call_strategy='ignore')
+
+    >>> mock = Function('mock', registry=registry)
+    >>> mock(1, 2)
+    >>> mock(1, 2, c=3)
+    >>> mock()
+
+    >>> mock.assert_satisfied()
+
+And now your mock will only fail if you have an unsatisfied expectation:
+
+    >>> mock.expect_call('spam')
+    <mockify.Expectation: mock('spam')>
+    >>> mock.assert_satisfied()
+    Traceback (most recent call last):
+        ...
+    mockify.exc.Unsatisfied: following expectation is not satisfied:
+    <BLANKLINE>
+    at <doctest tutorial.rst[76]>:1
+    -------------------------------
+        Pattern: mock('spam')
+       Expected: to be called once
+         Actual: never called
+
 Configuring expectation objects
 -------------------------------
 
