@@ -16,7 +16,7 @@ build_docs:
         - apt-get update -qy
         - apt-get install make
         - cd docs
-        - make html
+        - pipenv run make html
 
 run_tests:
     stage: test
