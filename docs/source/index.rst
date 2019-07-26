@@ -1,3 +1,14 @@
+.. ----------------------------------------------------------------------------
+.. docs/source/index.rst
+..
+.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+..
+.. This file is part of Mockify library documentation
+.. and is released under the terms of the MIT license:
+.. http://opensource.org/licenses/mit-license.php.
+..
+.. See LICENSE.txt for details.
+.. ----------------------------------------------------------------------------
 .. Mockify documentation master file, created by
    sphinx-quickstart on Fri Nov  9 08:43:36 2018.
    You can adapt this file completely to your liking, but it should at least

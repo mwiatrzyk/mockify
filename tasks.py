@@ -12,16 +12,30 @@
 import os
 import glob
 import shutil
+import logging
 
 from datetime import datetime
 
 import invoke
 
-ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+logger = logging.getLogger(__name__)
+
+_root_dir = os.path.abspath(os.path.dirname(__file__))
 
 
-@invoke.task
-def update_copyright(c):
+def _configure_logger(verbosity):
+    if verbosity == 0:
+        logging.basicConfig(level=logging.ERROR)
+    elif verbosity == 1:
+        logging.basicConfig(level=logging.WARNING)
+    elif verbosity == 2:
+        logging.basicConfig(level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.DEBUG)
+
+
+@invoke.task(incrementable=['verbosity'])
+def update_copyright(c, verbosity=0):
     """Update copyright notice in license, source code and documentation
     files."""
     year_started = 2018
@@ -45,9 +59,9 @@ def update_copyright(c):
             holder=copyright_holder)
 
     def update_files(pattern, ignore=None):
-        template = load_template(os.path.join(ROOT_DIR, 'data', 'templates', 'heading', f'{pattern[2:]}.txt'))
+        template = load_template(os.path.join(_root_dir, 'data', 'templates', 'heading', f'{pattern[2:]}.txt'))
         marker_line = template[0]
-        print(f"Updating copyright notice in {pattern} files...")
+        logger.info("Updating copyright notice in %s files...", pattern)
         for src_path in scan(pattern, ignore=ignore):
             dst_path = src_path + '.new'
             with open(src_path) as src:
@@ -63,19 +77,20 @@ def update_copyright(c):
                         dst.write(line)
                         line = src.readline()
             shutil.move(dst_path, src_path)
-            print(f"{src_path} - OK")
-        print('Done.')
+            logger.debug(f"%s - OK", src_path)
+        logger.info('Done.')
 
     def update_license():
-        print('Updating copyright notice in LICENSE.txt...')
-        with open(os.path.join(ROOT_DIR, 'data', 'templates', 'LICENSE.txt')) as src:
-            with open(os.path.join(ROOT_DIR, 'LICENSE.txt'), 'w') as dst:
+        logger.info('Updating copyright notice in LICENSE.txt...')
+        with open(os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')) as src:
+            with open(os.path.join(_root_dir, 'LICENSE.txt'), 'w') as dst:
                 dst.write(src.read().format(
                     year=f"{year_started} - {year_current}",
                     holder=copyright_holder
                 ))
-        print('Done.')
+        logger.info('Done.')
 
+    _configure_logger(verbosity)
     update_files('*.py', ignore=lambda path: 'docs' in path or 'setup.py' in path)
     update_files('*.rst', ignore=lambda path: 'README' in path)
     update_license()
