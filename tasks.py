@@ -94,3 +94,52 @@ def update_copyright(c, verbosity=0):
     update_files('*.py', ignore=lambda path: 'docs' in path or 'setup.py' in path)
     update_files('*.rst', ignore=lambda path: 'README' in path)
     update_license()
+
+
+@invoke.task
+def build_docs(c):
+    """Build Sphinx documentation."""
+    c.run('sphinx-build -M html docs/source docs/build')
+
+
+@invoke.task
+def build_pkg(c):
+    """Build distribution package."""
+    c.run('python setup.py sdist bdist_wheel')
+
+@invoke.task
+def test_unit(c):
+    """Run unit tests."""
+    c.run('pytest tests/')
+
+
+@invoke.task
+def test_docs(c):
+    """Run documentation tests."""
+    c.run('pytest --doctest-modules --doctest-glob="*.rst" docs/ mockify/')
+
+
+@invoke.task(test_unit, test_docs)
+def test(c):
+    """Run all tests."""
+
+
+@invoke.task()
+def deploy(c, env):
+    """Deploy library to given environment."""
+    if env == 'test':
+        c.run('twine upload --repository-url https://test.pypi.org/legacy/ dist/*')
+    elif env == 'prod':
+        c.run('twine upload dist/*')
+    else:
+        raise RuntimeError(f"invalid env: {env}")
+
+
+@invoke.task
+def clean(c):
+    """Clean working directory."""
+    c.run('find . -name "*.pyc" -delete')
+    c.run('find . -type d -name "__pycache__" -empty -delete')
+    c.run('rm -rf docs/build')
+    c.run('rm -rf build')
+    c.run('rm -rf *.egg-info')
