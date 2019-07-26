@@ -7,7 +7,8 @@ stages:
     - deploy
 
 before_script:
-    - pip install -r requirements.txt
+    - pip install pipenv
+    - pipenv install --dev
 
 build_docs:
     stage: test
@@ -15,12 +16,12 @@ build_docs:
         - apt-get update -qy
         - apt-get install make
         - cd docs
-        - make html
+        - pipenv run make html
 
 run_tests:
     stage: test
     script:
-        - scripts/runtest.sh
+        - pipenv run scripts/runtest.sh
 
 deploy_to_test_pypi:
     stage: stage
@@ -28,7 +29,6 @@ deploy_to_test_pypi:
         TWINE_USERNAME: $TEST_PYPI_USER
         TWINE_PASSWORD: $TEST_PYPI_PASS
     script:
-        - pip install twine
         - python setup.py sdist bdist_wheel
         - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
     only:
