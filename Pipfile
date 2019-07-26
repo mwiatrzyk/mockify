@@ -8,5 +8,6 @@ pytest = "*"
 sphinx = "*"
 pytest-sphinx = "*"
 twine = "*"
+invoke = "*"
 
 [packages]
