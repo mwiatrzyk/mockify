@@ -108,6 +108,11 @@ def build_pkg(c):
     c.run('python setup.py sdist bdist_wheel')
 
 
+@invoke.task(build_docs, build_pkg)
+def build(c):
+    """A shortcut for building everything."""
+
+
 @invoke.task
 def test_unit(c):
     """Run unit tests."""
