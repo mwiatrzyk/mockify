@@ -16,25 +16,28 @@
 import os
 import sys
 
+from datetime import datetime
+
 this_dir = os.path.abspath(os.path.dirname(__file__))
 root_dir = os.path.join(this_dir, '..', '..')
+current_year = datetime.now().year
 
 sys.path.insert(0, root_dir)
 
-import mockify
+from mockify import version
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = '2018 - 2019, Maciej Wiatrzyk'
+copyright = f"2018 - {current_year}, Maciej Wiatrzyk"
 author = 'Maciej Wiatrzyk'
 
 # The short X.Y version
-version = mockify.version[:mockify.version.rfind('.')]
+version = '.'.join(str(x) for x in version[:-1])
 
 # The full version, including alpha/beta/rc tags
-release = mockify.version
+release = '.'.join(str(x) for x in version)
 
 
 # -- General configuration ---------------------------------------------------
