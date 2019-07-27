@@ -9,5 +9,6 @@ sphinx = "*"
 pytest-sphinx = "*"
 twine = "*"
 invoke = "*"
+sphinx-rtd-theme = "*"
 
 [packages]
