@@ -3,16 +3,15 @@
 
 * Dependency management provided by pipenv
 * Project's CLI provided by Invoke library
-* Module renamed: **mockify.times** -> **mockify.cardinality** (old one was
-  made deprecated)
-* Module **mockify.helpers** made deprecated and merged with library core - now
-  available via **mockify** directly
-* Module **mockify.engine** is now available directly via **mockify**
-* Modules **mockify.mock.function** and **mockify.mock.object** are now merged
-  into **mockify.mock**
+* Added :class:`mockify.mock.Namespace` mock class
 * Use Sphinx Read The Docs theme for documentation
-* Object mocks can now be used without subclassing and have standarized API
-* Added **Namespace** mock class
+* Class :class:`mockify.mock.Object` can now be used without subclassing and
+  has API similar to other mock classes
+* Module *mockify.helpers* (was merged to library core)
+* Module *mockify.times* (renamed to :mod:`mockify.cardinality`)
+* Module *mockify.engine* is now available via :mod:`mockify`
+* Modules *mockify.mock.function* and *mockify.mock.object* are now merged into
+  :mod:`mockify.mock`
 
 0.4.0
 -----
