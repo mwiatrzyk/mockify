@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/times.py
+# mockify/cardinality.py
 #
 # Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 #

@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/engine.py
+# mockify/_engine.py
 #
 # Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 #
