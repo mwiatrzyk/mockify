@@ -6,7 +6,7 @@
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 import os
@@ -81,9 +81,9 @@ def update_copyright(c, verbosity=0):
         logger.info('Done.')
 
     def update_license():
-        logger.info('Updating copyright notice in LICENSE.txt...')
+        logger.info('Updating copyright notice in LICENSE...')
         with open(os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')) as src:
-            with open(os.path.join(_root_dir, 'LICENSE.txt'), 'w') as dst:
+            with open(os.path.join(_root_dir, 'LICENSE'), 'w') as dst:
                 dst.write(src.read().format(
                     year=f"{year_started} - {year_current}",
                     holder=copyright_holder

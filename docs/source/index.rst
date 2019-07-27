@@ -7,7 +7,7 @@
 .. and is released under the terms of the MIT license:
 .. http://opensource.org/licenses/mit-license.php.
 ..
-.. See LICENSE.txt for details.
+.. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 .. Mockify documentation master file, created by
    sphinx-quickstart on Fri Nov  9 08:43:36 2018.
@@ -46,6 +46,7 @@ User's Guide
 .. toctree::
    :maxdepth: 3
 
+   changelog
    installation
    tutorial
    api
