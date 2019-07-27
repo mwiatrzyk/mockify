@@ -107,6 +107,7 @@ def build_pkg(c):
     """Build distribution package."""
     c.run('python setup.py sdist bdist_wheel')
 
+
 @invoke.task
 def test_unit(c):
     """Run unit tests."""
@@ -143,3 +144,8 @@ def clean(c):
     c.run('rm -rf docs/build')
     c.run('rm -rf build')
     c.run('rm -rf *.egg-info')
+
+
+@invoke.task(build_docs, build_pkg, test)
+def regression(c):
+    """Run regression tests."""
