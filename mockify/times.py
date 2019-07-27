@@ -8,6 +8,7 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
 import warnings
 
 from .cardinality import Exactly, AtLeast, AtMost, Between, __name__ as _new_name
