@@ -13,5 +13,6 @@
 
 from ._object import Object
 from ._function import Function, FunctionFactory
+from ._namespace import Namespace
 
-__all__ = ['Object', 'Function', 'FunctionFactory']
+__all__ = ['Object', 'Function', 'FunctionFactory', 'Namespace']
