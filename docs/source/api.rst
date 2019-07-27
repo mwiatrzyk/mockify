@@ -15,12 +15,12 @@ API Reference
 Mocking frontends
 -----------------
 
-Mocking frontends are used to provide easy to use interface on top of classes
-from :mod:`mockify.engine` module that act like a backend.
+Mocking frontends are used to provide easy to use interface on top of
+low-level library core.
 
 So instead of doing this::
 
-    >>> from mockify.engine import Call, Registry
+    >>> from mockify import Call, Registry
     >>> reg = Registry()
     >>> reg.expect_call(Call('foo', (1, 2)), 'foo.py', 123)
     <mockify.Expectation: foo(1, 2)>

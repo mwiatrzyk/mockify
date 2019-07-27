@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.times import AtLeast, AtMost, Between, Exactly
+from mockify.cardinality import AtLeast, AtMost, Between, Exactly
 
 
 class TestExactly:

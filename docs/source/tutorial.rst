@@ -412,13 +412,13 @@ Now you can change a default strategy for handling uninterested calls for
 your mocks.
 
 To change a strategy you need to create a custom
-:class:`mockify.engine.Registry` object and use it as a **registry** for your
+:class:`mockify.Registry` object and use it as a **registry** for your
 mock classes.
 
 For example, you can change the strategy to *ignore*, so all unexpected mock
 calls will simply be ignored::
 
-    >>> from mockify.engine import Registry
+    >>> from mockify import Registry
 
     >>> registry = Registry(uninterested_call_strategy='ignore')
 
@@ -447,7 +447,7 @@ And now your mock will only fail if you have an unsatisfied expectation:
 Configuring expectation objects
 -------------------------------
 
-So far, we've done nothing with :class:`mockify.engine.Expectation` object
+So far, we've done nothing with :class:`mockify..Expectation` object
 ``expect_call`` method returns. But it has a lot of very handy features that we
 are going to discuss right now.
 
@@ -476,7 +476,7 @@ can be done like this::
     >>> example(0, callback)
     >>> callback.assert_satisfied()
 
-As you can see, we've used :meth:`mockify.engine.Expectation.times` method and
+As you can see, we've used :meth:`mockify.Expectation.times` method and
 called it with 0, meaning that we expect ``callback`` to be called 0 times. Now
 the test looks more expressive, but as stated in the beginning, expecting
 something to never happen is tricky. No matter if we call ``example`` function,
@@ -539,7 +539,7 @@ mock is called with valid arguments. For that purpose, we'll use
 Using :class:`mockify.matchers.SaveArg` you will also have to do some
 additional assertions like in example above.
 
-Method :meth:`mockify.engine.Expectation.times` allows to configure more then
+Method :meth:`mockify..Expectation.times` allows to configure more then
 just fixed expected number of calls. For more information go to the
 :mod:`mockify.times` module documentation.
 
@@ -549,7 +549,7 @@ Single actions
 Besides setting how many times each mock is expected to be called and with what
 arguments, you can also record actions to be executed on each mock call. For
 example, we can tell a mock to return given value when it gets called. To do
-this, we need to use :meth:`mockify.engine.Expectation.will_once` method::
+this, we need to use :meth:`mockify..Expectation.will_once` method::
 
     >>> from mockify.actions import Return
     >>> foo = Function('foo')
@@ -599,7 +599,7 @@ For more actions please proceed to the :mod:`mockify.actions` documentation.
 Action chains
 ^^^^^^^^^^^^^
 
-You can chain :meth:`mockify.engine.Expectation.will_once` method invocations
+You can chain :meth:`mockify..Expectation.will_once` method invocations
 to end up with action chains being recorded, so each time when mock is called,
 next action in a chain is executed. For example, you can record expectation
 that mock is going to be called twice, returning 1 on first call and 2 on
@@ -662,7 +662,7 @@ Repeated actions allow to set single action that will keep being executed each
 time the mock is called. By default, if mock has repeated action set it can be
 called any number of times, so mock with repeated action set is initially
 satisfied. Repeated actions are recorded using
-:meth:`mockify.engine.Expectation.will_repeatedly` method::
+:meth:`mockify..Expectation.will_repeatedly` method::
 
     >>> foo = Function('foo')
     >>> foo.expect_call().will_repeatedly(Return(1))
@@ -680,7 +680,7 @@ will be satisfied::
     1
     >>> foo.assert_satisfied()
 
-You can also use :meth:`mockify.engine.Expectation.times` method to set
+You can also use :meth:`mockify..Expectation.times` method to set
 expected call count on a repeated action. For example, if you want to record
 repeated action that can be executed at most twice, you would write following::
 

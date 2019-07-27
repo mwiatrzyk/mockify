@@ -11,9 +11,8 @@
 
 import pytest
 
-from mockify import exc
-from mockify.times import AtLeast, AtMost, Between
-from mockify.engine import Call, Expectation
+from mockify import exc, Call, Expectation
+from mockify.cardinality import AtLeast, AtMost, Between
 
 
 class ActionStub:

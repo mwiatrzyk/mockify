@@ -9,8 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from mockify import _utils
-from mockify.engine import Call, Registry
+from mockify import _utils, Call, Registry
 
 
 class Function:
@@ -36,7 +35,7 @@ class Function:
         useful for example to check if all mocks are satisfied using one
         ``assert_satisfied`` call:
 
-            >>> from mockify.engine import Registry
+            >>> from mockify import Registry
             >>> reg = Registry()
             >>> foo = Function('foo', registry=reg)
             >>> bar = Function('bar', registry=reg)

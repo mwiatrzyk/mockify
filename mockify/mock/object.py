@@ -9,9 +9,9 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from mockify import exc
-from mockify.engine import Registry
-from mockify.mock.function import Function
+from mockify import exc, Registry
+
+from .function import Function
 
 
 class Object:
@@ -27,7 +27,7 @@ class Object:
             Containing list of property names
 
     For example, if you want to mock Python class that has methods ``foo`` and
-    ``bar``, and propety ``spam``, you would create following subclass::
+    ``bar``, and property ``spam``, you would create following subclass::
 
         >>> class Mock(Object):
         ...     __methods__ = ['foo', 'bar']

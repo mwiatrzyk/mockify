@@ -21,7 +21,7 @@ import collections
 from contextlib import contextmanager
 
 from mockify import exc, _utils
-from mockify.times import Exactly, AtLeast
+from mockify.cardinality import Exactly, AtLeast
 
 
 def _wrap_expected_count(expected_count):

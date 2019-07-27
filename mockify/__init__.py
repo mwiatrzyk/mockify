@@ -9,4 +9,6 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+from ._engine import Call, Expectation, Registry
+
 version = (0, 5, 0)

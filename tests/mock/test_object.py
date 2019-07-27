@@ -12,9 +12,8 @@
 import pytest
 
 from mockify import exc
+from mockify.mock import Function, Object
 from mockify.actions import Return
-from mockify.mock.object import Object
-from mockify.mock.function import Function
 
 
 class UUT(Object):

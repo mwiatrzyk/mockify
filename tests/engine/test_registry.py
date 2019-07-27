@@ -11,8 +11,7 @@
 
 import pytest
 
-from mockify import exc
-from mockify.engine import Call, Registry
+from mockify import exc, Call, Registry
 
 
 class ExpectationStub:
