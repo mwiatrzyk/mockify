@@ -74,28 +74,17 @@ Mocking objects
 
 .. versionadded:: 0.3
 
+.. versionchanged:: 0.5
+    Now you don't need to subclass, and the API is the same as for other mock
+    classes.
+
 To mock Python objects you need :class:`mockify.mock.object.Object` class::
 
     >>> from mockify.mock.object import Object
 
-This class later needs to be subclassed and supplied with list of methods
-and/or properties. For example, if you wish to mock Python class having methods
-``foo`` and ``bar`` and one property named ``spam``, then the subclass would
-look like this::
+Now you can instantiate like any other mocking utility:
 
-    >>> class Mock(Object):
-    ...     __methods__ = ['foo', 'bar']
-    ...     __properties__ = ['spam']
-
-These lists are made to allow later differentiation betwee non existing
-properties (for which :exc:`AttributeError` is raised) and uninterested method
-call or property access.
-
-Once you have such ``Mock`` class, you can instantiate it in similar way to
-:class:`mockify.mock.function.Function` class, but this time giving it a name
-of an object::
-
-    >>> mock = Mock('mock')
+    >>> mock = Object('mock')
 
 Once you have a ``mock`` object, you can inject it into some code being under
 test. For example, let's have following function that interacts with some
@@ -105,14 +94,6 @@ test. For example, let's have following function that interacts with some
     ...     for x in obj.spam:
     ...         obj.foo(x)
     ...     return obj.bar()
-
-Let's now call it giving previously created ``mock`` as an argument. The call
-will fail on first access to mock object attribute::
-
-    >>> uut(mock)
-    Traceback (most recent call last):
-        ...
-    mockify.exc.UninterestedGetterCall: mock.spam
 
 To make *uut* function pass, we have to record expectations for:
 
@@ -127,22 +108,21 @@ configure ``spam`` to return ``[1]`` list, forcing ``foo`` to be called once
 with ``1``::
 
     >>> from mockify.actions import Return
-    >>> mock.expect_get('spam').will_once(Return([1]))
+    >>> mock.spam.fget.expect_call().will_once(Return([1]))
     <mockify.Expectation: mock.spam.fget()>
-    >>> mock.expect_call('foo', 1)
+    >>> mock.foo.expect_call(1)
     <mockify.Expectation: mock.foo(1)>
-    >>> mock.expect_call('bar').will_once(Return(True))
+    >>> mock.bar.expect_call().will_once(Return(True))
     <mockify.Expectation: mock.bar()>
 
-
-Let's now call our ``uut`` function again. Since we have covered all methods by
-our expectations, the mock call will now pass returning ``True`` (as we've set
+Let's now call our ``uut`` function. Since we have covered all methods by our
+expectations, the mock call will now pass returning ``True`` (as we've set
 ``bar`` to return ``True``)::
 
     >>> uut(mock)
     True
 
-And our mock will be satisfied now::
+And our mock is of course satisfied::
 
     >>> mock.assert_satisfied()
 
@@ -438,7 +418,7 @@ And now your mock will only fail if you have an unsatisfied expectation:
         ...
     mockify.exc.Unsatisfied: following expectation is not satisfied:
     <BLANKLINE>
-    at <doctest tutorial.rst[76]>:1
+    at <doctest tutorial.rst[74]>:1
     -------------------------------
         Pattern: mock('spam')
        Expected: to be called once
