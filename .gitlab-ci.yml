@@ -26,11 +26,12 @@ deploy_to_test_pypi:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
   script:
-    - pipenv run invoke build-package
+    - pipenv run invoke build-pkg
     - pipenv run invoke deploy test
   only:
     - tags
   except:
+    - master
     - branches
 
 deploy_to_pypi:
@@ -40,9 +41,10 @@ deploy_to_pypi:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
   script:
-    - pipenv run invoke build-package
+    - pipenv run invoke build-pkg
     - pipenv run invoke deploy prod
   only:
     - tags
   except:
+    - development
     - branches
