@@ -8,6 +8,8 @@
 * Module **mockify.helpers** made deprecated and merged with library core - now
   available via **mockify** directly
 * Module **mockify.engine** is now available directly via **mockify**
+* Modules **mockify.mock.function** and **mockify.mock.object** are now merged
+  into **mockify.mock**
 * Use Sphinx Read The Docs theme for documentation
 * Object mocks can now be used without subclassing and have standarized API
 
