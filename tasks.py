@@ -147,7 +147,7 @@ def clean(c):
     c.run('find . -name "*.pyc" -delete')
     c.run('find . -type d -name "__pycache__" -empty -delete')
     c.run('rm -rf docs/build')
-    c.run('rm -rf build')
+    c.run('rm -rf build dist')
     c.run('rm -rf *.egg-info')
 
 
