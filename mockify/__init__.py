@@ -9,6 +9,10 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from ._engine import Call, Expectation, Registry
+"""Library core module."""
+
+from ._engine import assert_satisfied, Call, Expectation, Registry
+
+__all__ = ['Call', 'Expectation', 'Registry', 'assert_satisfied']
 
 version = (0, 5, 0)

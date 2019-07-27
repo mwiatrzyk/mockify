@@ -8,6 +8,7 @@
 * Module **mockify.helpers** made deprecated and merged with library core - now
   available via **mockify** directly
 * Module **mockify.engine** is now available directly via **mockify**
+* Use Sphinx Read The Docs theme for documentation
 
 0.4.0
 -----
