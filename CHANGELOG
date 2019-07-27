@@ -3,6 +3,8 @@
 
 * Dependency management provided by pipenv
 * Project's CLI provided by Invoke library
+* Module renamed: **mockify.times** -> **mockify.cardinality** (old one was
+  made deprecated)
 
 0.4.0
 -----
