@@ -1,17 +1,17 @@
 # ---------------------------------------------------------------------------
-# tests/test_times.py
+# tests/test_cardinality.py
 #
 # Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 import pytest
 
-from mockify.times import AtLeast, AtMost, Between, Exactly
+from mockify.cardinality import AtLeast, AtMost, Between, Exactly
 
 
 class TestExactly:

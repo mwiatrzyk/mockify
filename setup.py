@@ -2,12 +2,12 @@ import setuptools
 
 import mockify
 
-with open("README.rst", "r") as fd:
+with open("README", "r") as fd:
     long_description = fd.read()
 
 setuptools.setup(
     name="mockify",
-    version=mockify.version,
+    version='.'.join(str(x) for x in mockify.version),
     author="Maciej Wiatrzyk",
     author_email="maciej.wiatrzyk@gmail.com",
     description="Mocking library for Python inspired by Google Mock C++ mocking toolkit",

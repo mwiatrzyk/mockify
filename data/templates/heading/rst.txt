@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/license.rst
+.. {filename}
 ..
-.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+.. Copyright (C) {year} {holder}
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -9,10 +9,3 @@
 ..
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
-
-License
-=======
-
-Mockify is released under the terms of the MIT license.
-
-.. include:: ../../LICENSE

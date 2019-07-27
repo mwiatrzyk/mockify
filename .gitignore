@@ -4,5 +4,6 @@ __pycache___
 *.swo
 .pytest_cache
 .idea
-env
+.vscode
 docs/build
+Pipfile.lock

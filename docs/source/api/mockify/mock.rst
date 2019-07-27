@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/license.rst
+.. docs/source/api/mockify/mock.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,9 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-License
-=======
+**mockify.mock** - Classes for mocking things
+=============================================
 
-Mockify is released under the terms of the MIT license.
-
-.. include:: ../../LICENSE
+.. automodule:: mockify.mock
+    :members:
+    :show-inheritance:

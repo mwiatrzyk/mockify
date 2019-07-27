@@ -1,63 +1,50 @@
 image: python:3.6-slim
 
 stages:
-    - test
-    - stage
-    - verify
-    - deploy
+  - build
+  - test
+  - stage
+  - deploy
 
 before_script:
-    - pip install -r requirements.txt
+  - pip install pipenv
+  - pipenv install --dev
 
 build_docs:
-    stage: test
-    script:
-        - apt-get update -qy
-        - apt-get install make
-        - cd docs
-        - make html
+  stage: build
+  script:
+    - pipenv run invoke build-docs
 
-run_tests:
-    stage: test
-    script:
-        - scripts/runtest.sh
+test:
+  stage: test
+  script:
+    - pipenv run invoke test
 
 deploy_to_test_pypi:
-    stage: stage
-    variables:
-        TWINE_USERNAME: $TEST_PYPI_USER
-        TWINE_PASSWORD: $TEST_PYPI_PASS
-    script:
-        - pip install twine
-        - python setup.py sdist bdist_wheel
-        - twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-    only:
-        - tags
-    except:
-        - branches
-
-install_from_test_pypi:
-    stage: verify
-    script:
-        - rm -rf mockify/
-        - pip install --index-url https://test.pypi.org/simple/ mockify
-        - pytest tests/
-    only:
-        - tags
-    except:
-        - branches
+  stage: stage
+  variables:
+    TWINE_USERNAME: $TEST_PYPI_USER
+    TWINE_PASSWORD: $TEST_PYPI_PASS
+  script:
+    - pipenv run invoke build-pkg
+    - pipenv run invoke deploy test
+  only:
+    - tags
+  except:
+    - master
+    - branches
 
 deploy_to_pypi:
-    stage: deploy
-    when: manual
-    variables:
-        TWINE_USERNAME: $PYPI_USER
-        TWINE_PASSWORD: $PYPI_PASS
-    script:
-        - pip install twine
-        - python setup.py sdist bdist_wheel
-        - twine upload dist/*
-    only:
-        - tags
-    except:
-        - branches
+  stage: deploy
+  when: manual
+  variables:
+    TWINE_USERNAME: $PYPI_USER
+    TWINE_PASSWORD: $PYPI_PASS
+  script:
+    - pipenv run invoke build-pkg
+    - pipenv run invoke deploy prod
+  only:
+    - tags
+  except:
+    - development
+    - branches

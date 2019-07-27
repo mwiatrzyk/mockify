@@ -6,14 +6,13 @@
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 import pytest
 
-from mockify import exc
-from mockify.times import AtLeast, AtMost, Between
-from mockify.engine import Call, Expectation
+from mockify import exc, Call, Expectation
+from mockify.cardinality import AtLeast, AtMost, Between
 
 
 class ActionStub:

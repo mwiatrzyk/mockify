@@ -6,16 +6,15 @@
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 import collections
 
 import pytest
 
-from mockify import exc
-from mockify.engine import Call, Registry
-from mockify.mock.function import Function, FunctionFactory
+from mockify import exc, Call, Registry
+from mockify.mock import Function, FunctionFactory
 
 
 ExpectationStub = collections.namedtuple('ExpectationStub', 'call, filename, lineno')

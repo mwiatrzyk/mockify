@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/license.rst
+.. docs/source/api/mockify/cardinality.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,9 +10,10 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-License
-=======
+**mockify.cardinality** - Classes for setting expected call cardinality
+=======================================================================
 
-Mockify is released under the terms of the MIT license.
-
-.. include:: ../../LICENSE
+.. automodule:: mockify.cardinality
+    :members:
+    :special-members: __eq__
+    :show-inheritance:

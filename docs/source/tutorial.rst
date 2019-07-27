@@ -1,3 +1,14 @@
+.. ----------------------------------------------------------------------------
+.. docs/source/tutorial.rst
+..
+.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+..
+.. This file is part of Mockify library documentation
+.. and is released under the terms of the MIT license:
+.. http://opensource.org/licenses/mit-license.php.
+..
+.. See LICENSE for details.
+.. ----------------------------------------------------------------------------
 Tutorial
 ========
 
@@ -8,12 +19,12 @@ Using ``Function`` class
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is the most basic mocking utility. Instances of
-:class:`mockify.mock.function.Function` are simply used to mock normal Python
+:class:`mockify.mock.Function` are simply used to mock normal Python
 functions. You'll need such mocks for example to test code that uses callbacks.
 
 To create function mock you need to import function mock utility::
 
-    >>> from mockify.mock.function import Function
+    >>> from mockify.mock import Function
 
 Now you can create function mock using following boilerplate pattern::
 
@@ -31,23 +42,23 @@ Using ``FunctionFactory`` class
 .. versionadded:: 0.2
 
 You can also create function mocks in easier way by using
-:class:`mockify.mock.function.FunctionFactory` class. Objects of this class
+:class:`mockify.mock.FunctionFactory` class. Objects of this class
 simplify function mock creation by allowing it to be created by just attribute
 reading. For example, to create ``foo`` and ``bar`` function mocks you just
 need to execute following code::
 
-    >>> from mockify.mock.function import FunctionFactory
+    >>> from mockify.mock import FunctionFactory
     >>> factory = FunctionFactory()
     >>> foo = factory.foo
     >>> bar = factory.bar
 
 Now both ``foo`` and ``bar`` are instances of
-:class:`mockify.mock.function.Function` class. Of course you do not have to
+:class:`mockify.mock.Function` class. Of course you do not have to
 assign factory attribute to a variable - you can pass it directly, or even pass
 entire factory object to code being under test if needed.
 
 Besides simplified mock creation this class also provides
-:meth:`mockify.mock.function.FunctionFactory.assert_satisfied` method that
+:meth:`mockify.mock.FunctionFactory.assert_satisfied` method that
 checks if all mocks created by the factory are satisfied. Of course you can
 still do this by checking each individually::
 
@@ -63,28 +74,17 @@ Mocking objects
 
 .. versionadded:: 0.3
 
-To mock Python objects you need :class:`mockify.mock.object.Object` class::
+.. versionchanged:: 0.5
+    Now you don't need to subclass, and the API is the same as for other mock
+    classes.
 
-    >>> from mockify.mock.object import Object
+To mock Python objects you need :class:`mockify.mock.Object` class::
 
-This class later needs to be subclassed and supplied with list of methods
-and/or properties. For example, if you wish to mock Python class having methods
-``foo`` and ``bar`` and one property named ``spam``, then the subclass would
-look like this::
+    >>> from mockify.mock import Object
 
-    >>> class Mock(Object):
-    ...     __methods__ = ['foo', 'bar']
-    ...     __properties__ = ['spam']
+Now you can instantiate like any other mocking utility:
 
-These lists are made to allow later differentiation betwee non existing
-properties (for which :exc:`AttributeError` is raised) and uninterested method
-call or property access.
-
-Once you have such ``Mock`` class, you can instantiate it in similar way to
-:class:`mockify.mock.function.Function` class, but this time giving it a name
-of an object::
-
-    >>> mock = Mock('mock')
+    >>> mock = Object('mock')
 
 Once you have a ``mock`` object, you can inject it into some code being under
 test. For example, let's have following function that interacts with some
@@ -94,14 +94,6 @@ test. For example, let's have following function that interacts with some
     ...     for x in obj.spam:
     ...         obj.foo(x)
     ...     return obj.bar()
-
-Let's now call it giving previously created ``mock`` as an argument. The call
-will fail on first access to mock object attribute::
-
-    >>> uut(mock)
-    Traceback (most recent call last):
-        ...
-    mockify.exc.UninterestedGetterCall: mock.spam
 
 To make *uut* function pass, we have to record expectations for:
 
@@ -116,22 +108,21 @@ configure ``spam`` to return ``[1]`` list, forcing ``foo`` to be called once
 with ``1``::
 
     >>> from mockify.actions import Return
-    >>> mock.expect_get('spam').will_once(Return([1]))
+    >>> mock.spam.fget.expect_call().will_once(Return([1]))
     <mockify.Expectation: mock.spam.fget()>
-    >>> mock.expect_call('foo', 1)
+    >>> mock.foo.expect_call(1)
     <mockify.Expectation: mock.foo(1)>
-    >>> mock.expect_call('bar').will_once(Return(True))
+    >>> mock.bar.expect_call().will_once(Return(True))
     <mockify.Expectation: mock.bar()>
 
-
-Let's now call our ``uut`` function again. Since we have covered all methods by
-our expectations, the mock call will now pass returning ``True`` (as we've set
+Let's now call our ``uut`` function. Since we have covered all methods by our
+expectations, the mock call will now pass returning ``True`` (as we've set
 ``bar`` to return ``True``)::
 
     >>> uut(mock)
     True
 
-And our mock will be satisfied now::
+And our mock is of course satisfied::
 
     >>> mock.assert_satisfied()
 
@@ -401,13 +392,13 @@ Now you can change a default strategy for handling uninterested calls for
 your mocks.
 
 To change a strategy you need to create a custom
-:class:`mockify.engine.Registry` object and use it as a **registry** for your
+:class:`mockify.Registry` object and use it as a **registry** for your
 mock classes.
 
 For example, you can change the strategy to *ignore*, so all unexpected mock
 calls will simply be ignored::
 
-    >>> from mockify.engine import Registry
+    >>> from mockify import Registry
 
     >>> registry = Registry(uninterested_call_strategy='ignore')
 
@@ -427,7 +418,7 @@ And now your mock will only fail if you have an unsatisfied expectation:
         ...
     mockify.exc.Unsatisfied: following expectation is not satisfied:
     <BLANKLINE>
-    at <doctest tutorial.rst[76]>:1
+    at <doctest tutorial.rst[74]>:1
     -------------------------------
         Pattern: mock('spam')
        Expected: to be called once
@@ -436,7 +427,7 @@ And now your mock will only fail if you have an unsatisfied expectation:
 Configuring expectation objects
 -------------------------------
 
-So far, we've done nothing with :class:`mockify.engine.Expectation` object
+So far, we've done nothing with :class:`mockify..Expectation` object
 ``expect_call`` method returns. But it has a lot of very handy features that we
 are going to discuss right now.
 
@@ -465,7 +456,7 @@ can be done like this::
     >>> example(0, callback)
     >>> callback.assert_satisfied()
 
-As you can see, we've used :meth:`mockify.engine.Expectation.times` method and
+As you can see, we've used :meth:`mockify.Expectation.times` method and
 called it with 0, meaning that we expect ``callback`` to be called 0 times. Now
 the test looks more expressive, but as stated in the beginning, expecting
 something to never happen is tricky. No matter if we call ``example`` function,
@@ -528,7 +519,7 @@ mock is called with valid arguments. For that purpose, we'll use
 Using :class:`mockify.matchers.SaveArg` you will also have to do some
 additional assertions like in example above.
 
-Method :meth:`mockify.engine.Expectation.times` allows to configure more then
+Method :meth:`mockify..Expectation.times` allows to configure more then
 just fixed expected number of calls. For more information go to the
 :mod:`mockify.times` module documentation.
 
@@ -538,7 +529,7 @@ Single actions
 Besides setting how many times each mock is expected to be called and with what
 arguments, you can also record actions to be executed on each mock call. For
 example, we can tell a mock to return given value when it gets called. To do
-this, we need to use :meth:`mockify.engine.Expectation.will_once` method::
+this, we need to use :meth:`mockify..Expectation.will_once` method::
 
     >>> from mockify.actions import Return
     >>> foo = Function('foo')
@@ -588,7 +579,7 @@ For more actions please proceed to the :mod:`mockify.actions` documentation.
 Action chains
 ^^^^^^^^^^^^^
 
-You can chain :meth:`mockify.engine.Expectation.will_once` method invocations
+You can chain :meth:`mockify..Expectation.will_once` method invocations
 to end up with action chains being recorded, so each time when mock is called,
 next action in a chain is executed. For example, you can record expectation
 that mock is going to be called twice, returning 1 on first call and 2 on
@@ -651,7 +642,7 @@ Repeated actions allow to set single action that will keep being executed each
 time the mock is called. By default, if mock has repeated action set it can be
 called any number of times, so mock with repeated action set is initially
 satisfied. Repeated actions are recorded using
-:meth:`mockify.engine.Expectation.will_repeatedly` method::
+:meth:`mockify..Expectation.will_repeatedly` method::
 
     >>> foo = Function('foo')
     >>> foo.expect_call().will_repeatedly(Return(1))
@@ -669,7 +660,7 @@ will be satisfied::
     1
     >>> foo.assert_satisfied()
 
-You can also use :meth:`mockify.engine.Expectation.times` method to set
+You can also use :meth:`mockify..Expectation.times` method to set
 expected call count on a repeated action. For example, if you want to record
 repeated action that can be executed at most twice, you would write following::
 

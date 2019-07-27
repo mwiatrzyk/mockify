@@ -1,0 +1,41 @@
+0.5.0
+-----
+
+* Dependency management provided by pipenv
+* Project's CLI provided by Invoke library
+* Added :class:`mockify.mock.Namespace` mock class
+* Use Sphinx Read The Docs theme for documentation
+* Class :class:`mockify.mock.Object` can now be used without subclassing and
+  has API similar to other mock classes
+* Module *mockify.helpers* (was merged to library core)
+* Module *mockify.times* (renamed to :mod:`mockify.cardinality`)
+* Module *mockify.engine* is now available via :mod:`mockify`
+* Modules *mockify.mock.function* and *mockify.mock.object* are now merged into
+  :mod:`mockify.mock`
+
+0.4.0
+-----
+
+* Added strategies for dealing with unexpected calls
+
+0.3.1
+-----
+
+* Added frontend for mocking Python objects
+
+0.2.1
+-----
+
+* Updated copyright notice
+* Added description to Alabaster Sphinx theme used for docs
+* Added FunctionFactory mocking utility
+* Changed Registry.assert_satisfied method to allow it to get mock names to
+  check using positional args
+* Script for running tests added (pytest wrapper)
+* Updated copyright.py script and hardcode year the project was started and
+  author's name
+
+0.1.12
+------
+
+* First release published to PyPI

@@ -6,7 +6,7 @@
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 """Module containing predefined matchers.
@@ -44,7 +44,7 @@ class SaveArg(Matcher):
 
     For example:
 
-        >>> from mockify.mock.function import Function
+        >>> from mockify.mock import Function
         >>> arg = SaveArg()
         >>> foo = Function('foo')
         >>> foo.expect_call(arg).times(3)
@@ -85,7 +85,7 @@ class Any(Matcher):
     positional argument of any value but exactly 3 times:
 
         >>> from mockify.matchers import _
-        >>> from mockify.mock.function import Function
+        >>> from mockify.mock import Function
         >>> foo = Function('foo')
         >>> foo.expect_call(_).times(3)
         <mockify.Expectation: foo(_)>

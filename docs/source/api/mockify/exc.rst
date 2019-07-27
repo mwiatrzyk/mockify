@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/license.rst
+.. docs/source/api/mockify/exc.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,9 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-License
-=======
+**mockify.exc** - Library exceptions
+====================================
 
-Mockify is released under the terms of the MIT license.
-
-.. include:: ../../LICENSE
+.. automodule:: mockify.exc
+    :members:
+    :show-inheritance:

@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/license.rst
+.. docs/source/api/mockify/actions.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,9 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-License
-=======
+**mockify.actions** - Classes for recording side effects
+========================================================
 
-Mockify is released under the terms of the MIT license.
-
-.. include:: ../../LICENSE
+.. automodule:: mockify.actions
+    :members:
+    :show-inheritance:

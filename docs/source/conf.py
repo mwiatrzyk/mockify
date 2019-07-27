@@ -16,25 +16,28 @@
 import os
 import sys
 
+from datetime import datetime
+
 this_dir = os.path.abspath(os.path.dirname(__file__))
 root_dir = os.path.join(this_dir, '..', '..')
+current_year = datetime.now().year
 
 sys.path.insert(0, root_dir)
 
-import mockify
+from mockify import version
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = '2018 - 2019, Maciej Wiatrzyk'
+copyright = f"2018 - {current_year}, Maciej Wiatrzyk"
 author = 'Maciej Wiatrzyk'
 
 # The short X.Y version
-version = mockify.version[:mockify.version.rfind('.')]
+version = '.'.join(str(x) for x in version[:-1])
 
 # The full version, including alpha/beta/rc tags
-release = mockify.version
+release = '.'.join(str(x) for x in version)
 
 
 # -- General configuration ---------------------------------------------------
@@ -86,15 +89,13 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {
-    'description': 'Mocking library for Python inspired by Google Mock C++ mocking toolkit'
-}
+html_theme_options = {}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

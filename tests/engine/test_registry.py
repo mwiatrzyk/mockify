@@ -6,13 +6,12 @@
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 import pytest
 
-from mockify import exc
-from mockify.engine import Call, Registry
+from mockify import exc, Call, Registry
 
 
 class ExpectationStub:
