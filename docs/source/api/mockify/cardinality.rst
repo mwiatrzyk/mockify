@@ -10,8 +10,8 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.cardinality**
-=======================
+**mockify.cardinality** - Classes for setting expected call cardinality
+=======================================================================
 
 .. automodule:: mockify.cardinality
     :members:

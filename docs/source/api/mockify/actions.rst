@@ -10,10 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.actions**
-===================
+**mockify.actions** - Classes for recording side effects
+========================================================
 
 .. automodule:: mockify.actions
     :members:
     :show-inheritance:
-
