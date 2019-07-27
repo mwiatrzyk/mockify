@@ -9,6 +9,7 @@
   available via **mockify** directly
 * Module **mockify.engine** is now available directly via **mockify**
 * Use Sphinx Read The Docs theme for documentation
+* Object mocks can now be used without subclassing and have standarized API
 
 0.4.0
 -----
