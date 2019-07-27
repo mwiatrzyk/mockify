@@ -1,154 +1,310 @@
-# ---------------------------------------------------------------------------
-# mockify/mock/object.py
-#
-# Copyright (C) 2018 - 2019 Maciej Wiatrzyk
-#
-# This file is part of Mockify library and is released under the terms of the
-# MIT license: http://opensource.org/licenses/mit-license.php.
-#
-# See LICENSE for details.
-# ---------------------------------------------------------------------------
+import sys
+import math
+import weakref
+import warnings
 
-from mockify import exc, Registry
+from mockify import _utils, Registry
 
 from .function import Function
 
 
+class _Attribute:
+
+    def __init__(self, name, owner):
+        self._name = name
+        self._owner = owner
+
+    @property
+    def _owner(self):
+        return self.__owner()
+
+    @_owner.setter
+    def _owner(self, value):
+        self.__owner = weakref.ref(value)
+
+    @property
+    def _registry(self):
+        return self._owner._registry
+
+    @property
+    def name(self):
+        return f"{self._owner.name}.{self._name}"
+
+    def _has_property(self, name):
+        return name in self.__dict__
+
+
 class Object:
-    """Mock frontend made for mocking Python objects.
+    """Class for mocking Python objects.
 
-    This class requires custom subclass to be created and have following
-    attributes defined:
+    .. versionchanged:: 0.5
+        New API introduced.
 
-        ``__methods__``
-            Containing list of method names
+    .. versionadded:: 0.3
 
-        ``__properties__``
-            Containing list of property names
+    .. testsetup::
 
-    For example, if you want to mock Python class that has methods ``foo`` and
-    ``bar``, and property ``spam``, you would create following subclass::
+        from mockify.mock import Object
+        from mockify.actions import Return
 
-        >>> class Mock(Object):
-        ...     __methods__ = ['foo', 'bar']
-        ...     __properties__ = ['spam']
+    Since version 0.5 this class provides a new API that complies with the
+    one used by other mock classes.
 
-    After that, class ``Mock`` can be instantiated like this::
+    You can now create mock objects directly, without subclassing:
 
-        >>> mock = Mock('mock')
+    .. testcode::
 
-    And then injected to some unit under test.
+        mock = Object('mock')
+
+    Method calls are now recorded like this:
+
+    .. testcode::
+
+        mock.foo.expect_call(1, 2)
+
+    And for recording property get/set expectations you write:
+
+    .. testcode::
+
+        mock.bar.fset.expect_call(123)
+        mock.bar.fget.expect_call().will_once(Return(123))
+        mock.baz.fget.expect_call().will_once(Return(456))
+
+    And you can still subclass this class and provide a set of methods and
+    properties, like in this example:
+
+    .. testcode::
+
+        class Dummy(Object):
+            __methods__ = ['foo']
+            __properties__ = ['bar']
 
     :param name:
-        Name of this object mock instance
+        Name of mocked object
+
+    :param methods:
+        Sequence of names of methods to be mocked.
+
+        If this is given, then the only allowed methods will be the ones from
+        given sequence. Attempt to access any other will result in
+        :exc:`AttributeError` being raised.
+
+    :param properties:
+        Sequence of names of properties to be mocked.
+
+        Use is the same as for **methods** parameter.
 
     :param registry:
-        This parameter is optional.
+        Instance of :class:`mockify.Registry` class.
 
-        If you omit it, new instance of :class:`mockify.engine.Registry` will
-        be created and used by this object mock. This is useful if you already
-        have registry instance that you want to share between many unrelated
-        mock frontends.
+        If not given, a default one will be created for this mock object.
     """
-    __methods__ = None
-    __properties__ = None
 
-    class _Property:
+    class Method(_Attribute):
 
-        def __init__(self, name, registry):
-            self._name = name
-            self._fset = Function(name + '.fset', registry=registry)
-            self._fget = Function(name + '.fget', registry=registry)
+        @_utils.memoized_property
+        def _mock(self):
+            return Function(self.name, registry=self._registry)
 
-        @property
-        def fset(self):
-            return self._fset
+        def __call__(self, *args, **kwargs):
+            return self._mock(*args, **kwargs)
 
-        @property
+        def expect_call(self, *args, **kwargs):
+            return self._mock.expect_call(*args, **kwargs)
+
+    class _PropertyMeta(type):
+        _proxy_magic_methods = (
+            '__repr__', '__str__', '__eq__', '__ne__', '__lt__', '__gt__',
+            '__le__', '__ge__', '__pos__', '__neg__', '__abs__',
+            '__invert__', '__round__', '__trunc__', '__add__', '__sub__',
+            '__mul__', '__floordiv__', '__truediv__', '__mod__',
+            '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__',
+            '__or__', '__xor__', '__radd__', '__rsub__', '__rmul__',
+            '__rfloordiv__', '__rtruediv__', '__rmod__', '__rdivmod__',
+            '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__ror__',
+            '__rxor__', '__format__', '__hash__', '__dir__', '__len__',
+            '__getitem__', '__setitem__', '__delitem__', '__contains__',
+            '__iter__',
+        )
+
+        def __init__(cls, name, bases, attrs):
+
+            def make_method(name):
+
+                def proxy(self, *args, **kwargs):
+                    return getattr(self._value, name)(*args, **kwargs)
+
+                proxy.__name__ = name
+                return proxy
+
+            for name in cls._proxy_magic_methods:
+                setattr(cls, name, make_method(name))
+
+    class Property(_Attribute, metaclass=_PropertyMeta):
+
+        class Setter(_Attribute):
+
+            @_utils.memoized_property
+            def _mock(self):
+                return Function(self.name, registry=self._registry)
+
+            def expect_call(self, value):
+                return self._mock.expect_call(value)
+
+        class Getter(_Attribute):
+
+            @_utils.memoized_property
+            def _mock(self):
+                return Function(self.name, registry=self._registry)
+
+            def expect_call(self):
+                return self._mock.expect_call()
+
+        def __int__(self):
+            return int(self._value)
+
+        def __float__(self):
+            return float(self._value)
+
+        def __complex__(self):
+            return complex(self._value)
+
+        def __bool__(self):
+            return bool(self._value)
+
+        def __nonzero__(self):
+            return self.__bool__()
+
+        def __getattr__(self, name):
+            return getattr(self._value, name)
+
+        def __call__(self, *args, **kwargs):
+            return self._value(*args, **kwargs)
+
+        @_utils.memoized_property
         def fget(self):
-            return self._fget
+            return self.Getter('fget', self)
 
-        def trigger_getter(self):
-            try:
-                return self._fget()
-            except exc.UninterestedCall as e:
-                raise exc.UninterestedGetterCall(self._name)
+        @_utils.memoized_property
+        def fset(self):
+            return self.Setter('fset', self)
 
-        def trigger_setter(self, value):
-            try:
-                return self._fset(value)
-            except exc.UninterestedCall as e:
-                raise exc.UninterestedSetterCall(self._name, value)
+        @_utils.memoized_property
+        def _value(self):
+            return self.fget._mock()
 
-    def __init__(self, name, registry=None):
-        if not self.__methods__ or not self.__properties__:
-            raise TypeError("missing '__methods__' and/or '__properties__' attributes in class definition")
+        def expect_call(self, *args, **kwargs):
+            method = self._make_specific(self._owner, self._name, Object.Method)
+            return method.expect_call(*args, **kwargs)
+
+        def _make_specific(self, obj, attr_name, attr_type):
+            d = obj.__dict__
+            if not isinstance(d[attr_name], attr_type):
+                d[attr_name] = attr_type(attr_name, obj)
+            return d[attr_name]
+
+    __methods__ = tuple()
+    __properties__ = tuple()
+
+    def __init__(self, name, methods=None, properties=None, registry=None):
         self._name = name
+        self._methods = tuple(methods or self.__methods__)
+        self._properties = tuple(properties or self.__properties__)
+        self._allowed_attrs = self._methods + self._properties
         self._registry = registry or Registry()
-        self._methods = dict(self.__create_methods(self.__methods__))
-        self._properties = dict(self.__create_properties(self.__properties__))
+        if self._methods:
+            self._initialize_predefined_methods()
+        if self._properties:
+            self._initialize_predefined_properties()
 
-    def __create_methods(self, names):
-        for name in names:
-            yield name, Function("{}.{}".format(self._name, name), self._registry)
+    def _initialize_predefined_methods(self):
+        for name in self._methods:
+            self.__dict__[name] = self.Method(name, self)
 
-    def __create_properties(self, names):
-        for name in names:
-            yield name, self._Property("{}.{}".format(self._name, name), self._registry)
+    def _initialize_predefined_properties(self):
+        for name in self._properties:
+            self.__dict__[name] = self.Property(name, self)
 
     def __getattr__(self, name):
-        if name in self._methods:
-            return self._methods[name]
-        elif name in self._properties:
-            return self._properties[name].trigger_getter()
+        if self._allowed_attrs and name not in self._allowed_attrs:
+            raise AttributeError(f"Mock object {self._name!r} has no attribute {name!r}")
+        self.__dict__[name] = tmp = self.Property(name, self)
+        return tmp
+
+    def __getattribute__(self, name):
+        if name.startswith('_'):
+            return super().__getattribute__(name)
         else:
-            raise AttributeError(
-                "mock object {!r} has no attribute named {!r}".
-                format(self._name, name))
+            d = self.__dict__
+            if name in d and isinstance(d[name], Object.Property):
+                if '_value' in d[name].__dict__:
+                    del d[name].__dict__['_value']
+                return d[name]
+            else:
+                return super().__getattribute__(name)
 
     def __setattr__(self, name, value):
         if name.startswith('_'):
-            super().__setattr__(name, value)
-        elif name in self._properties:
-            self._properties[name].trigger_setter(value)
+            return super().__setattr__(name, value)
+        elif self._properties and name not in self._properties:
+            raise AttributeError(f"Mock object {self._name!r} does not allow setting attribute {name!r}")
         else:
-            raise AttributeError("mock object {!r} has no property {!r}".format(self._name, name))
+            self.__dict__[name] = tmp = self.Property(name, self)
+            return tmp.fset._mock(value)
 
-    def expect_call(self, _name_, *args, **kwargs):
+    @property
+    def _mocks(self):
+        for k, v in self.__dict__.items():
+            if isinstance(v, self.Method):
+                yield v._mock
+            elif isinstance(v, self.Property):
+                if v._has_property('fset'):
+                    yield v.fset._mock
+                if v._has_property('fget'):
+                    yield v.fget._mock
+
+    @property
+    def name(self):
+        return self._name
+
+    def expect_call(self, __name__, *args, **kwargs):
         """Record method call expectation.
 
-        This method requires one argument to be given - method name. All other
-        are simply forwarded to underlying
-        :class:`mockify.mock.function.Function` object.
-
-        :param _name_:
-            Method name
+        .. deprecated:: 0.5
+            See :class:`Object` for a brief example of how to use new API.
         """
-        return self._methods[_name_].expect_call(*args, **kwargs)
+        warnings.warn(
+            "Object.expect_call('example', ...) is deprecated "
+            "since version 0.5 - use Object.example.expect_call(...) "
+            "instead.", DeprecationWarning)
+        return getattr(self, __name__).expect_call(*args, **kwargs)
 
-    def expect_set(self, name, value):
+    def expect_set(self, __name__, value):
         """Record property set expectation.
 
-        :param name:
-            Property name
-        :param value:
-            Property value that is expected to be set.
+        .. deprecated:: 0.5
+            See :class:`Object` for a brief example of how to use new API.
         """
-        return self._properties[name].fset.expect_call(value)
+        warnings.warn(
+            "Object.expect_set('example', value) is deprecated "
+            "since version 0.5 - use Object.example.fset.expect_call(value) "
+            "instead.", DeprecationWarning
+        )
+        return getattr(self, __name__).fset.expect_call(value)
 
-    def expect_get(self, name):
+    def expect_get(self, __name__):
         """Record property get expectation.
 
-        :param name:
-            Property name
+        .. deprecated:: 0.5
+            See :class:`Object` for a brief example of how to use new API.
         """
-        return self._properties[name].fget.expect_call()
+        warnings.warn(
+            "Object.expect_get('example') is deprecated "
+            "since version 0.5 - use Object.example.fget.expect_call() "
+            "instead.", DeprecationWarning
+        )
+        return getattr(self, __name__).fget.expect_call()
 
     def assert_satisfied(self):
-        """Check if this mock object is satisfied.
-
-        This method checks (in one call) if all registered expectations (for
-        all methods and all properties) are satisfied. If not, then
-        :exc:`mockify.exc.Unsatisfied` exception is raised.
-        """
-        self._registry.assert_satisfied()
+        """Assert that all expected method/property calls are satisfied."""
+        self._registry.assert_satisfied(*[m.name for m in self._mocks])

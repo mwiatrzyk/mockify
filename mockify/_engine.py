@@ -111,6 +111,9 @@ class Call:
         all_gen = itertools.chain(args_gen, kwargs_gen)
         return "{}({})".format(self._name, ", ".join(all_gen))
 
+    def __repr__(self):
+        return f"<{self.__module__}.{self.__class__.__name__}({self._name!r}, args={self._args!r}, kwargs={self._kwargs!r})>"
+
     def __eq__(self, other):
         return self._name == other._name and\
             self._args == other._args and\
@@ -133,6 +136,21 @@ class Call:
     def kwargs(self):
         """Mock named args."""
         return self._kwargs
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        """Factory method for easier :class:`Call` object creating.
+
+        You must give at least one positional argument - the name. All other
+        will be passed to constructor's **args** and **kwargs** parameters.
+
+        .. versionadded:: 0.5
+        """
+        if not args:
+            raise TypeError(
+                "create() must be called with at least 1 positional argument, "
+                "got 0")
+        return cls(args[0], args=args[1:] or None, kwargs=kwargs or None)
 
 
 class Registry:
