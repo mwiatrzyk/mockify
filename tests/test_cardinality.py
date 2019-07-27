@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/test_times.py
+# tests/test_cardinality.py
 #
 # Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 #
@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.times import AtLeast, AtMost, Between, Exactly
+from mockify.cardinality import AtLeast, AtMost, Between, Exactly
 
 
 class TestExactly:

@@ -13,9 +13,8 @@ import collections
 
 import pytest
 
-from mockify import exc
-from mockify.engine import Call, Registry
-from mockify.mock.function import Function, FunctionFactory
+from mockify import exc, Call, Registry
+from mockify.mock import Function, FunctionFactory
 
 
 ExpectationStub = collections.namedtuple('ExpectationStub', 'call, filename, lineno')

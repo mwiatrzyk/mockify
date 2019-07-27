@@ -107,6 +107,12 @@ def build_pkg(c):
     """Build distribution package."""
     c.run('python setup.py sdist bdist_wheel')
 
+
+@invoke.task(build_docs, build_pkg)
+def build(c):
+    """A shortcut for building everything."""
+
+
 @invoke.task
 def test_unit(c):
     """Run unit tests."""
@@ -141,5 +147,10 @@ def clean(c):
     c.run('find . -name "*.pyc" -delete')
     c.run('find . -type d -name "__pycache__" -empty -delete')
     c.run('rm -rf docs/build')
-    c.run('rm -rf build')
+    c.run('rm -rf build dist')
     c.run('rm -rf *.egg-info')
+
+
+@invoke.task(build_docs, build_pkg, test)
+def regression(c):
+    """Run regression tests."""

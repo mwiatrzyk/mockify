@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api.rst
+.. docs/source/api/mockify/cardinality.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,15 +10,10 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-API Reference
-=============
+**mockify.cardinality**
+=======================
 
-.. toctree::
-    :maxdepth: 3
-
-    api/mockify
-    api/mockify/mock
-    api/mockify/actions
-    api/mockify/cardinality
-    api/mockify/matchers
-    api/mockify/exc
+.. automodule:: mockify.cardinality
+    :members:
+    :special-members: __eq__
+    :show-inheritance:

@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api.rst
+.. docs/source/api/mockify/mock/function.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,15 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-API Reference
-=============
+**mockify.mock.function**
+=========================
 
-.. toctree::
-    :maxdepth: 3
-
-    api/mockify
-    api/mockify/mock
-    api/mockify/actions
-    api/mockify/cardinality
-    api/mockify/matchers
-    api/mockify/exc
+.. automodule:: mockify.mock.function
+    :members:
+    :show-inheritance:
