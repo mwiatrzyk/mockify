@@ -12,6 +12,7 @@
   into **mockify.mock**
 * Use Sphinx Read The Docs theme for documentation
 * Object mocks can now be used without subclassing and have standarized API
+* Added **Namespace** mock class
 
 0.4.0
 -----
