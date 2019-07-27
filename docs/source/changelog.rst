@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/license.rst
+.. docs/source/changelog.rst
 ..
 .. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 ..
@@ -10,9 +10,7 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-License
-=======
+Changelog
+=========
 
-Mockify is released under the terms of the MIT license.
-
-.. include:: ../../LICENSE
+.. include:: ../../CHANGELOG

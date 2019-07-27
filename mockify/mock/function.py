@@ -6,7 +6,7 @@
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
-# See LICENSE.txt for details.
+# See LICENSE for details.
 # ---------------------------------------------------------------------------
 
 from mockify import _utils
