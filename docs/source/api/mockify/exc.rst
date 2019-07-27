@@ -10,8 +10,8 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.exc**
-===============
+**mockify.exc** - Library exceptions
+====================================
 
 .. automodule:: mockify.exc
     :members:

@@ -10,8 +10,8 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify**
-===========
+**mockify** - Library core
+==========================
 
 .. automodule:: mockify
     :members:

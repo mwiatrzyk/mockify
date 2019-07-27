@@ -36,13 +36,13 @@ def assert_satisfied(*subjects):
     """Context manager for verifying multiple subjects at once.
 
     Each passed subject must have ``assert_satisfied`` method defined, so it
-    can be used with :class:`mockify.mock.function.Function` or
+    can be used with :class:`mockify.mock.Function` or
     :class:`mockify.engine.Registry` instances for example.
 
     Basically, the role of this helper is to ensure that all subjects become
     satisfied after leaving wrapped context. For example:
 
-        >>> from mockify.mock.function import Function
+        >>> from mockify.mock import Function
         >>> foo = Function('foo')
         >>> bar = Function('bar')
         >>> foo.expect_call()
@@ -66,7 +66,7 @@ class Call:
     be called with.
 
     Call objects are created in mock frontends (like
-    :class:`mockify.mock.function.Function` mock class) by methods
+    :class:`mockify.mock.Function` mock class) by methods
     ``expected_call`` and ``__call__`` by simply passing their argument to
     :class:`Call` constructor.
 
@@ -111,6 +111,9 @@ class Call:
         all_gen = itertools.chain(args_gen, kwargs_gen)
         return "{}({})".format(self._name, ", ".join(all_gen))
 
+    def __repr__(self):
+        return f"<{self.__module__}.{self.__class__.__name__}({self._name!r}, args={self._args!r}, kwargs={self._kwargs!r})>"
+
     def __eq__(self, other):
         return self._name == other._name and\
             self._args == other._args and\
@@ -134,12 +137,27 @@ class Call:
         """Mock named args."""
         return self._kwargs
 
+    @classmethod
+    def create(cls, *args, **kwargs):
+        """Factory method for easier :class:`Call` object creating.
+
+        You must give at least one positional argument - the name. All other
+        will be passed to constructor's **args** and **kwargs** parameters.
+
+        .. versionadded:: 0.5
+        """
+        if not args:
+            raise TypeError(
+                "create() must be called with at least 1 positional argument, "
+                "got 0")
+        return cls(args[0], args=args[1:] or None, kwargs=kwargs or None)
+
 
 class Registry:
     """Acts like a database for :class:`Expectation` objects.
 
     This class is used as a backend for higher level mocking utilities (a.k.a.
-    frontends), like :class:`mockify.mock.function.Function` mocking class. It
+    frontends), like :class:`mockify.mock.Function` mocking class. It
     provides methods to record, lookup and verifying of expectations.
 
     There can be many instances of registry classes, or one that can be shared

@@ -10,13 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.mock**
-================
+**mockify.mock** - Classes for mocking things
+=============================================
 
 .. automodule:: mockify.mock
-
-.. toctree::
-    :maxdepth: 3
-
-    mock/function
-    mock/object
+    :members:
+    :show-inheritance:

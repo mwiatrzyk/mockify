@@ -10,8 +10,8 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.matchers**
-====================
+**mockify.matchers** - Classes for wildcarding expected arguments
+=================================================================
 
 .. automodule:: mockify.matchers
     :members:

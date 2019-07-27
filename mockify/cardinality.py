@@ -35,7 +35,7 @@ thing required from such class is to implement following interface:
         expectations. Such situation can be presented in this example:
 
             >>> from mockify.actions import Return
-            >>> from mockify.mock.function import Function
+            >>> from mockify.mock import Function
             >>> foo = Function('foo')
             >>> foo.expect_call(1, 2).will_once(Return(1)).will_repeatedly(Return(2)).times(2)
             <mockify.Expectation: foo(1, 2)>
