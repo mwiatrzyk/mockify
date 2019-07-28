@@ -9,9 +9,6 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-"""This module contains set of classes that provides backend mechanism for
-storing and tracking call expectations."""
-
 import weakref
 import warnings
 import itertools
@@ -32,32 +29,44 @@ def _wrap_expected_count(expected_count):
 
 
 @contextmanager
-def assert_satisfied(*subjects):
-    """Context manager for verifying multiple subjects at once.
+def assert_satisfied(*mocks):
+    """Context manager for checking if given mocks are all satisfied when
+    leaving the scope.
 
-    Each passed subject must have ``assert_satisfied`` method defined, so it
-    can be used with :class:`mockify.mock.Function` or
-    :class:`mockify.engine.Registry` instances for example.
+    It can be used with any mock and also with :class:`mockify.Registry`
+    instances. The purpose of using this context manager is to emphasize the
+    place in test code where given mocks are used.
 
-    Basically, the role of this helper is to ensure that all subjects become
-    satisfied after leaving wrapped context. For example:
+    Here's an example test:
 
-        >>> from mockify.mock import Function
-        >>> foo = Function('foo')
-        >>> bar = Function('bar')
-        >>> foo.expect_call()
-        <mockify.Expectation: foo()>
-        >>> bar.expect_call().times(0)
-        <mockify.Expectation: bar()>
-        >>> with assert_satisfied(foo, bar):
-        ...     foo()
+    .. testcode::
 
-    And that's it - you don't have to explicitly check if ``foo`` and ``bar``
-    are satisfied, because the helper will do it for you. And also it
-    emphasizes part of code that actually uses given mocks.
+        from mockify.mock import Function
+        from mockify.actions import Return
+
+        class MockCaller:
+
+            def __init__(self, mock):
+                self._mock = mock
+
+            def call_mock(self, a, b):
+                return self._mock(a, b)
+
+        def test_mock_caller():
+            mock = Function('mock')
+
+            mock.expect_call(1, 2).will_once(Return(3))
+
+            uut = MockCaller(mock)
+            with assert_satisfied(mock):
+                assert uut.call_mock(1, 2) == 3
+
+    .. testcleanup::
+
+        test_mock_caller()
     """
     yield
-    for subject in subjects:
+    for subject in mocks:
         subject.assert_satisfied()
 
 

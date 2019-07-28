@@ -15,37 +15,53 @@ from mockify import _utils, Call, Registry
 class Function:
     """Class for mocking Python functions.
 
-    Example usage:
+    This is the most basic mocking class and as such it is used by others to
+    create more complex ones. Function mocks can be used to mock callbacks,
+    comparators, key functions etc.
 
-        >>> foo = Function('foo')
-        >>> foo.expect_call(1, 2).times(2)
-        <mockify.Expectation: foo(1, 2)>
-        >>> for _ in range(2):
-        ...     foo(1, 2)
-        >>> foo.assert_satisfied()
+    To create one, you simply need to call :class:`Function` constructor
+    giving it a name of mock function:
+
+    .. testsetup:
+
+        from mockify.mock import Function
+
+    .. testcode::
+
+        foo = Function('foo')
+
+    Now you can start recording expectations:
+
+    .. testcode::
+
+        foo.expect_call('spam')
+
+    Above we have recorded an expectation that our function *foo* will be
+    called once with single positional argument having string *spam* as a
+    value. Later, the code you are testing will most likely call that
+    function (if both code and expectations are correct):
+
+    .. testcode::
+
+        foo('spam')
+
+    And again, in test, you will at some point check if the mock was called
+    and fulfilled all expectations you've recorded earlier:
+
+    .. testcode::
+
+        foo.assert_satisfied()
+
+    Of course the last statement will fail if there are unsatisfied
+    expectations present.
 
     :param name:
         Mock function name
 
     :param registry:
-        This is optional.
+        Instance of :class:`mockify.Registry` class to be used.
 
-        Use this to pass custom instance of :class:`mockify.engine.Registry`
-        class if you need to share it between multiple frontends. Sharing is
-        useful for example to check if all mocks are satisfied using one
-        ``assert_satisfied`` call:
-
-            >>> from mockify import Registry
-            >>> reg = Registry()
-            >>> foo = Function('foo', registry=reg)
-            >>> bar = Function('bar', registry=reg)
-            >>> foo.expect_call()
-            <mockify.Expectation: foo()>
-            >>> bar.expect_call()
-            <mockify.Expectation: bar()>
-            >>> foo()
-            >>> bar()
-            >>> reg.assert_satisfied()
+        If not given, a default one will be created for this function mock.
     """
 
     def __init__(self, name, registry=None):

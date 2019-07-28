@@ -122,7 +122,7 @@ def test_unit(c):
 @invoke.task
 def test_docs(c):
     """Run documentation tests."""
-    c.run('pytest --doctest-modules --doctest-glob="*.rst" docs/ mockify/')
+    c.run('sphinx-build -M doctest docs/source docs/build')
 
 
 @invoke.task(test_unit, test_docs)

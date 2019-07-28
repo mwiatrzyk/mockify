@@ -46,8 +46,9 @@ User's Guide
 .. toctree::
    :maxdepth: 3
 
-   changelog
    installation
+   quickstart
    tutorial
    api
+   changelog
    license
