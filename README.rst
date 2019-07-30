@@ -1,23 +1,10 @@
-.. ----------------------------------------------------------------------------
-.. docs/source/index.rst
-..
-.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
-..
-.. This file is part of Mockify library documentation
-.. and is released under the terms of the MIT license:
-.. http://opensource.org/licenses/mit-license.php.
-..
-.. See LICENSE for details.
-.. ----------------------------------------------------------------------------
-.. Mockify documentation master file, created by
-   sphinx-quickstart on Fri Nov  9 08:43:36 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+Mockify
+=======
 
-Welcome to Mockify!
-===================
+Mocking library for Python inspired by Google Mock C++ mocking toolkit.
 
-Welcome to Mockify library documentation!
+About
+-----
 
 Mockify is a mocking toolkit for Python that follows principles originally
 introduced by Google Mock C++ mocking framework, but adapted to Python world.
@@ -29,9 +16,7 @@ execution. Expectations tell the mock what it should do once called with
 given arguments and how many times it is expected to be called. Finally, at
 the end of your test, you just check if all expectations are **satisfied**.
 
-Here's an example:
-
-.. testcode::
+Here's an example::
 
     from mockify import assert_satisfied
     from mockify.mock import Function
@@ -56,10 +41,6 @@ Here's an example:
         with assert_satisfied(name_getter):
             assert greeter.greet(recv) == 'Hello, John!'
 
-.. testcleanup::
-
-    test_greeter()
-
 Mockify allows you to create mocks that:
 
     * Can be called with any number and kind of arguments
@@ -78,15 +59,19 @@ Mockify allows you to create mocks that:
 
 Why don't you give it a try then? :-)
 
-User's Guide
-------------
+Documentation
+-------------
 
-.. toctree::
-   :maxdepth: 3
+Newest documentation can be found at https://mockify.readthedocs.org/.
 
-   installation
-   quickstart
-   tutorial
-   api
-   changelog
-   license
+Source
+------
+
+Source code is available at https://gitlab.com/zef1r/mockify/.
+
+License
+-------
+
+This software is released under the terms of the MIT license.
+
+See **LICENSE.txt** for details.

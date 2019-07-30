@@ -15,4 +15,4 @@ from ._engine import assert_satisfied, Call, Expectation, Registry
 
 __all__ = ['Call', 'Expectation', 'Registry', 'assert_satisfied']
 
-version = (0, 5, 0)
+version = (0, 6, 0)
