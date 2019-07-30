@@ -54,7 +54,7 @@ Here's an example:
 
         greeter = Greeter(name_getter)
         with assert_satisfied(name_getter):
-            assert greeter.greet(recv) == 'Hello, John!'
+            assert greeter.greet() == 'Hello, John!'
 
 .. testcleanup::
 

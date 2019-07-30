@@ -1,16 +1,15 @@
 Quickstart
 ==========
 
-Mockify is different than :mod:`unittest.mock` from standard library, so if
-you were using it for testing your projects then you will have to get
-familiar with terminology used by Mockify and a way of how it works. But I
-hope you will enjoy it.
+Mockify does not try to re-implement :mod:`unittest.mock` from standard
+library, but instead it introduces a very different approach of mocking
+things.
 
 First thing you need to know is that in Mockify you record **expectations**
 on your mocks **before** those are called from the code you are testing.
 That's the main difference between Mockify and :mod:`unittest.mock`. If you
 are not familiar with that approach it may seem a bit confusing to you, but I
-promise you will enjoy it.
+hope you will enjoy it once you see it in action.
 
 Let me now show how this works in practice by writing simple test using
 Mockify to mock stuff.
