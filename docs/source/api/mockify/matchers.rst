@@ -13,6 +13,10 @@
 **mockify.matchers** - Classes for wildcarding expected arguments
 =================================================================
 
+.. testsetup::
+
+    from mockify.matchers import SaveArg
+
 .. automodule:: mockify.matchers
     :members:
     :show-inheritance:

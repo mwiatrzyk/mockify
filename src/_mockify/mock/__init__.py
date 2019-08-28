@@ -11,8 +11,9 @@
 
 """Classes for mocking things."""
 
+from ._mock import Mock
 from ._object import Object
 from ._function import Function, FunctionFactory
 from ._namespace import Namespace
 
-__all__ = ['Object', 'Function', 'FunctionFactory', 'Namespace']
+__all__ = ['Mock', 'Object', 'Function', 'FunctionFactory', 'Namespace']

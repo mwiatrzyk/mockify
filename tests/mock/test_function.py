@@ -13,8 +13,8 @@ import collections
 
 import pytest
 
-from mockify import exc, Call, Registry
-from mockify.mock import Function, FunctionFactory
+from _mockify import exc, Call, Registry
+from _mockify.mock import Function, FunctionFactory
 
 
 ExpectationStub = collections.namedtuple('ExpectationStub', 'call, filename, lineno')
@@ -31,7 +31,8 @@ class RegistryStub:
     def __call__(self, call):
         self.call_params.append(call)
 
-    def expect_call(self, call, filename, lineno):
+    def expect_call(self, call):
+        filename, lineno = call.fileinfo
         expectation = ExpectationStub(call, filename, lineno)
         self.expectations.append(expectation)
         return expectation
@@ -49,8 +50,8 @@ class TestFunction:
     def assert_registry_called_once(self, *args, **kwargs):
         assert len(self.registry.call_params) == 1
         assert self.registry.call_params[0].name == 'uut'
-        assert self.registry.call_params[0].args == (args or None)
-        assert self.registry.call_params[0].kwargs == (kwargs or None)
+        assert self.registry.call_params[0].args == args
+        assert self.registry.call_params[0].kwargs == kwargs
 
     def assert_registry_expectation_count_is(self, count):
         assert len(self.registry.expectations) == count
@@ -77,8 +78,8 @@ class TestFunction:
         expect = self.uut.expect_call()
         self.assert_registry_expectation_count_is(1)
         assert expect.call.name == 'uut'
-        assert expect.call.args is None
-        assert expect.call.kwargs is None
+        assert expect.call.args == tuple()
+        assert expect.call.kwargs == {}
         assert expect.filename == __file__
         assert expect.lineno > 0
 

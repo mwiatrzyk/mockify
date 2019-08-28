@@ -10,5 +10,7 @@ pytest-sphinx = "*"
 twine = "*"
 invoke = "*"
 sphinx-rtd-theme = "*"
+mockify = "==0.5.0"
+pytest-cov = "*"
 
 [packages]

@@ -13,7 +13,7 @@ import math
 import weakref
 import warnings
 
-from mockify import _utils, Registry
+from _mockify import _utils, Registry
 
 from .function import Function
 
@@ -54,8 +54,8 @@ class Object:
 
     .. testsetup::
 
-        from mockify.mock import Object
-        from mockify.actions import Return
+        from _mockify.mock import Object
+        from _mockify.actions import Return
 
     Since version 0.5 this class provides a new API that complies with the
     one used by other mock classes.

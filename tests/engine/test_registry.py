@@ -11,12 +11,12 @@
 
 import pytest
 
-from mockify import exc, Call, Registry
+from _mockify import exc, Call, Registry
 
 
 class ExpectationStub:
 
-    def __init__(self, expected_call, filename, lineno):
+    def __init__(self, expected_call):
         self.expected_call = expected_call
         self.actual_calls = 0
 
@@ -38,10 +38,10 @@ class TestRegistry:
         self.uut = Registry(expectation_class=ExpectationStub)
 
     def expect_call_foo(self):
-        return self.uut.expect_call(self.foo_call, 'foo.py', 123)
+        return self.uut.expect_call(self.foo_call)
 
     def expect_call_bar(self):
-        return self.uut.expect_call(self.bar_call, 'bar.py', 456)
+        return self.uut.expect_call(self.bar_call)
 
     def call_foo(self):
         self.uut(self.foo_call)

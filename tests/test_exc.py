@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from mockify import exc, Call
+from _mockify import exc, Call
 
 
 class ExpectationStub:
@@ -28,7 +28,7 @@ class ExpectationStub:
 class TestUninterestedCall:
 
     def test_string_representation(self):
-        call = Call('foo', (1, 2), {'c': 3})
+        call = Call('foo', 1, 2, c=3)
         uut = exc.UninterestedCall(call)
         assert uut.call is call
         assert str(uut) == 'foo(1, 2, c=3)'
@@ -37,7 +37,7 @@ class TestUninterestedCall:
 class TestOversaturatedCall:
 
     def test_string_representation(self):
-        call = Call('foo', (1, 2), {'c': 3})
+        call = Call('foo', 1, 2, c=3)
         expectation = ExpectationStub(call, 'foo.py:123')
         uut = exc.OversaturatedCall(expectation, call)
         assert uut.call is call

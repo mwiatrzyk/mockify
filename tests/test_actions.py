@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.actions import Return, Raise, Invoke
+from _mockify.actions import Return, Raise, Invoke
 
 
 class TestReturn:

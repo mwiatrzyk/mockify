@@ -19,10 +19,10 @@ import sys
 from datetime import datetime
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-root_dir = os.path.join(this_dir, '..', '..')
+src_dir = os.path.join(this_dir, '..', '..', 'src')
 current_year = datetime.now().year
 
-sys.path.insert(0, root_dir)
+sys.path.insert(0, src_dir)
 
 from mockify import version
 

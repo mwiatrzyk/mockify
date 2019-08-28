@@ -11,8 +11,8 @@
 
 import pytest
 
-from mockify import exc, Call, Expectation
-from mockify.cardinality import AtLeast, AtMost, Between
+from _mockify import exc, Call, Expectation
+from _mockify.cardinality import AtLeast, AtMost, Between
 
 
 class ActionStub:
@@ -66,7 +66,8 @@ class TestBasicFunctionality(TestBase):
 
     def test_format_location_returns_formatted_filename_and_lineno(self):
         self.expect_foo()
-        assert self.uut.format_location() == 'foo.py:123'
+        filename, lineno = self.foo_call.fileinfo
+        assert self.uut.format_location() == f"{filename}:{lineno}"
 
     def test_when_called_with_non_matching_call_object__then_raise_exception(self):
         self.expect_bar()

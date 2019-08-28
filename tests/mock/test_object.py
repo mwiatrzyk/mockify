@@ -13,10 +13,10 @@ import math
 
 import pytest
 
-from mockify import Call
-from mockify.mock import Object
-from mockify.actions import Return
-from mockify.matchers import _
+from _mockify import Call
+from _mockify.mock import Object
+from _mockify.actions import Return
+from _mockify.matchers import _
 
 
 class UUT(Object):
@@ -27,12 +27,12 @@ class UUT(Object):
 class TestObjectSubclass:
 
     @pytest.fixture(autouse=True)
-    def use_context_mock(self, context_mock):
-        self.ctx = context_mock
+    def use_registry_mock(self, registry_mock):
+        self.registry = registry_mock
 
     @pytest.fixture(autouse=True)
-    def make_uut(self, use_context_mock):
-        self.uut = UUT('uut', registry=self.ctx)
+    def make_uut(self, use_registry_mock):
+        self.uut = UUT('uut', registry=self.registry)
 
     ### Tests
 
@@ -43,8 +43,8 @@ class TestObjectSubclass:
         assert str(excinfo.value) == "Mock object 'uut' has no attribute 'baz'"
 
     def test_record_method_call_expectation_using_old_interface(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo', 1, 2), _, _)
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo', 1, 2))
 
         self.uut.expect_call('foo', 1, 2)
 
@@ -55,14 +55,14 @@ class TestObjectSubclass:
         assert str(excinfo.value) == "Mock object 'uut' does not allow setting attribute 'more_spam'"
 
     def test_expect_property_set_using_old_interface(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.spam.fset', 1), _, _)
+        self.registry.expect_call.\
+            expect_call(Call('uut.spam.fset', 1))
 
         self.uut.expect_set('spam', 1)
 
     def test_when_property_get_using_old_interface(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.spam.fget'), _, _)
+        self.registry.expect_call.\
+            expect_call(Call('uut.spam.fget'))
 
         self.uut.expect_get('spam')
 
@@ -70,18 +70,18 @@ class TestObjectSubclass:
 class TestObject:
 
     @pytest.fixture(autouse=True)
-    def use_context_mock(self, context_mock):
-        self.ctx = context_mock
+    def use_registry_mock(self, registry_mock):
+        self.registry = registry_mock
 
     @pytest.fixture(autouse=True)
-    def make_uut(self, use_context_mock):
-        self.uut = Object('uut', registry=self.ctx)
+    def make_uut(self, use_registry_mock):
+        self.uut = Object('uut', registry=self.registry)
 
     def expect_uut_foo_fget(self, value):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo.fget'), _, _)
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fget')).\
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo.fget'))
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fget')).\
             will_once(Return(value))
 
         self.uut.foo.fget.expect_call()
@@ -98,18 +98,18 @@ class TestObject:
         assert isinstance(self.uut.foo.fset, Object.Property.Setter)
 
     def test_when_expect_call_is_called_on_property__then_it_becomes_a_method(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo'), _, _)
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo'))
 
         self.uut.foo.expect_call()
 
         assert isinstance(self.uut.foo, Object.Method)
 
     def test_when_first_level_attribute_is_set__then_it_becomes_a_property(self):
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fset', 123))
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fget')).\
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fset', 123))
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fget')).\
             will_once(Return(123))
 
         self.uut.foo = 123
@@ -117,10 +117,10 @@ class TestObject:
         assert self.uut.foo == 123
 
     def test_when_expect_call_is_called_on_fset__then_first_level_attribute_becomes_a_property(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo.fset', 123), _, _)
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fget')).\
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo.fset', 123))
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fget')).\
             will_once(Return(123))
 
         self.uut.foo.fset.expect_call(123)
@@ -128,10 +128,10 @@ class TestObject:
         assert self.uut.foo == 123
 
     def test_when_expect_call_is_called_on_fget__then_first_level_attribute_becomes_a_property(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo.fget'), _, _)
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fget')).\
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo.fget'))
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fget')).\
             will_once(Return(123))
 
         self.uut.foo.fget.expect_call()
@@ -139,10 +139,10 @@ class TestObject:
         assert self.uut.foo == 123
 
     def test_when_fget_expectation_is_registered__then_getting_a_property_invokes_fget_mock(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo.fget'), _, _)
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fget')).\
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo.fget'))
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fget')).\
             will_once(Return(123))
 
         self.uut.foo.fget.expect_call()
@@ -160,15 +160,15 @@ class TestObject:
         assert str(excinfo.value) == "'Getter' object is not callable"
 
     def test_when_assert_satisfied_is_called__it_collects_all_mock_names_and_triggers_context(self):
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo'), _, _)
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.bar.fset', 123), _, _)
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.bar.fget'), _, _)
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.baz.fset', 456), _, _)
-        self.ctx.assert_satisfied.\
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo'))
+        self.registry.expect_call.\
+            expect_call(Call('uut.bar.fset', 123))
+        self.registry.expect_call.\
+            expect_call(Call('uut.bar.fget'))
+        self.registry.expect_call.\
+            expect_call(Call('uut.baz.fset', 456))
+        self.registry.assert_satisfied.\
             expect_call('uut.foo', 'uut.bar.fset', 'uut.bar.fget', 'uut.baz.fset')
 
         self.uut.foo.expect_call()
@@ -179,10 +179,10 @@ class TestObject:
         self.uut.assert_satisfied()
 
     def test_if_object_has_list_of_methods_defined__then_only_that_methods_are_allowed(self):
-        self.uut = Object('uut', methods=('foo',), registry=self.ctx)
+        self.uut = Object('uut', methods=('foo',), registry=self.registry)
 
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo'), _, _)
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo'))
 
         self.uut.foo.expect_call()
 
@@ -192,10 +192,10 @@ class TestObject:
         assert str(excinfo.value) == "Mock object 'uut' has no attribute 'spam'"
 
     def test_if_object_has_list_of_properties_defined__then_only_that_properties_are_allowed(self):
-        self.uut = Object('uut', properties=('foo',), registry=self.ctx)
+        self.uut = Object('uut', properties=('foo',), registry=self.registry)
 
-        self.ctx.expect_call.\
-            expect_call(Call.create('uut.foo.fset', 123), _, _)
+        self.registry.expect_call.\
+            expect_call(Call('uut.foo.fset', 123))
 
         self.uut.foo.fset.expect_call(123)
 
@@ -205,7 +205,7 @@ class TestObject:
         assert str(excinfo.value) == "Mock object 'uut' has no attribute 'bar'"
 
     def test_if_object_has_list_of_both_methods_and_properties_defined__then_you_cannot_use_method_as_property(self):
-        self.uut = Object('uut', methods=('foo',), properties=('bar',), registry=self.ctx)
+        self.uut = Object('uut', methods=('foo',), properties=('bar',), registry=self.registry)
 
         with pytest.raises(AttributeError) as excinfo:
             self.uut.foo.fset.expect_call(123)
@@ -218,8 +218,8 @@ class TestObject:
         assert str(excinfo.value) == "Mock object 'uut' does not allow setting attribute 'foo'"
 
     def test_if_property_is_accessed_twice__then_fget_is_called_twice(self):
-        self.ctx.__call__.\
-            expect_call(Call.create('uut.foo.fget')).\
+        self.registry.__call__.\
+            expect_call(Call('uut.foo.fget')).\
             will_once(Return(123)).\
             will_once(Return(456))
 

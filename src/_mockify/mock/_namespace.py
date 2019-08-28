@@ -13,7 +13,7 @@ import contextlib
 import itertools
 import weakref
 
-from mockify import Call, Registry, _utils, exc
+from _mockify import Call, Registry, _utils, exc
 
 from ._function import Function
 
@@ -25,8 +25,8 @@ class Namespace:
 
     .. testsetup::
 
-        from mockify.mock import Namespace
-        from mockify.actions import Return
+        from _mockify.mock import Namespace
+        from _mockify.actions import Return
 
     Look at following code::
 
@@ -81,7 +81,7 @@ class Namespace:
             return self._nested[name]
 
         def __call__(self, *args, **kwargs):
-            call = Call(self.name, args, kwargs)
+            call = Call(self.name, *args, **kwargs)
             raise exc.UninterestedCall(call)
 
         @property

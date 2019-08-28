@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from mockify import _utils, Call, Registry
+from _mockify import _utils, Call, Registry
 
 
 class Function:
@@ -24,7 +24,7 @@ class Function:
 
     .. testsetup:
 
-        from mockify.mock import Function
+        from _mockify.mock import Function
 
     .. testcode::
 
@@ -72,8 +72,8 @@ class Function:
         return "<mockify.mock.{}({!r})>".format(self.__class__.__name__, self._name)
 
     def __call__(self, *args, **kwargs):
-        return self._registry(
-            Call(self._name, args or None, kwargs or None))
+        call = Call(self._name, *args, **kwargs)
+        return self._registry(call)
 
     @property
     def name(self):
@@ -87,9 +87,8 @@ class Function:
         stack and triggers :meth:`mockify.engine.Registry.expect_call` and
         returns expectation object it produces.
         """
-        call = Call(self._name, args or None, kwargs or None)
-        filename, lineno = _utils.extract_filename_and_lineno_from_stack(-1)
-        return self._registry.expect_call(call, filename, lineno)
+        call = Call(self._name, *args, **kwargs)
+        return self._registry.expect_call(call)
 
     def assert_satisfied(self):
         """Assert that this function mock is satisfied.

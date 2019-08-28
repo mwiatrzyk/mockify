@@ -44,7 +44,7 @@ Here's an example:
             self._name_getter = name_getter
 
         def greet(self):
-            return 'Hello, ' + self._name_getter()
+            return 'Hello, ' + self._name_getter() + '!'
 
 
     def test_greeter():
@@ -75,8 +75,6 @@ Mockify allows you to create mocks that:
       action that is executed on every mock call
     * Can pass all arguments to actions, so you are able to do basically
       anything when the mock is called
-
-Why don't you give it a try then? :-)
 
 User's Guide
 ------------

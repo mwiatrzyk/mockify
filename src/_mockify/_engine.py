@@ -9,6 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import os
+import keyword
 import weakref
 import warnings
 import itertools
@@ -17,8 +19,12 @@ import collections
 
 from contextlib import contextmanager
 
-from mockify import exc, _utils
-from mockify.cardinality import Exactly, AtLeast
+from _mockify import exc, _utils
+from _mockify.cardinality import Exactly, AtLeast
+
+from . import _utils
+
+_mockify_root_dir = os.path.dirname(__file__)
 
 
 def _wrap_expected_count(expected_count):
@@ -41,8 +47,8 @@ def assert_satisfied(*mocks):
 
     .. testcode::
 
-        from mockify.mock import Function
-        from mockify.actions import Return
+        from _mockify.mock import Function
+        from _mockify.actions import Return
 
         class MockCaller:
 
@@ -71,48 +77,25 @@ def assert_satisfied(*mocks):
 
 
 class Call:
-    """Binds mock name with arguments it was called with or it is expected to
-    be called with.
+    """Represents single expectation or call arguments for a given mock.
 
-    Call objects are created in mock frontends (like
-    :class:`mockify.mock.Function` mock class) by methods
-    ``expected_call`` and ``__call__`` by simply passing their argument to
-    :class:`Call` constructor.
-
-    Instances of this class are comparable. Two :class:`Call` objects are equal
-    if and only if all attributes (``name``, ``args`` and ``kwargs``) are the
-    same. For example:
-
-        >>> Call('foo') == Call('foo')
-        True
-        >>> Call('foo') != Call('bar')
-        True
-        >>> Call('foo', (1, 2), {'c': 3}) == Call('foo', (1, 2), {'c': 3})
-        True
-
-    Call objects can also be created with use of **matchers**, for example
-    :class:`mockify.matchers.Any`, that will match any value:
-
-        >>> from mockify.matchers import _
-        >>> Call('foo', (_, _)) == Call('foo', (1, 2))
-        True
-        >>> Call('foo', (_, _)) == Call('foo', (3, 4))
-        True
-
-    :param name:
-        Function or method name.
-
-    :param args:
-        Positional arguments
-
-    :param kwargs:
-        Named arguments
+    Objects of this class are created by mocks and later passed to underlying
+    registry.
     """
 
-    def __init__(self, name, args=None, kwargs=None):
-        self._name = name
-        self._args = args
+    def __init__(self, *args, **kwargs):
+        if not args:
+            raise TypeError("__init__() missing 1 required positional argument: 'name'")
+        self._name = args[0]
+        self._args = args[1:]
         self._kwargs = kwargs
+        self._fileinfo = self.__extract_fileinfo_from_traceback()
+
+    def __extract_fileinfo_from_traceback(self):
+        stack = traceback.extract_stack()
+        for frame in reversed(stack):
+            if not frame.filename.startswith(_mockify_root_dir):
+                return frame.filename, frame.lineno
 
     def __str__(self):
         args_gen = (repr(x) for x in (self._args or tuple()))
@@ -121,7 +104,7 @@ class Call:
         return "{}({})".format(self._name, ", ".join(all_gen))
 
     def __repr__(self):
-        return f"<{self.__module__}.{self.__class__.__name__}({self._name!r}, args={self._args!r}, kwargs={self._kwargs!r})>"
+        return f"<mockify.{self.__class__.__name__}({self._name!r}, args={self._args!r}, kwargs={self._kwargs!r})>"
 
     def __eq__(self, other):
         return self._name == other._name and\
@@ -146,6 +129,20 @@ class Call:
         """Mock named args."""
         return self._kwargs
 
+    @property
+    def fileinfo(self):
+        """File information where this call object was created.
+
+        .. versionadded:: 0.6
+
+        This property will return filename and line number tuple of first
+        file outside of Mockify library extracted from the stack. This will
+        most likely be a place in your code where expectation was recorded or
+        mock called. Thanks to this more accurate info is presented in case
+        of errors.
+        """
+        return self._fileinfo
+
     @classmethod
     def create(cls, *args, **kwargs):
         """Factory method for easier :class:`Call` object creating.
@@ -154,6 +151,9 @@ class Call:
         will be passed to constructor's **args** and **kwargs** parameters.
 
         .. versionadded:: 0.5
+
+        .. deprecated:: 0.6
+            Now you can achieve the same results by calling constructor.
         """
         if not args:
             raise TypeError(
@@ -163,34 +163,32 @@ class Call:
 
 
 class Registry:
-    """Acts like a database for :class:`Expectation` objects.
+    """Groups unrelated mocks together and acts as a common database for
+    recorded expectations.
 
-    This class is used as a backend for higher level mocking utilities (a.k.a.
-    frontends), like :class:`mockify.mock.Function` mocking class. It
-    provides methods to record, lookup and verifying of expectations.
-
-    There can be many instances of registry classes, or one that can be shared
-    between various mock frontends. For example, you can create one registry in
-    setup code, then create various mocks inside your tests, to finally trigger
-    :meth:`assert_satisfied` of that single registry in test's teardown code.
-    Or you can just use frontends with their defaults. It is completely up to
-    you.
+    Objects of this class become a backend for all mocks that use it. While
+    mocks are responsible to act in the same manner as object they imitate,
+    such registry is responsible for receiving expectations and calls from
+    that mocks.
 
     :param expectation_class:
-        This is optional.
+        Provide :class:`Expectation` subclass to be used.
 
-        Used to give custom subclass of :class:`Expectation` to be used inside
-        this registry.
+        Since this class creates expectations internally, this parameter will
+        allow injecting another expectation class that will be used to
+        represent all expectations within this registry.
 
     :param uninterested_call_strategy:
-        Setup the way how uninterested calls are treated.
+        Setup the way of how uninterested calls are treated.
 
-        Following values are available:
+        By default, when mock is called with no expectation set on it first,
+        then :exc:`mockify.exc.UninterestedCall` is raised. Other
+        possibilities are:
 
-            * *fail* - issue :exc:`mockify.exc.UninterestedCall` exception on
-              each unexpectedly called mock (default)
-            * *ignore* - do nothing with uninterested calls
-            * *warn* - issue a warning on each uninterested call
+            * *ignore* - do nothing on uninterested calls
+            * *warn* - issue warnings on uninterested calls
+
+        This value is common for all mocks that share this registry.
 
         .. versionadded:: 0.4
     """
@@ -215,7 +213,7 @@ class Registry:
             Instance of :class:`mockify.engine.Call` class representing mock
             being called
         """
-        matching_expects = list(filter(lambda x: x.match(call), self._expects))
+        matching_expects = list(self.matching_expectations(call))
         if not matching_expects:
             return self._handle_uninterested_call(call)
         for expect in matching_expects:
@@ -234,7 +232,10 @@ class Registry:
         else:
             raise ValueError("Invalid uninterested call strategy: {}".format(self._uninterested_call_strategy))
 
-    def expect_call(self, call, filename, lineno):
+    def matching_expectations(self, call):
+        return filter(lambda x: x.match(call), self._expects)
+
+    def expect_call(self, call, filename=None, lineno=None):
         """Register expectation.
 
         Returns instance of ``expectation_class`` (usually
@@ -248,10 +249,18 @@ class Registry:
         :param filename:
             Path to file were expectation is created
 
+            .. deprecated:: 0.6
+                This parameter is no longer used and will be removed in one
+                of upcoming releases.
+
         :param lineno:
             Line number (inside ``filename``) where expectation is created
+
+            .. deprecated:: 0.6
+                This parameter is no longer used and will be removed in one
+                of upcoming releases.
         """
-        expect = self._expectation_class(call, filename, lineno)
+        expect = self._expectation_class(call)
         self._expects.append(expect)
         return expect
 
@@ -301,8 +310,16 @@ class Expectation:
     :param filename:
         File name were this expectation was created
 
+        .. deprecated:: 0.6
+            This parameter is no longer used and will be removed in one
+            of upcoming releases.
+
     :param lineno:
         Line number where this expectation was created
+
+        .. deprecated:: 0.6
+            This parameter is no longer used and will be removed in one
+            of upcoming releases.
     """
 
     class _ProxyBase:
@@ -455,10 +472,9 @@ class Expectation:
             self._next_proxy = tmp = self.__class__(action, self._expectation)
             return self
 
-    def __init__(self, expected_call, filename, lineno):
+    def __init__(self, expected_call, filename=None, lineno=None):
         self._expected_call = expected_call
-        self._filename = filename
-        self._lineno = lineno
+        self._filename, self._lineno = expected_call.fileinfo
         self._next_proxy = self._DefaultProxy(self)
         self._total_calls = 0
 

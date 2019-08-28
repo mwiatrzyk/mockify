@@ -2,7 +2,7 @@ import setuptools
 
 import mockify
 
-with open("README", "r") as fd:
+with open("README.rst", "r") as fd:
     long_description = fd.read()
 
 setuptools.setup(

@@ -10,8 +10,8 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import exc
-from mockify.mock import Namespace, Function
+from _mockify import exc
+from _mockify.mock import Namespace, Function
 
 
 class TestNamespace:
