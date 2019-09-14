@@ -120,6 +120,14 @@ def test_unit(c):
 
 
 @invoke.task
+def test_cov(c, html=False):
+    """Run tests and check coverage."""
+    if html:
+        opts = '--cov-report=html'
+    c.run(f"pytest tests/ --cov=src/_mockify {opts}")
+
+
+@invoke.task
 def test_docs(c):
     """Run documentation tests."""
     c.run('sphinx-build -M doctest docs/source docs/build')

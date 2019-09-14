@@ -98,13 +98,10 @@ class Call:
                 return frame.filename, frame.lineno
 
     def __str__(self):
-        args_gen = (repr(x) for x in (self._args or tuple()))
-        kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted((self._kwargs or {}).items()))
-        all_gen = itertools.chain(args_gen, kwargs_gen)
-        return "{}({})".format(self._name, ", ".join(all_gen))
+        return f"{self._name}({self._format_params(*self._args, **self._kwargs)})"
 
     def __repr__(self):
-        return f"<mockify.{self.__class__.__name__}({self._name!r}, args={self._args!r}, kwargs={self._kwargs!r})>"
+        return f"<mockify.{self.__class__.__name__}({self._format_params(self._name, *self._args, **self._kwargs)})>"
 
     def __eq__(self, other):
         return self._name == other._name and\
@@ -160,6 +157,12 @@ class Call:
                 "create() must be called with at least 1 positional argument, "
                 "got 0")
         return cls(args[0], args=args[1:] or None, kwargs=kwargs or None)
+
+    def _format_params(self, *args, **kwargs):
+        args_gen = (repr(x) for x in args)
+        kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
+        all_gen = itertools.chain(args_gen, kwargs_gen)
+        return ', '.join(all_gen)
 
 
 class Registry:
@@ -233,7 +236,29 @@ class Registry:
             raise ValueError("Invalid uninterested call strategy: {}".format(self._uninterested_call_strategy))
 
     def matching_expectations(self, call):
+        """Return a generator over expectations that match given call
+        object.
+
+        .. versionadded:: 0.6
+
+        :param call:
+            Instance of :class:`Call` class.
+        """
         return filter(lambda x: x.match(call), self._expects)
+
+    def has_expectations_for(self, name):
+        """Check if registry has one or more expectations registered for mock
+        with given name.
+
+        .. versionadded:: 0.6
+
+        :param name:
+            Mock name
+        """
+        for expectation in self._expects:
+            if expectation.expected_call.name == name:
+                return True
+        return False
 
     def expect_call(self, call, filename=None, lineno=None):
         """Register expectation.
@@ -264,21 +289,36 @@ class Registry:
         self._expects.append(expect)
         return expect
 
-    def assert_satisfied(self, *names):
+    def assert_satisfied(self, *names, **options):
         """Assert that all expectations are satisfied.
 
         If there is at least one unsatisfied expectation, then this method will
         raise :exc:`mockify.exc.Unsatisfied` exception containing list of
         failed expectations.
 
-        This method can be called as many times as you want.
+        This method can be called as many times as you want as it does not
+        change internal state of registry.
 
         .. versionchanged:: 0.2
 
             Accepts names of mocks to check as positional args. If one or more
             names are given, then this method limits checking only to mocks of
             matching names.
+
+        .. versionchanged:: 0.6
+
+            Added *options* keyword argument.
+
+            Following options are available:
+
+            ``name_prefix``
+                If called with, for example, ``name_prefix='foo'``, then
+                checks if all mocks having names starting with *foo* are
+                satisfied. So it will check *foo*, *foo.bar.baz*, *foo.spam*,
+                but not *bar* or *bar.foo*.
         """
+        if 'name_prefix' in options:
+            raise NotImplementedError() # TODO
         unsatisfied = []
         keyfunc = lambda x: not names or x.expected_call.name in names
         for expect in filter(keyfunc, self._expects):

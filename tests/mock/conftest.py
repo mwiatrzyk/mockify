@@ -4,28 +4,49 @@ import pytest
 @pytest.fixture
 def registry_mock(mock_factory):
 
+    def make_expect_call(name):
+        getattr(Registry, name).expect_call =\
+            lambda *args, **kwargs: mocks[name].expect_call(*args, **kwargs)
+
     class Registry:
 
-        def __init__(self, expect_call_mock, call_mock, assert_satisfied_mock):
-            self._expect_call_mock = expect_call_mock
-            self._call_mock = call_mock
-            self._assert_satisfied_mock = assert_satisfied_mock
+        def __init__(self, mocks):
+            self._mocks = mocks
+            self._expected_calls = []
 
         def __call__(self, call):
-            return self._call_mock(call)
+            return self._mocks['__call__'](call)
 
         def expect_call(self, call):
-            return self._expect_call_mock(call)
+            self._expected_calls.append(call)
+            return self._mocks['expect_call'](call)
 
-        def assert_satisfied(self, *names):
-            return self._assert_satisfied_mock(*names)
+        def assert_satisfied(self, *args, **kwargs):
+            return self._mocks['assert_satisfied'](*args, **kwargs)
 
-    call_mock = mock_factory.function('registry.__call__')
-    expect_call_mock = mock_factory.function('registry.expect_call')
-    assert_satisfied_mock = mock_factory.function('registry.assert_satisfied')
+        def matching_expectations(self, call):
+            for expected_call in self._expected_calls:
+                if expected_call == call:
+                    yield expected_call
 
-    Registry.__call__.expect_call = lambda *a, **kw: call_mock.expect_call(*a, **kw)
-    Registry.expect_call.expect_call = lambda *a, **kw: expect_call_mock.expect_call(*a, **kw)
-    Registry.assert_satisfied.expect_call = lambda *a, **kw: assert_satisfied_mock.expect_call(*a, **kw)
+        def has_expectations_for(self, name):
+            for expected_call in self._expected_calls:
+                if expected_call.name == name:
+                    return True
+            return False
 
-    return Registry(expect_call_mock, call_mock, assert_satisfied_mock)
+    mocked_methods = (
+        '__call__', 'expect_call', 'assert_satisfied'
+    )
+
+    mocks = {}
+    for name in mocked_methods:
+        mocks[name] = mock_factory.function(f"registry.{name}")
+        make_expect_call(name)
+
+    return Registry(mocks)
+
+
+@pytest.fixture
+def expectation_mock(mock_factory):
+    return mock_factory.namespace('expectation')

@@ -1,9 +1,7 @@
 import weakref
 
 from _mockify import _utils, Call, Registry
-
-_EXPECT_CALL_METHOD = 'expect_call'
-_ASSERT_SATISFIED_METHOD = 'assert_satisfied'
+from _mockify.matchers import _
 
 
 class _ExpectCallProxy:
@@ -42,7 +40,7 @@ class _Base:
 
     def __setattr__(self, name, value):
         if '__setattr__' in self.__dict__ and\
-           self._is_call_expected(f"{self._full_name}.__setattr__", name, value):
+           self._is_call_expected(f"{self._full_name}.__setattr__", name, _):
             self.__dict__['__setattr__'](name, value)
         else:
             super().__setattr__(name, value)
@@ -51,7 +49,7 @@ class _Base:
         if '__getattr__' in self.__dict__ and self._is_call_expected(f"{self._full_name}.__getattr__", name):
             return self.__dict__['__getattr__'](name)
         else:
-            self.__dict__[name] = tmp = _Attr(self, name)
+            self.__dict__[name] = tmp = Mock.Attr(self, name)
             return tmp
 
     def _is_call_expected(self, *args, **kwargs):
@@ -65,67 +63,68 @@ class _Base:
         elif name in self.__dict__:
             return self.__dict__[name]
         else:
-            self.__dict__[name] = tmp = _Attr(self, name)
+            self.__dict__[name] = tmp = Mock.Attr(self, name)
             return tmp
 
 
-class _Attr(_Base):
-
-    def __init__(self, parent, name):
-        self._parent = parent
-        self._name = name
-        self.__root = self.__find_root()
-
-    def __find_root(self):
-        parent = self._parent
-        while parent._parent is not None:
-            parent = parent._parent
-        return weakref.ref(parent)
-
-    def __repr__(self):
-        return f"<mockify.mock._Attr({self._full_name!r})>"
-
-    def __call__(self, *args, **kwargs):
-        if self._name == _EXPECT_CALL_METHOD:
-            return self._expect_call(*args, **kwargs)
-        elif self._name == _ASSERT_SATISFIED_METHOD:
-            return self._assert_satisfied(*args, **kwargs)
-        else:
-            return self._call(*args, **kwargs)
-
-    def _expect_call(self, *args, **kwargs):
-        proxy = _ExpectCallProxy(self._parent)
-        return proxy(*args, **kwargs)
-
-    def _assert_satisfied(self):
-        return self._registry.assert_satisfied()
-
-    def _call(self, *args, **kwargs):
-        actual_call = Call(self._full_name, *args, **kwargs)
-        return self._registry(actual_call)
-
-    @property
-    def _parent(self):
-        return self.__parent()
-
-    @_parent.setter
-    def _parent(self, value):
-        self.__parent = weakref.ref(value)
-
-    @property
-    def _root(self):
-        return self.__root()
-
-    @property
-    def _full_name(self):
-        return f"{self._parent._full_name}.{self._name}"
-
-    @property
-    def _registry(self):
-        return self._root._registry
-
-
 class Mock(_Base):
+
+    class Attr(_Base):
+
+        def __init__(self, parent, name):
+            self._parent = parent
+            self._name = name
+            self.__root = self.__find_root()
+
+        def __find_root(self):
+            parent = self._parent
+            while parent._parent is not None:
+                parent = parent._parent
+            return weakref.ref(parent)
+
+        def __repr__(self):
+            return f"<mockify.mock.Mock.Attr({self._full_name!r})>"
+
+        def __call__(self, *args, **kwargs):
+            if self._registry.has_expectations_for(self._full_name):
+                return self._call(*args, **kwargs)
+            elif self._name == 'expect_call':
+                return self._expect_call(*args, **kwargs)
+            elif self._name == 'assert_satisfied' and self._parent is self._root:
+                return self._assert_satisfied(*args, **kwargs)
+            else:
+                return self._call(*args, **kwargs)
+
+        def _expect_call(self, *args, **kwargs):
+            proxy = _ExpectCallProxy(self._parent)
+            return proxy(*args, **kwargs)
+
+        def _assert_satisfied(self):
+            return self._registry.assert_satisfied(name_prefix=self._root._name)
+
+        def _call(self, *args, **kwargs):
+            actual_call = Call(self._full_name, *args, **kwargs)
+            return self._registry(actual_call)
+
+        @property
+        def _parent(self):
+            return self.__parent()
+
+        @_parent.setter
+        def _parent(self, value):
+            self.__parent = weakref.ref(value)
+
+        @property
+        def _root(self):
+            return self.__root()
+
+        @property
+        def _full_name(self):
+            return f"{self._parent._full_name}.{self._name}"
+
+        @property
+        def _registry(self):
+            return self._root._registry
 
     def __init__(self, name, registry=None):
         self._name = name

@@ -45,6 +45,26 @@ class Return:
         return self._value
 
 
+class Iterate:
+    """Similar to :class:`Return`, but returns an iterator to given
+    iterable.
+
+    .. versionadded:: 0.6
+
+    :param iterable:
+        Value to be iterated
+    """
+
+    def __init__(self, iterable):
+        self._iterable = iterable
+
+    def __str__(self):
+        return f"Iterate({self._iterable!r})"
+
+    def __call__(self, call):
+        return iter(self._iterable)
+
+
 class Raise:
     """Makes mock raising given exception when called.
 

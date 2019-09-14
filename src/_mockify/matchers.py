@@ -101,4 +101,24 @@ class Any(Matcher):
         return True
 
 
+class InstanceOf(Matcher):
+    """A matcher that checks if given object is instance of one of given
+    types.
+
+    .. versionadded:: 0.6
+
+    This is useful to record expectations where we do not care about expected
+    value, but we care about expected value type.
+    """
+
+    def __init__(self, *types):
+        self._types = types
+
+    def __repr__(self):
+        return f"InstanceOf({', '.join(repr(x) for x in self._types)})"
+
+    def __eq__(self, other):
+        return isinstance(other, *self._types)
+
+
 _ = Any()
