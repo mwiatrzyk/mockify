@@ -10,7 +10,19 @@
 # ---------------------------------------------------------------------------
 
 
-class UninterestedCall(TypeError):
+class MockifyError(AssertionError):
+    """Common base class for all Mockify exceptions.
+
+    .. versionadded:: 0.6
+
+    With this exception it will be easy to re-raise Mockify-specific
+    exceptions for example during debugging. Besides that, since now all
+    exceptions inherit from :exc:`AssertionError`, so it will be much easier
+    to re-raise in production code if needed.
+    """
+
+
+class UninterestedCall(MockifyError):
     """Raised when uninterested mock is called.
 
     Mockify requires each mock call to have matching expectation recorded. If
@@ -35,13 +47,17 @@ class UninterestedCall(TypeError):
         return self._call
 
 
-class UninterestedPropertyAccess(TypeError):
+class UninterestedPropertyAccess(MockifyError):
     """Base class for exceptions signalling uninterested property access.
 
     This situation occurs when object property is accessed without previous
     matching expectation being recorded.
 
     .. versionadded:: 0.3
+
+    .. deprecated:: 0.6
+        This exception is no longer used and will be removed in one of
+        upcoming releases.
 
     :param name:
         Property name
@@ -66,6 +82,11 @@ class UninterestedGetterCall(UninterestedPropertyAccess):
     no expectations set.
 
     .. versionadded:: 0.3
+
+    .. deprecated:: 0.6
+        This exception is no longer used and will be removed in one of
+        upcoming releases.
+
     """
 
 
@@ -76,6 +97,10 @@ class UninterestedSetterCall(UninterestedPropertyAccess):
     no matching expectations set.
 
     .. versionadded:: 0.3
+
+    .. deprecated:: 0.6
+        This exception is no longer used and will be removed in one of
+        upcoming releases.
     """
 
     def __init__(self, name, value):
@@ -91,7 +116,7 @@ class UninterestedSetterCall(UninterestedPropertyAccess):
         return self._value
 
 
-class OversaturatedCall(TypeError):
+class OversaturatedCall(MockifyError):
     """Raised when mock is called more times than expected.
 
     This exception will be thrown only if mock has actions defined as it does
@@ -129,7 +154,7 @@ class OversaturatedCall(TypeError):
         return self._call
 
 
-class Unsatisfied(AssertionError):
+class Unsatisfied(MockifyError):
     """Raised by :meth:`mockify.engine.Registry.assert_satisfied` method when
     there is at least one unsatisfied expectation.
 
