@@ -150,7 +150,8 @@ class Call:
         .. versionadded:: 0.5
 
         .. deprecated:: 0.6
-            Now you can achieve the same results by calling constructor.
+            This method is now deprecated, as :class:`Call` constructor now
+            allows the same.
         """
         if not args:
             raise TypeError(
