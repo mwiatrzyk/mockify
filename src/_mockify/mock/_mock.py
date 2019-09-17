@@ -53,9 +53,8 @@ class _Base:
             return tmp
 
     def _is_call_expected(self, *args, **kwargs):
-        call = Call(*args, **kwargs)
-        iterator = self._registry.matching_expectations(call)
-        return next(iterator, None) is not None
+        searched_call = Call(*args, **kwargs)
+        return self._registry.expectations.by_call(searched_call).exists()
 
     def __getattribute__(self, name):
         if name not in ('__getattr__', '__setattr__'):
@@ -86,7 +85,7 @@ class Mock(_Base):
             return f"<mockify.mock.Mock.Attr({self._full_name!r})>"
 
         def __call__(self, *args, **kwargs):
-            if self._registry.has_expectations_for(self._full_name):
+            if self._registry.expectations.by_name(self._full_name).exists():
                 return self._call(*args, **kwargs)
             elif self._name == 'expect_call':
                 return self._expect_call(*args, **kwargs)
@@ -100,7 +99,9 @@ class Mock(_Base):
             return proxy(*args, **kwargs)
 
         def _assert_satisfied(self):
-            return self._registry.assert_satisfied(name_prefix=self._root._name)
+            return self._registry.expectations.\
+                by_name_prefix(self._root._name).\
+                assert_satisfied()
 
         def _call(self, *args, **kwargs):
             actual_call = Call(self._full_name, *args, **kwargs)

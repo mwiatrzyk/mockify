@@ -1,3 +1,5 @@
+import pytest
+
 from _mockify import satisfies
 from _mockify.mock import Mock
 
@@ -17,13 +19,25 @@ class Observable:
 
 class TestObservable:
 
+    @pytest.fixture(autouse=True)
+    def make_uut(self):
+        self.uut = Observable()
+
     def test_subscribe_observer_and_notify_once(self):
-        observable = Observable()
-
         observer = Mock('observer')
-        observer.expect_call(observable)
+        observer.expect_call(self.uut)
 
-        observable.subscribe(observer)
+        self.uut.subscribe(observer)
 
         with satisfies(observer):
-            observable.notify()
+            self.uut.notify()
+
+    def test_when_notify_called_twice__observer_is_triggered_twice(self):
+        observer = Mock('observer')
+        observer.expect_call(self.uut).times(2)
+
+        self.uut.subscribe(observer)
+
+        with satisfies(observer):
+            for _ in range(2):
+                self.uut.notify()

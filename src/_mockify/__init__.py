@@ -11,8 +11,6 @@
 
 """Library core module."""
 
-from ._engine import assert_satisfied, Call, Expectation, Registry
+from ._engine import *
 
-__all__ = ['Call', 'Expectation', 'Registry', 'assert_satisfied']
-
-version = (0, 6, 0)
+version = (0, 6, 0)   # TODO: rename to __version__

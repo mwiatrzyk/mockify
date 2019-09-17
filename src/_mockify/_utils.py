@@ -56,20 +56,9 @@ class memoized_property:
 
 
 class ExportList(list):
-    """Utility for easier exporting names from module.
+    """An utility for automated filling in of module's ``__all__``
+    property."""
 
-    You just need to create an ``__all__`` list::
-
-        __all__ = export = ExportList()
-
-    And then use ``export`` to decorate functions and/or classes you want to
-    export::
-
-        @export
-        def foo():
-            pass
-    """
-
-    def __call__(self, cls_or_func):
-        self.append(cls_or_func.__name__)
-        return cls_or_func
+    def __call__(self, obj):
+        self.append(obj.__name__)
+        return obj

@@ -263,17 +263,6 @@ class Object:
             return tmp.fset._mock(value)
 
     @property
-    def _mocks(self):
-        for k, v in self.__dict__.items():
-            if isinstance(v, self.Method):
-                yield v._mock
-            elif isinstance(v, self.Property):
-                if v._has_property('fset'):
-                    yield v.fset._mock
-                if v._has_property('fget'):
-                    yield v.fget._mock
-
-    @property
     def name(self):
         return self._name
 
@@ -317,4 +306,6 @@ class Object:
 
     def assert_satisfied(self):
         """Assert that all expected method/property calls are satisfied."""
-        self._registry.assert_satisfied(*[m.name for m in self._mocks])
+        self._registry.expectations.\
+            by_name_prefix(self._name).\
+            assert_satisfied()

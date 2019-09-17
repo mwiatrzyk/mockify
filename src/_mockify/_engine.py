@@ -185,19 +185,6 @@ class Call:
 
 
 @export
-class Context:
-
-    def __init__(self):
-        self._registered_mocks = {}
-
-    def register_mock(self, name):
-        if name in self._registered_mocks:
-            raise TypeError(f"Mock already exists: {name}")
-        self._registered_mocks[name] = tmp = Registry()
-        return tmp
-
-
-@export
 class Registry:
     """Groups unrelated mocks together and acts as a common database for
     recorded expectations.
@@ -229,9 +216,9 @@ class Registry:
         .. versionadded:: 0.4
     """
 
-    class _ExpectationCollection:
+    class _ExpectationFilter:
 
-        class _QueryResult:
+        class _FilteredResults:
 
             def __init__(self, generated_items):
                 self._generated_items = generated_items
@@ -239,12 +226,53 @@ class Registry:
             def all(self):
                 return list(self._generated_items)
 
+            def unsatisfied(self):
+                return filter(lambda x: not x.is_satisfied(), self._generated_items)
+
+            def exists(self):
+                return next(self._generated_items, None) is not None
+
+            def assert_satisfied(self):
+                """Check if all filtered expectations are satisfied."""
+                unsatisfied = list(self.unsatisfied())
+                if unsatisfied:
+                    raise exc.Unsatisfied(unsatisfied)
+
         def __init__(self, expectations):
             self._expectations = expectations
 
         def by_name(self, name):
-            generated_items = filter(lambda x: x.expected_call.name == name, self._expectations)
-            return self._QueryResult(generated_items)
+            """Filter out expectations recorded for mock with given full
+            name.
+
+            :param name:
+                Full mock name
+            """
+            return self._FilteredResults(
+                filter(lambda x: x.expected_call.name == name, self._expectations)
+            )
+
+        def by_name_prefix(self, name_prefix):
+            """Filter out expectations that are recorded for mocks with names
+            prefixed by *name_prefix*.
+
+            :param name_prefix:
+                Mock name prefix
+            """
+            return self._FilteredResults(
+                filter(lambda x: x.expected_call.name.startswith(name_prefix), self._expectations)
+            )
+
+        def by_call(self, call):
+            """Filter out expectations that match given call object.
+
+            :param call:
+                Instance of :class:`Call` representing call params to be
+                checked
+            """
+            return self._FilteredResults(
+                filter(lambda x: x.match(call), self._expectations)
+            )
 
     def __init__(self,
             expectation_class=None,
@@ -266,7 +294,7 @@ class Registry:
             Instance of :class:`mockify.engine.Call` class representing mock
             being called
         """
-        matching_expects = list(self.matching_expectations(call))
+        matching_expects = self.expectations.by_call(call).all()
         if not matching_expects:
             return self._handle_uninterested_call(call)
         for expect in matching_expects:
@@ -291,32 +319,12 @@ class Registry:
 
     @property
     def expectations(self):
-        return self._ExpectationCollection(self._expects)
-
-    def matching_expectations(self, call):
-        """Return a generator over expectations that match given call
-        object.
+        """Allows to filter out expectations using generic and easy to extend
+        interface.
 
         .. versionadded:: 0.6
-
-        :param call:
-            Instance of :class:`Call` class.
         """
-        return filter(lambda x: x.match(call), self._expects)
-
-    def has_expectations_for(self, name):
-        """Check if registry has one or more expectations registered for mock
-        with given name.
-
-        .. versionadded:: 0.6
-
-        :param name:
-            Mock name
-        """
-        for expectation in self._expects:
-            if expectation.expected_call.name == name:
-                return True
-        return False
+        return self._ExpectationFilter(self._expects)
 
     def expect_call(self, call, filename=None, lineno=None):
         """Register expectation.
@@ -358,11 +366,17 @@ class Registry:
         change internal state of registry.
 
         .. versionchanged:: 0.2
-
             Accepts names of mocks to check as positional args. If one or more
             names are given, then this method limits checking only to mocks of
             matching names.
+
+        .. versionchanged:: 0.6
+            Giving *names* is now deprecated.
+
+            See :attr:`expectations` attribute for more details.
         """
+        if names:
+            warnings.warn("Using 'names' is deprecated since 0.6 - use 'expectations' attribute instead")
         unsatisfied = []
         keyfunc = lambda x: not names or x.expected_call.name in names
         for expect in filter(keyfunc, self._expects):

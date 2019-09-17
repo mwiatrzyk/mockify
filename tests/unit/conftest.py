@@ -16,7 +16,7 @@ import collections
 import pytest
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-src_dir = os.path.join(this_dir, '..', 'src')
+src_dir = os.path.join(this_dir, '..', '..', 'src')
 sys.path.append(src_dir)
 
 from mockify import Registry
