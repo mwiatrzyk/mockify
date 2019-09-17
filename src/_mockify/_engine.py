@@ -24,6 +24,8 @@ from _mockify.cardinality import Exactly, AtLeast
 
 from . import _utils
 
+__all__ = export = _utils.ExportList()
+
 _mockify_root_dir = os.path.dirname(__file__)
 
 
@@ -34,8 +36,9 @@ def _wrap_expected_count(expected_count):
         return expected_count
 
 
+@export
 @contextmanager
-def assert_satisfied(*mocks):
+def satisfies(*mocks):
     """Context manager for checking if given mocks are all satisfied when
     leaving the scope.
 
@@ -76,6 +79,21 @@ def assert_satisfied(*mocks):
         subject.assert_satisfied()
 
 
+@export
+@contextmanager
+def assert_satisfied(*mocks):
+    """Context manager for ensuring that all given mocks are satisfied when
+    leaving the scope.
+
+    .. deprecated:: 0.6
+        This function was renamed to :func:`satisfies` and will be removed in
+        one of upcoming releases.
+    """
+    with satisfies(*mocks):
+        yield
+
+
+@export
 class Call:
     """Represents single expectation or call arguments for a given mock.
 
@@ -166,6 +184,20 @@ class Call:
         return ', '.join(all_gen)
 
 
+@export
+class Context:
+
+    def __init__(self):
+        self._registered_mocks = {}
+
+    def register_mock(self, name):
+        if name in self._registered_mocks:
+            raise TypeError(f"Mock already exists: {name}")
+        self._registered_mocks[name] = tmp = Registry()
+        return tmp
+
+
+@export
 class Registry:
     """Groups unrelated mocks together and acts as a common database for
     recorded expectations.
@@ -196,6 +228,23 @@ class Registry:
 
         .. versionadded:: 0.4
     """
+
+    class _ExpectationCollection:
+
+        class _QueryResult:
+
+            def __init__(self, generated_items):
+                self._generated_items = generated_items
+
+            def all(self):
+                return list(self._generated_items)
+
+        def __init__(self, expectations):
+            self._expectations = expectations
+
+        def by_name(self, name):
+            generated_items = filter(lambda x: x.expected_call.name == name, self._expectations)
+            return self._QueryResult(generated_items)
 
     def __init__(self,
             expectation_class=None,
@@ -228,13 +277,21 @@ class Registry:
 
     def _handle_uninterested_call(self, call):
         if self._uninterested_call_strategy == 'fail':
-            raise exc.UninterestedCall(call)
+            other_expectations = self.expectations.by_name(call.name).all()
+            if other_expectations:
+                raise exc.UnexpectedCall(call, other_expectations)
+            else:
+                raise exc.UninterestedCall(call)
         elif self._uninterested_call_strategy == 'warn':
             warnings.warn('Uninterested mock called: {}'.format(str(call)))
         elif self._uninterested_call_strategy == 'ignore':
             return
         else:
             raise ValueError("Invalid uninterested call strategy: {}".format(self._uninterested_call_strategy))
+
+    @property
+    def expectations(self):
+        return self._ExpectationCollection(self._expects)
 
     def matching_expectations(self, call):
         """Return a generator over expectations that match given call
@@ -290,7 +347,7 @@ class Registry:
         self._expects.append(expect)
         return expect
 
-    def assert_satisfied(self, *names, **options):
+    def assert_satisfied(self, *names):
         """Assert that all expectations are satisfied.
 
         If there is at least one unsatisfied expectation, then this method will
@@ -305,21 +362,7 @@ class Registry:
             Accepts names of mocks to check as positional args. If one or more
             names are given, then this method limits checking only to mocks of
             matching names.
-
-        .. versionchanged:: 0.6
-
-            Added *options* keyword argument.
-
-            Following options are available:
-
-            ``name_prefix``
-                If called with, for example, ``name_prefix='foo'``, then
-                checks if all mocks having names starting with *foo* are
-                satisfied. So it will check *foo*, *foo.bar.baz*, *foo.spam*,
-                but not *bar* or *bar.foo*.
         """
-        if 'name_prefix' in options:
-            raise NotImplementedError() # TODO
         unsatisfied = []
         keyfunc = lambda x: not names or x.expected_call.name in names
         for expect in filter(keyfunc, self._expects):
@@ -329,6 +372,7 @@ class Registry:
             raise exc.Unsatisfied(unsatisfied)
 
 
+@export
 class Expectation:
     """Class representing single expectation.
 

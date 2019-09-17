@@ -22,7 +22,41 @@ class MockifyError(AssertionError):
     """
 
 
-class UninterestedCall(MockifyError):
+class NoExpectationsFound(MockifyError):
+    pass
+
+
+class UnexpectedCall(NoExpectationsFound):
+    """Raised when no expectations were found that matched call params, but
+    there is at least one that matches mock name.
+
+    .. versionadded:: 0.6
+
+    Thanks to this additional state, suggestions can be presented to the
+    user, so it will be easier to find a reason why the mock call was
+    unexpected.
+    """
+
+    def __init__(self, call, other_expectations):
+        self._call = call
+        self._other_expectations = other_expectations
+
+    def __str__(self):
+        filename, lineno = self._call.fileinfo
+        message = [
+            f"at {filename}:{lineno}",
+            f"----------------------------------------",
+            f"No matching expectations found for call:",
+            f"  {self._call}",
+            f"-------------------------------------------------{'-' * len(self._call.name)}-",
+            f"However, following expectations were found for {self._call.name!r}:"
+        ]
+        for i, expectation in enumerate(self._other_expectations):
+            message.append(f"  {i+1}) {expectation.expected_call}")
+        return '\n'.join(message)
+
+
+class UninterestedCall(NoExpectationsFound):
     """Raised when uninterested mock is called.
 
     Mockify requires each mock call to have matching expectation recorded. If
