@@ -29,12 +29,12 @@ class UUT(Object):
 class TestObjectSubclass:
 
     @pytest.fixture(autouse=True)
-    def use_registry_mock(self, registry_mock):
-        self.registry = registry_mock
+    def use_registry_stub(self, registry_stub):
+        self.registry_stub = registry_stub
 
     @pytest.fixture(autouse=True)
-    def make_uut(self, use_registry_mock):
-        self.uut = UUT('uut', registry=self.registry)
+    def make_uut(self, use_registry_stub):
+        self.uut = UUT('uut', registry=self.registry_stub)
 
     ### Tests
 
@@ -46,7 +46,7 @@ class TestObjectSubclass:
 
     def test_record_method_call_expectation_using_old_interface(self):
         self.uut.expect_call('foo', 1, 2)
-        assert self.registry.expected_calls == [Call('uut.foo', 1, 2)]
+        assert self.registry_stub.expected_calls == [Call('uut.foo', 1, 2)]
 
     def test_when_setting_property_not_listed_in_properties_list__then_fail_with_attribute_error(self):
         with pytest.raises(AttributeError) as excinfo:
@@ -56,30 +56,30 @@ class TestObjectSubclass:
 
     def test_expect_property_set_using_old_interface(self):
         self.uut.expect_set('spam', 1)
-        assert self.registry.expected_calls == [Call('uut.spam.fset', 1)]
+        assert self.registry_stub.expected_calls == [Call('uut.spam.fset', 1)]
 
     def test_when_property_get_using_old_interface(self):
         self.uut.expect_get('spam')
-        assert self.registry.expected_calls == [Call('uut.spam.fget')]
+        assert self.registry_stub.expected_calls == [Call('uut.spam.fget')]
 
 
 class TestObject:
 
     @pytest.fixture(autouse=True)
-    def use_registry_mock(self, registry_mock):
-        self.registry = registry_mock
+    def use_registry_stub(self, registry_stub):
+        self.registry_stub = registry_stub
 
     @pytest.fixture(autouse=True)
-    def make_uut(self, use_registry_mock):
-        self.uut = Object('uut', registry=self.registry)
+    def make_uut(self, use_registry_stub):
+        self.uut = Object('uut', registry=self.registry_stub)
 
     @contextmanager
     def expect_uut_foo_fget(self, value):
         self.uut.foo.fget.expect_call()
-        assert self.registry.expected_calls == [Call('uut.foo.fget')]
-        self.registry.on_call = Return(value)
+        assert self.registry_stub.expected_calls == [Call('uut.foo.fget')]
+        self.registry_stub.on_call = Return(value)
         yield self.uut.foo
-        assert self.registry.calls == [Call('uut.foo.fget')]
+        assert self.registry_stub.calls == [Call('uut.foo.fget')]
 
     def test_when_getting_attribute__it_is_of_property_type_by_default(self):
         assert isinstance(self.uut.foo, Object.Property)
@@ -93,34 +93,34 @@ class TestObject:
     def test_when_expect_call_is_called_on_property__then_it_becomes_a_method(self):
         self.uut.foo.expect_call()
         assert isinstance(self.uut.foo, Object.Method)
-        assert self.registry.expected_calls == [Call('uut.foo')]
+        assert self.registry_stub.expected_calls == [Call('uut.foo')]
 
     def test_when_first_level_attribute_is_set__then_it_becomes_a_property(self):
         self.uut.foo = 123
-        self.registry.on_call = Return(123)
+        self.registry_stub.on_call = Return(123)
         assert self.uut.foo == 123
-        assert self.registry.calls == [Call('uut.foo.fset', 123), Call('uut.foo.fget')]
+        assert self.registry_stub.calls == [Call('uut.foo.fset', 123), Call('uut.foo.fget')]
 
     def test_when_expect_call_is_called_on_fset__then_first_level_attribute_becomes_a_property(self):
         self.uut.foo.fset.expect_call(123)
-        assert self.registry.expected_calls == [Call('uut.foo.fset', 123)]
-        self.registry.on_call = Return(123)
+        assert self.registry_stub.expected_calls == [Call('uut.foo.fset', 123)]
+        self.registry_stub.on_call = Return(123)
         assert self.uut.foo == 123
-        assert self.registry.calls == [Call('uut.foo.fget')]
+        assert self.registry_stub.calls == [Call('uut.foo.fget')]
 
     def test_when_expect_call_is_called_on_fget__then_first_level_attribute_becomes_a_property(self):
         self.uut.foo.fget.expect_call()
-        assert self.registry.expected_calls == [Call('uut.foo.fget')]
-        self.registry.on_call = Return(123)
+        assert self.registry_stub.expected_calls == [Call('uut.foo.fget')]
+        self.registry_stub.on_call = Return(123)
         assert self.uut.foo == 123
-        assert self.registry.calls == [Call('uut.foo.fget')]
+        assert self.registry_stub.calls == [Call('uut.foo.fget')]
 
     def test_when_fget_expectation_is_registered__then_getting_a_property_invokes_fget_mock(self):
         self.uut.foo.fget.expect_call()
-        self.registry.expected_calls == [Call('uut.foo.fget')]
-        self.registry.on_call = Return(123)
+        self.registry_stub.expected_calls == [Call('uut.foo.fget')]
+        self.registry_stub.on_call = Return(123)
         assert self.uut.foo == 123
-        self.registry.calls == [Call('uut.foo.fget')]
+        self.registry_stub.calls == [Call('uut.foo.fget')]
 
     def test_directly_calling_fset_is_not_allowed(self):
         with pytest.raises(TypeError) as excinfo:
@@ -137,21 +137,21 @@ class TestObject:
         self.uut.bar.fset.expect_call(123)
         self.uut.bar.fget.expect_call()
         self.uut.baz.fset.expect_call(456)
-        assert self.registry.expected_calls == [
+        assert self.registry_stub.expected_calls == [
             Call('uut.foo'),
             Call('uut.bar.fset', 123),
             Call('uut.bar.fget'),
             Call('uut.baz.fset', 456)
         ]
         self.uut.assert_satisfied()
-        assert self.registry.checked_mock_names == [
+        assert self.registry_stub.checked_mock_names == [
             'uut.foo', 'uut.bar.fset', 'uut.bar.fget', 'uut.baz.fset']
 
     def test_if_object_has_list_of_methods_defined__then_only_that_methods_are_allowed(self):
-        self.uut = Object('uut', methods=('foo',), registry=self.registry)
+        self.uut = Object('uut', methods=('foo',), registry=self.registry_stub)
 
         self.uut.foo.expect_call()
-        assert self.registry.expected_calls == [Call('uut.foo')]
+        assert self.registry_stub.expected_calls == [Call('uut.foo')]
 
         with pytest.raises(AttributeError) as excinfo:
             self.uut.spam.expect_call()
@@ -159,10 +159,10 @@ class TestObject:
         assert str(excinfo.value) == "Mock object 'uut' has no attribute 'spam'"
 
     def test_if_object_has_list_of_properties_defined__then_only_that_properties_are_allowed(self):
-        self.uut = Object('uut', properties=('foo',), registry=self.registry)
+        self.uut = Object('uut', properties=('foo',), registry=self.registry_stub)
 
         self.uut.foo.fset.expect_call(123)
-        assert self.registry.expected_calls == [Call('uut.foo.fset', 123)]
+        assert self.registry_stub.expected_calls == [Call('uut.foo.fset', 123)]
 
         with pytest.raises(AttributeError) as excinfo:
             self.uut.bar.fset.expect_call(123)
@@ -170,7 +170,7 @@ class TestObject:
         assert str(excinfo.value) == "Mock object 'uut' has no attribute 'bar'"
 
     def test_if_object_has_list_of_both_methods_and_properties_defined__then_you_cannot_use_method_as_property(self):
-        self.uut = Object('uut', methods=('foo',), properties=('bar',), registry=self.registry)
+        self.uut = Object('uut', methods=('foo',), properties=('bar',), registry=self.registry_stub)
 
         with pytest.raises(AttributeError) as excinfo:
             self.uut.foo.fset.expect_call(123)
@@ -183,11 +183,11 @@ class TestObject:
         assert str(excinfo.value) == "Mock object 'uut' does not allow setting attribute 'foo'"
 
     def test_if_property_is_accessed_twice__then_fget_is_called_twice(self):
-        self.registry.on_call = Return(123)
+        self.registry_stub.on_call = Return(123)
         assert self.uut.foo == 123
-        self.registry.on_call = Return(456)
+        self.registry_stub.on_call = Return(456)
         assert self.uut.foo == 456
-        assert self.registry.calls == [Call('uut.foo.fget'), Call('uut.foo.fget')]
+        assert self.registry_stub.calls == [Call('uut.foo.fget'), Call('uut.foo.fget')]
 
     def test_property_representation(self):
         with self.expect_uut_foo_fget('spam') as foo:

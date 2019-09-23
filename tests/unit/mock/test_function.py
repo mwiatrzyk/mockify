@@ -32,7 +32,7 @@ class RegistryStub:
         self.call_params.append(call)
 
     def expect_call(self, call):
-        filename, lineno = call.fileinfo
+        filename, lineno = call.location
         expectation = ExpectationStub(call, filename, lineno)
         self.expectations.append(expectation)
         return expectation

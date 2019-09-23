@@ -67,7 +67,7 @@ thing required from such class is to implement following interface:
         :class:`Between` it will be its ``minimal`` argument.
 """
 
-from _mockify import _utils
+from . import _utils
 
 
 class Exactly:

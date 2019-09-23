@@ -66,7 +66,7 @@ class TestBasicFunctionality(TestBase):
 
     def test_format_location_returns_formatted_filename_and_lineno(self):
         self.expect_foo()
-        filename, lineno = self.foo_call.fileinfo
+        filename, lineno = self.foo_call.location
         assert self.uut.format_location() == f"{filename}:{lineno}"
 
     def test_when_called_with_non_matching_call_object__then_raise_exception(self):

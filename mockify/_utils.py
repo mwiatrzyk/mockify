@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import traceback
+import itertools
 
 
 def format_call_count(count):
@@ -33,12 +33,6 @@ def format_expected_call_count(count):
         return 'to be never called'
     else:
         return 'to be called ' + format_call_count(count)
-
-
-def extract_filename_and_lineno_from_stack(offset=0):
-    stack = traceback.extract_stack()
-    frame = stack[-2 + offset]
-    return frame.filename, frame.lineno
 
 
 class memoized_property:

@@ -13,9 +13,9 @@ import math
 import weakref
 import warnings
 
-from _mockify import _utils, Registry
+from .. import _utils, Context
 
-from .function import Function
+from ._function import Function
 
 
 class _Attribute:

@@ -10,10 +10,31 @@
 # ---------------------------------------------------------------------------
 
 
-class MockifyError(AssertionError):
-    """Common base class for all Mockify exceptions.
+class MockifyWarning(Warning):
+    pass
 
-    .. versionadded:: 0.6
+
+class UninterestedCallWarning(MockifyWarning):
+    pass
+
+
+class MockifyError(Exception):
+
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+class InvalidMockName(MockifyError):
+
+    def __str__(self):
+        return f"Mock name must be a valid Python identifier, got {self.invalid_name!r} instead"
+
+
+class MockifyAssertion(MockifyError):
+    """Common base class for all Mockify assertion errors.
+
+    .. versionadded:: 1.0
 
     With this exception it will be easy to re-raise Mockify-specific
     exceptions for example during debugging. Besides that, since now all
@@ -22,7 +43,7 @@ class MockifyError(AssertionError):
     """
 
 
-class NoExpectationsFound(MockifyError):
+class NoExpectationsFound(MockifyAssertion):
     pass
 
 
@@ -37,9 +58,9 @@ class UnexpectedCall(NoExpectationsFound):
     unexpected.
     """
 
-    def __init__(self, call, other_expectations):
+    def __init__(self, call, candidate_expectations):
         self._call = call
-        self._other_expectations = other_expectations
+        self._candidate_expectations = candidate_expectations
 
     def __str__(self):
         filename, lineno = self._call.fileinfo
@@ -51,8 +72,36 @@ class UnexpectedCall(NoExpectationsFound):
             f"-------------------------------------------------{'-' * len(self._call.name)}-",
             f"However, following expectations were found for {self._call.name!r}:"
         ]
-        for i, expectation in enumerate(self._other_expectations):
+        for i, expectation in enumerate(self._candidate_expectations):
             message.append(f"  {i+1}) {expectation.expected_call}")
+        return '\n'.join(message)
+
+    @property
+    def call(self):
+        return self._call
+
+    @property
+    def candidate_expectations(self):
+        return self._candidate_expectations
+
+
+class UnexpectedCallOrder(MockifyAssertion):
+    """Raise when another mock was expected to be called."""
+
+    def __init__(self, actual_call, expected_call):
+        self.actual_call = actual_call
+        self.expected_call = expected_call
+
+    def __str__(self):
+        location = "{}:{}".format(*self.actual_call.location)
+        message = ['Another mock was expected to be called:\n',
+            f"at {location}",
+            f'-' * (len(location) + 3),
+            f"Actual:",
+            f"  {self.actual_call}",
+            f"Expected:",
+            f"  {self.expected_call}"
+        ]
         return '\n'.join(message)
 
 
@@ -81,7 +130,7 @@ class UninterestedCall(NoExpectationsFound):
         return self._call
 
 
-class UninterestedPropertyAccess(MockifyError):
+class UninterestedPropertyAccess(MockifyAssertion):
     """Base class for exceptions signalling uninterested property access.
 
     This situation occurs when object property is accessed without previous
@@ -150,7 +199,7 @@ class UninterestedSetterCall(UninterestedPropertyAccess):
         return self._value
 
 
-class OversaturatedCall(MockifyError):
+class OversaturatedCall(MockifyAssertion):
     """Raised when mock is called more times than expected.
 
     This exception will be thrown only if mock has actions defined as it does
@@ -188,7 +237,7 @@ class OversaturatedCall(MockifyError):
         return self._call
 
 
-class Unsatisfied(MockifyError):
+class Unsatisfied(MockifyAssertion):
     """Raised by :meth:`mockify.engine.Registry.assert_satisfied` method when
     there is at least one unsatisfied expectation.
 

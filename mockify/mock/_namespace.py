@@ -13,7 +13,7 @@ import contextlib
 import itertools
 import weakref
 
-from _mockify import Call, Registry, _utils, exc
+from .. import Call, Context, _utils, exc
 
 from ._function import Function
 

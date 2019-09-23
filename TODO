@@ -8,7 +8,8 @@ A list of ideas to be implemented:
    instead. Once mock has a default action, it should not fail on unexpected
    or uninterested calls but rather invoke action specified.
 
-[] Make MockFactory for easier creation of mocks that share same context.
+[] Make MockFactory for easier creation of mocks that share same context
+   (and, probably, some common settings).
 
 [] Make pytest plugin. Suggested name is `mockify_factory`. Such fixture
    would expose factory method for creating and verifying mocks and also will
@@ -20,4 +21,4 @@ A list of ideas to be implemented:
 [] Use setuptools-scm to get version from Git tag instead of hardcoding it in
    the code. Thanks to this versioning will be completely handled by Git.
 
-[] Use deployed Mockify to test the one being developed.
+[x] Use deployed Mockify to test the one being developed.

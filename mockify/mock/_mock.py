@@ -1,7 +1,7 @@
 import weakref
 
-from _mockify import _utils, Call, Registry
-from _mockify.matchers import _
+from .. import _utils, Call, Context
+from ..matchers import _
 
 
 class _ExpectCallProxy:
@@ -33,7 +33,7 @@ class _ExpectCallProxy:
 
     def _expect_call(self, *args, **kwargs):
         expected_call = Call(self._mock._full_name, *args, **kwargs)
-        return self._mock._registry.expect_call(expected_call)
+        return self._mock._ctx.expect_call(expected_call)
 
 
 class _Base:
@@ -54,7 +54,7 @@ class _Base:
 
     def _is_call_expected(self, *args, **kwargs):
         searched_call = Call(*args, **kwargs)
-        return self._registry.expectations.by_call(searched_call).exists()
+        return self._ctx.expectations.by_call(searched_call).exists()
 
     def __getattribute__(self, name):
         if name not in ('__getattr__', '__setattr__'):
@@ -85,7 +85,7 @@ class Mock(_Base):
             return f"<mockify.mock.Mock.Attr({self._full_name!r})>"
 
         def __call__(self, *args, **kwargs):
-            if self._registry.expectations.by_name(self._full_name).exists():
+            if self._ctx.expectations.by_name(self._full_name).exists():
                 return self._call(*args, **kwargs)
             elif self._name == 'expect_call':
                 return self._expect_call(*args, **kwargs)
@@ -99,13 +99,13 @@ class Mock(_Base):
             return proxy(*args, **kwargs)
 
         def _assert_satisfied(self):
-            return self._registry.expectations.\
+            return self._ctx.expectations.\
                 by_name_prefix(self._root._name).\
                 assert_satisfied()
 
         def _call(self, *args, **kwargs):
             actual_call = Call(self._full_name, *args, **kwargs)
-            return self._registry(actual_call)
+            return self._ctx(actual_call)
 
         @property
         def _parent(self):
@@ -124,20 +124,20 @@ class Mock(_Base):
             return f"{self._parent._full_name}.{self._name}"
 
         @property
-        def _registry(self):
-            return self._root._registry
+        def _ctx(self):
+            return self._root._ctx
 
-    def __init__(self, name, registry=None):
+    def __init__(self, name, ctx=None):
         self._name = name
         self._parent = None
-        self._registry = registry or Registry()
+        self._ctx = ctx or Context()
 
     def __repr__(self):
         return f"<mockify.mock.{self.__class__.__name__}({self._name!r})>"
 
     def __call__(self, *args, **kwargs):
         actual_call = Call(self._name, *args, **kwargs)
-        return self._registry(actual_call)
+        return self._ctx(actual_call)
 
     @property
     def _full_name(self):

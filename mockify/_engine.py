@@ -19,10 +19,8 @@ import collections
 
 from contextlib import contextmanager
 
-from _mockify import exc, _utils
-from _mockify.cardinality import Exactly, AtLeast
-
-from . import _utils
+from . import exc, _utils
+from .cardinality import Exactly, AtLeast
 
 __all__ = export = _utils.ExportList()
 
@@ -34,6 +32,57 @@ def _wrap_expected_count(expected_count):
         return Exactly(expected_count)
     else:
         return expected_count
+
+
+class _ExpectationFilter:
+
+    def __init__(self, expectations):
+        self._expectations = expectations
+
+    def __iter__(self):
+        return iter(self._expectations)
+
+    def by_call(self, call):
+        return self.__class__(
+            filter(lambda x: x.expected_call == call, self._expectations))
+
+    def by_name(self, name):
+        return self.__class__(
+            filter(lambda x: x.expected_call.name == name, self._expectations))
+
+    def unsatisfied(self):
+        return self.__class__(
+            filter(lambda x: not x.is_satisfied(), self._expectations))
+
+
+@export
+@contextmanager
+def ordered(*mocks):
+    """Preserve order in what expectations are defined.
+
+    Use this to wrap test fragment in which you are recording expectations.
+    All expectations recorded for listed mocks will be tracked and their
+    order will be strictly checked during unit under test execution. If one
+    expectation is called earlier than another, then execution will fail with
+    an error.
+    """
+
+    def get_context():
+        for i in range(len(mocks)-1):
+            first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
+            ctx = first.ctx
+            if ctx is not second.ctx:
+                raise TypeError(
+                    f"Unable to use ordered expectations: "
+                    f"mocks {mocks[i]!r} and {mocks[i+1]!r} use different "
+                    f"contexts.")
+        else:
+            return ctx
+
+    ctx = get_context()
+    ctx.enable_ordered(*map(lambda x: MockInfo(x).name, mocks))
+    yield
+    ctx.disable_ordered()
 
 
 @export
@@ -75,8 +124,10 @@ def satisfies(*mocks):
         test_mock_caller()
     """
     yield
-    for subject in mocks:
-        subject.assert_satisfied()
+    unsatisfied_expectations = itertools.chain(*map(lambda x: MockInfo(x).unsatisfied_expectations, mocks))
+    unsatisfied_expectations = list(unsatisfied_expectations)
+    if unsatisfied_expectations:
+        raise exc.Unsatisfied(unsatisfied_expectations)
 
 
 @export
@@ -94,11 +145,35 @@ def assert_satisfied(*mocks):
 
 
 @export
-class Call:
-    """Represents single expectation or call arguments for a given mock.
+class MockInfo:
 
-    Objects of this class are created by mocks and later passed to underlying
-    registry.
+    def __init__(self, mock):
+        self._mock = mock
+
+    @property
+    def ctx(self):
+        return self._mock._ctx
+
+    @property
+    def name(self):
+        return self._mock._name
+
+    @property
+    def unsatisfied_expectations(self):
+        return self._mock._ctx._expectations.by_name(self.name).unsatisfied()
+
+
+@export
+class Call:
+    """An object representing mock call.
+
+    Instances of this class are created when expectations are recorded or
+    when mock is called. The role of this class is to keep mock name and its
+    call params as a single object for easier comparison between expected and
+    actual mock calls.
+
+    This class also provides some basic stack info to be used for error
+    reporting (f.e. to display where failed expectation was defined).
     """
 
     def __init__(self, *args, **kwargs):
@@ -107,13 +182,25 @@ class Call:
         self._name = args[0]
         self._args = args[1:]
         self._kwargs = kwargs
-        self._fileinfo = self.__extract_fileinfo_from_traceback()
+        self._location = self.__extract_fileinfo_from_traceback()
+        self.__validate_name()
 
     def __extract_fileinfo_from_traceback(self):
         stack = traceback.extract_stack()
         for frame in reversed(stack):
             if not frame.filename.startswith(_mockify_root_dir):
                 return frame.filename, frame.lineno
+
+    def __validate_name(self):
+        parts = self._name.split('.') if isinstance(self._name, str) else [self._name]
+        for part in parts:
+            if not self.__is_identifier(part):
+                raise exc.InvalidMockName(invalid_name=self._name)
+
+    def __is_identifier(self, name):
+        return isinstance(name, str) and\
+            name.isidentifier() and\
+            not keyword.iskeyword(name)
 
     def __str__(self):
         return f"{self._name}({self._format_params(*self._args, **self._kwargs)})"
@@ -128,6 +215,12 @@ class Call:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def _format_params(self, *args, **kwargs):
+        args_gen = (repr(x) for x in args)
+        kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
+        all_gen = itertools.chain(args_gen, kwargs_gen)
+        return ', '.join(all_gen)
 
     @property
     def name(self):
@@ -145,46 +238,109 @@ class Call:
         return self._kwargs
 
     @property
-    def fileinfo(self):
-        """File information where this call object was created.
+    def location(self):
+        """Location (a tuple containing file name and line number) where this
+        call object was created.
 
         .. versionadded:: 0.6
 
-        This property will return filename and line number tuple of first
-        file outside of Mockify library extracted from the stack. This will
-        most likely be a place in your code where expectation was recorded or
-        mock called. Thanks to this more accurate info is presented in case
-        of errors.
+        This is used to display where failed expectation was declared or
+        where failed call was orinally made.
         """
-        return self._fileinfo
-
-    @classmethod
-    def create(cls, *args, **kwargs):
-        """Factory method for easier :class:`Call` object creating.
-
-        You must give at least one positional argument - the name. All other
-        will be passed to constructor's **args** and **kwargs** parameters.
-
-        .. versionadded:: 0.5
-
-        .. deprecated:: 0.6
-            This method is now deprecated, as :class:`Call` constructor now
-            allows the same.
-        """
-        if not args:
-            raise TypeError(
-                "create() must be called with at least 1 positional argument, "
-                "got 0")
-        return cls(args[0], args=args[1:] or None, kwargs=kwargs or None)
-
-    def _format_params(self, *args, **kwargs):
-        args_gen = (repr(x) for x in args)
-        kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
-        all_gen = itertools.chain(args_gen, kwargs_gen)
-        return ', '.join(all_gen)
+        return self._location
 
 
 @export
+class Context:
+    _uninterested_call_strategies = ('fail', 'warn', 'ignore')
+
+    def __init__(self, uninterested_call_strategy='fail'):
+        self.__expectations = []
+        self._ordered_expectations = collections.deque()
+        self._ordered_expectations_enabled_for = set()
+        self.uninterested_call_strategy = uninterested_call_strategy
+
+    def __call__(self, actual_call):
+        if self._is_ordered(actual_call):
+            return self.__call_ordered(actual_call)
+        else:
+            return self.__call_unordered(actual_call)
+
+    def __call_ordered(self, actual_call):
+        head = self._ordered_expectations[0]
+        if head.expected_call == actual_call:
+            try:
+                return head(actual_call)
+            finally:
+                if head.is_satisfied():
+                    self._ordered_expectations.popleft()
+        else:
+            raise exc.UnexpectedCallOrder(actual_call, head.expected_call)
+
+    def __call_unordered(self, actual_call):
+        found_by_call = list(self._expectations.by_call(actual_call))
+        if not found_by_call:
+            return self.__handle_uninterested_call(actual_call)
+        for expectation in found_by_call:
+            if not expectation.is_satisfied():
+                return expectation(actual_call)
+        else:
+            return found_by_call[-1](actual_call)  # Oversaturate last found if all are satisfied
+
+    def __handle_uninterested_call(self, actual_call):
+        if self.uninterested_call_strategy == 'fail':
+            self.__handle_uninterested_call_using_fail_strategy(actual_call)
+        elif self.uninterested_call_strategy == 'ignore':
+            pass
+        elif self.uninterested_call_strategy == 'warn':
+            warnings.warn(str(actual_call), exc.UninterestedCallWarning)
+
+    def __handle_uninterested_call_using_fail_strategy(self, actual_call):
+        found_by_name = list(self._expectations.by_name(actual_call.name))
+        if not found_by_name:
+            raise exc.UninterestedCall(actual_call)
+        else:
+            raise exc.UnexpectedCall(actual_call, found_by_name)
+
+    @property
+    def _expectations(self):
+        return _ExpectationFilter(self.__expectations)
+
+    @property
+    def uninterested_call_strategy(self):
+        return self._uninterested_call_strategy
+
+    @uninterested_call_strategy.setter
+    def uninterested_call_strategy(self, value):
+        if value not in self._uninterested_call_strategies:
+            raise ValueError(f"invalid strategy given: {value}")
+        self._uninterested_call_strategy = value
+
+    def expect_call(self, expected_call):
+        expectation = Expectation(expected_call)
+        if self._is_ordered(expected_call):
+            self._ordered_expectations.append(expectation)
+        else:
+            self.__expectations.append(expectation)
+        return expectation
+
+    def assert_satisfied(self):
+        unsatisfied_expectations = list(self._expectations.unsatisfied())
+        if unsatisfied_expectations:
+            raise exc.Unsatisfied(unsatisfied_expectations)
+
+    def enable_ordered(self, *names):
+        self._ordered_expectations_enabled_for = set(names)
+        self._ordered_expectations = collections.deque()
+
+    def disable_ordered(self):
+        self._ordered_expectations_enabled_for = set()
+
+    def _is_ordered(self, call):
+        return call.name in self._ordered_expectations_enabled_for
+
+
+#@export
 class Registry:
     """Groups unrelated mocks together and acts as a common database for
     recorded expectations.
@@ -216,70 +372,17 @@ class Registry:
         .. versionadded:: 0.4
     """
 
-    class _ExpectationFilter:
-
-        class _FilteredResults:
-
-            def __init__(self, generated_items):
-                self._generated_items = generated_items
-
-            def all(self):
-                return list(self._generated_items)
-
-            def unsatisfied(self):
-                return filter(lambda x: not x.is_satisfied(), self._generated_items)
-
-            def exists(self):
-                return next(self._generated_items, None) is not None
-
-            def assert_satisfied(self):
-                """Check if all filtered expectations are satisfied."""
-                unsatisfied = list(self.unsatisfied())
-                if unsatisfied:
-                    raise exc.Unsatisfied(unsatisfied)
-
-        def __init__(self, expectations):
-            self._expectations = expectations
-
-        def by_name(self, name):
-            """Filter out expectations recorded for mock with given full
-            name.
-
-            :param name:
-                Full mock name
-            """
-            return self._FilteredResults(
-                filter(lambda x: x.expected_call.name == name, self._expectations)
-            )
-
-        def by_name_prefix(self, name_prefix):
-            """Filter out expectations that are recorded for mocks with names
-            prefixed by *name_prefix*.
-
-            :param name_prefix:
-                Mock name prefix
-            """
-            return self._FilteredResults(
-                filter(lambda x: x.expected_call.name.startswith(name_prefix), self._expectations)
-            )
-
-        def by_call(self, call):
-            """Filter out expectations that match given call object.
-
-            :param call:
-                Instance of :class:`Call` representing call params to be
-                checked
-            """
-            return self._FilteredResults(
-                filter(lambda x: x.match(call), self._expectations)
-            )
-
     def __init__(self,
             expectation_class=None,
+            expectation_query_class=None,
             uninterested_call_strategy='fail'):
         self._expects = []
         self._expectation_class = expectation_class or Expectation
+        self._expectation_query_class = expectation_query_class or ExpectationQuery
         self._uninterested_call_strategy = uninterested_call_strategy
+
+    def register_mock(self, name):
+        pass
 
     def __call__(self, call):
         """Call a mock.
@@ -323,8 +426,10 @@ class Registry:
         interface.
 
         .. versionadded:: 0.6
+
+        This property returns instance of :class:`ExpectationQuery` class.
         """
-        return self._ExpectationFilter(self._expects)
+        return self._expectation_query_class(self._expects)
 
     def expect_call(self, call, filename=None, lineno=None):
         """Register expectation.
@@ -377,13 +482,9 @@ class Registry:
         """
         if names:
             warnings.warn("Using 'names' is deprecated since 0.6 - use 'expectations' attribute instead")
-        unsatisfied = []
-        keyfunc = lambda x: not names or x.expected_call.name in names
-        for expect in filter(keyfunc, self._expects):
-            if not expect.is_satisfied():
-                unsatisfied.append(expect)
-        if unsatisfied:
-            raise exc.Unsatisfied(unsatisfied)
+            self.expectations.by_any_name(names).assert_satisfied()
+        else:
+            self.expectations.all().assert_satisfied()
 
 
 @export
@@ -573,7 +674,7 @@ class Expectation:
 
     def __init__(self, expected_call, filename=None, lineno=None):
         self._expected_call = expected_call
-        self._filename, self._lineno = expected_call.fileinfo
+        self._filename, self._lineno = expected_call.location
         self._next_proxy = self._DefaultProxy(self)
         self._total_calls = 0
 

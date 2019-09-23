@@ -122,9 +122,10 @@ def test_unit(c):
 @invoke.task
 def test_cov(c, html=False):
     """Run tests and check coverage."""
+    opts = ''
     if html:
-        opts = '--cov-report=html'
-    c.run(f"pytest tests/ --cov=src/_mockify {opts}")
+        opts += ' --cov-report=html'
+    c.run(f"pytest tests/ --cov=src/_mockify{opts}")
 
 
 @invoke.task

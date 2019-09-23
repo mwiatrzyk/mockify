@@ -14,7 +14,58 @@ import pytest
 from _mockify import exc, Call, Registry
 
 
-class ExpectationStub:
+# class TestRegistry:
+
+#     @pytest.fixture(autouse=True)
+#     def setup(self, expectation_class_stub):
+#         self.expectation_class = expectation_class_stub
+#         self.uut = Registry(expectation_class=self.expectation_class)
+
+#     def test_if_no_mocks_registered__then_registry_is_satisfied(self):
+#         self.uut.assert_satisfied()
+
+#     def test_register_namespace_in_registry(self):
+#         foo = self.uut.add_namespace('foo')
+#         assert foo.name == 'foo'
+
+#     def test_registering_two_namespaces_of_same_name_is_not_allowed(self):
+#         self.uut.add_namespace('foo')
+#         with pytest.raises(ValueError) as excinfo:
+#             self.uut.add_namespace('foo')
+#         assert str(excinfo.value) == "Namespace 'foo' already exists"
+
+#     @pytest.mark.parametrize('invalid_value', [
+#         '!@$asd', '123', '1abc', # Invalid identifier
+#         'for', 'while', 'if', 'def', 'with',  # Python keywords
+#         123, [], # Non string values
+#     ])
+#     def test_registering_namespace_with_name_being_and_invalid_identifier_is_not_allowed(self, invalid_value):
+#         with pytest.raises(ValueError) as excinfo:
+#             self.uut.add_namespace(invalid_value)
+#         assert str(excinfo.value) == f"Name {invalid_value!r} is not a valid identifier"
+
+#     def test_registry_is_satisfied_if_it_has_namespaces_without_any_expectations_recorded(self):
+#         self.uut.add_namespace('foo')
+#         self.uut.add_namespace('bar')
+#         self.uut.assert_satisfied()
+
+#     def test_expect_mock_call_and_call_mock(self):
+#         foo = self.uut.add_namespace('foo')
+#         expectation = foo.expect_call('spam', 1, 2, c=3)
+#         assert isinstance(expectation, self.expectation_class)
+#         assert foo('spam', 1, 2, c=3) == self.expectation_class.return_value
+#         self.uut.assert_satisfied()
+
+#     def test_when_one_expectation_registered_but_not_consumed__then_assert_satisfied_fails(self):
+#         foo = self.uut.add_namespace('foo')
+#         expectation = foo.expect_call('spam', 1, 2, c=3)
+#         with pytest.raises(exc.Unsatisfied) as excinfo:
+#             self.uut.assert_satisfied()
+#         assert excinfo.value.expectations == [expectation]
+
+
+
+"""class ExpectationStub:
 
     def __init__(self, expected_call):
         self.expected_call = expected_call
@@ -140,3 +191,4 @@ class TestRegistry:
         unsatisfied_expectations = excinfo.value.expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] is second_expect
+"""

@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/mock/object.py
+# mockify/mock/__init__.py
 #
 # Copyright (C) 2018 - 2019 Maciej Wiatrzyk
 #
@@ -8,12 +8,14 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import warnings
 
-from . import __name__ as _new_name
+"""Classes for mocking things."""
+
+from ._mock import Mock
 from ._object import Object
+from ._function import Function
+from ._namespace import Namespace
+from ._factory import *
+from ._factory import __all__ as _factory_all
 
-warnings.warn(
-    f"Module {__name__!r} was merged to {_new_name!r} in version 0.5 and "
-    f"will be dropped in one of upcoming releases - please update your "
-    f"imports.", DeprecationWarning)
+__all__ = ['Mock', 'Object', 'Function', 'Namespace'] + _factory_all
