@@ -68,7 +68,10 @@ def ordered(*mocks):
     """
 
     def get_context():
-        for i in range(len(mocks)-1):
+        num_mocks = len(mocks)
+        if num_mocks == 1:
+            return MockInfo(mocks[0]).ctx
+        for i in range(num_mocks-1):
             first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
             ctx = first.ctx
             if ctx is not second.ctx:
@@ -337,7 +340,10 @@ class Context:
         self._ordered_expectations_enabled_for = set()
 
     def _is_ordered(self, call):
-        return call.name in self._ordered_expectations_enabled_for
+        for prefix in self._ordered_expectations_enabled_for:
+            if call.name.startswith(prefix):
+                return True
+        return False
 
 
 #@export

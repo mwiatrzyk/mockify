@@ -63,14 +63,13 @@ class UnexpectedCall(NoExpectationsFound):
         self._candidate_expectations = candidate_expectations
 
     def __str__(self):
-        filename, lineno = self._call.fileinfo
-        message = [
-            f"at {filename}:{lineno}",
-            f"----------------------------------------",
-            f"No matching expectations found for call:",
+        location = "{}:{}".format(*self._call.location)
+        message = ["No matching expectations found:\n",
+            f"at {location}",
+            "-" * (len(location) + 3),
+            f"Actual:",
             f"  {self._call}",
-            f"-------------------------------------------------{'-' * len(self._call.name)}-",
-            f"However, following expectations were found for {self._call.name!r}:"
+            f"Candidates:",
         ]
         for i, expectation in enumerate(self._candidate_expectations):
             message.append(f"  {i+1}) {expectation.expected_call}")
@@ -121,7 +120,15 @@ class UninterestedCall(NoExpectationsFound):
         self._call = call
 
     def __str__(self):
-        return str(self.call)
+        location = "{}:{}".format(*self.call.location)
+        message = [
+            "No expectations recorded for mock:\n",
+            f"at {location}",
+            "-" * (len(location) + 3),
+            "Actual:",
+            f"  {self.call}"
+        ]
+        return '\n'.join(message)
 
     @property
     def call(self):

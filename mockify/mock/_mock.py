@@ -2,6 +2,7 @@ import weakref
 
 from .. import _utils, Call, Context
 from ..matchers import _
+from ._function import Function
 
 
 class _ExpectCallProxy:
@@ -142,3 +143,46 @@ class Mock(_Base):
     @property
     def _full_name(self):
         return self._name
+
+
+class Mock:
+
+    def __init__(self, name, ctx=None, _parent=None):
+        self._name = name
+        self._ctx = ctx or Context()
+        self._parent = _parent
+        self._func = Function(self._fullname, ctx=self._ctx)
+
+    def __repr__(self):
+        return f"<mockify.mock.Mock({self._name!r})>"
+
+    def __getattr__(self, name):
+        self.__dict__[name] = tmp = Mock(name, ctx=self._ctx, _parent=self)
+        return tmp
+
+    def __call__(self, *args, **kwargs):
+        parent = self._parent
+        if self._name == 'expect_call' and parent is not None:
+            return parent._func.expect_call(*args, **kwargs)
+        else:
+            return self._func(*args, **kwargs)
+
+    @property
+    def _parent(self):
+        if self.__parent is not None:
+            return self.__parent()
+
+    @_parent.setter
+    def _parent(self, value):
+        if value is None:
+            self.__parent = value
+        else:
+            self.__parent = weakref.ref(value)
+
+    @property
+    def _fullname(self):
+        parent = self._parent
+        if parent is None:
+            return self._name
+        else:
+            return f"{parent._fullname}.{self._name}"
