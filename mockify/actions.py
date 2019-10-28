@@ -27,6 +27,8 @@ Basically, any class containing following methods is considered an **action**:
         Entire action logic goes in here.
 """
 
+import functools
+
 
 class Return:
     """Makes mock returning given value when called.
@@ -92,11 +94,11 @@ class Invoke:
         Function to be executed
     """
 
-    def __init__(self, func):
-        self._func = func
+    def __init__(self, func, *args, **kwargs):
+        self._func = functools.partial(func, *args, **kwargs)
 
     def __str__(self):
-        return "Invoke(<function {}>)".format(self._func.__name__)
+        return f"Invoke({self._func.func!r})"
 
-    def __call__(self, *args, **kwargs):
-        return self._func(*args, **kwargs)
+    def __call__(self, actual_call):
+        return self._func(*actual_call.args, **actual_call.kwargs)

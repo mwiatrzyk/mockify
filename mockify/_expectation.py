@@ -1,0 +1,347 @@
+import weakref
+import warnings
+import collections
+
+from . import exc, _utils
+from ._call import Call
+from .cardinality import Exactly
+
+
+class Expectation:
+    """Class representing single expectation.
+
+    Instances of this class are normally created by registry objects using
+    :meth:`Registry.expect_call` method. Each instance of this class is
+    correlated with exactly one :class:`mockify.engine.Call` object
+    representing expected mock call pattern.
+
+    After :class:`Expectation` object is created by call to some
+    ``expect_call`` method, it can be mutated using following methods:
+
+        * :meth:`times`
+        * :meth:`will_once`
+        * :meth:`will_repeatedly`
+
+    :param call:
+        Instance of :class:`mockify.engine.Call` representing expected mock
+        call pattern
+
+    :param filename:
+        File name were this expectation was created
+
+        .. deprecated:: 0.6
+            This parameter is no longer used and will be removed in one
+            of upcoming releases.
+
+    :param lineno:
+        Line number where this expectation was created
+
+        .. deprecated:: 0.6
+            This parameter is no longer used and will be removed in one
+            of upcoming releases.
+    """
+
+    class _ProxyBase:
+
+        def __repr__(self):
+            return repr(self._expectation)
+
+        @property
+        def _expectation(self):
+            return self.__expectation()
+
+        @_expectation.setter
+        def _expectation(self, value):
+            self.__expectation = weakref.ref(value)
+
+        def _wrap_expected_count(self, expected_count):
+            if isinstance(expected_count, int):
+                return Exactly(expected_count)
+            else:
+                return expected_count
+
+    class _DefaultProxy(_ProxyBase):
+
+        def __init__(self, expectation):
+            self._actual_count = 0
+            self._expectation = expectation
+
+        def __call__(self, call):
+            self._actual_count += 1
+
+        def _is_satisfied(self):
+            return self._actual_count == 1
+
+        def _format_expected(self):
+            return _utils.format_expected_call_count(1)
+
+    class _TimesProxy(_ProxyBase):
+
+        def __init__(self, expected_count, expectation):
+            self._actual_count = 0
+            self._expectation = expectation
+            self._expected_count = self._wrap_expected_count(expected_count)
+
+        def __call__(self, call):
+            self._actual_count += 1
+
+        def _is_satisfied(self):
+            return self._expected_count.is_satisfied(self._actual_count)
+
+        def _format_expected(self):
+            return self._expected_count.format_expected()
+
+    class _ActionProxy(_ProxyBase):
+
+        def __init__(self, action, expectation):
+            self._actions = collections.deque([action])
+            self._expectation = expectation
+            self._expected_count = Exactly(1)
+            self._actual_count = 0
+            self._next_proxy = None
+
+        def __call__(self, call):
+            if not self._is_satisfied():
+                return self.__invoke_action(call)
+            elif self._next_proxy is not None:
+                return self._next_proxy(call)
+            else:
+                return self.__invoke_action(call)
+
+        def __invoke_action(self, call):
+            self._actual_count += 1
+            if not self._actions:
+                raise exc.OversaturatedCall(self._expectation, call)
+            else:
+                return self.__trigger_next(call)
+
+        def __trigger_next(self, call):
+            try:
+                return self._actions[0](call)
+            finally:
+                self._actions.popleft()
+
+        def _is_satisfied(self):
+            return self._expected_count.is_satisfied(self._actual_count)
+
+        def _format_action(self):
+            if self._actions:
+                return str(self._actions[0])
+            elif self._next_proxy is not None:
+                return self._next_proxy._format_action()
+
+        def _format_expected(self, minimal=None):
+            minimal = minimal or 0
+            if self._next_proxy is None:
+                return self._expected_count.adjust_by(minimal).format_expected()
+            else:
+                return self._next_proxy._format_expected(minimal=minimal + len(self._actions))
+
+        def will_once(self, action):
+            self._actions.append(action)
+            self._expected_count = self._expected_count.adjust_by(1)
+            return self
+
+        def will_repeatedly(self, action):
+            self._next_proxy = tmp = Expectation._RepeatedActionProxy(action, self._expectation)
+            return tmp
+
+    class _RepeatedActionProxy(_ProxyBase):
+
+        def __init__(self, action, expectation):
+            self._action = action
+            self._expectation = expectation
+            self._expected_count = None
+            self._actual_count = 0
+            self._next_proxy = None
+
+        def __call__(self, call):
+            if not self._is_satisfied():
+                return self.__invoke_action(call)
+            elif self._next_proxy is not None:
+                return self._next_proxy(call)
+            else:
+                return self.__invoke_action(call)
+
+        def __invoke_action(self, call):
+            self._actual_count += 1
+            return self._action(call)
+
+        def _is_satisfied(self):
+            return self._expected_count is None or\
+                self._expected_count.is_satisfied(self._actual_count)
+
+        def _format_action(self):
+            return str(self._action)
+
+        def _format_expected(self, minimal=None):
+            minimal = minimal or 0
+            if self._next_proxy is None:
+                if self._expected_count is not None:
+                    return self._expected_count.adjust_by(minimal).format_expected()
+                elif minimal > 0:
+                    return AtLeast(minimal).format_expected()
+            elif self._expected_count is not None:
+                return self._next_proxy._format_expected(
+                    minimal=minimal + self._expected_count.minimal)
+
+        def times(self, expected_count):
+            self._expected_count = self._wrap_expected_count(expected_count)
+            return self
+
+        def will_once(self, action):
+            self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
+            return tmp
+
+        def will_repeatedly(self, action):
+            self._next_proxy = tmp = self.__class__(action, self._expectation)
+            return self
+
+    def __init__(self, expected_call):
+        self._expected_call = expected_call
+        self._filename, self._lineno = expected_call.location
+        self._next_proxy = self._DefaultProxy(self)
+        self._total_calls = 0
+
+    def __repr__(self):
+        return "<mockify.{}: {}>".format(self.__class__.__name__, self._expected_call)
+
+    def __call__(self, call):
+        """Call this expectation object.
+
+        If given ``call`` object does not match :attr:`expected_call` then this
+        method will raise :exc:`TypeError` exception.
+
+        Otherwise, total call count is increased by one and:
+
+            * if actions are recorded, then next action is executed and its
+              result returned or :exc:`mockify.exc.OversaturatedCall` exception
+              is raised if there are no more actions
+
+            * if there are no actions recorded, just ``None`` is returned
+        """
+        if not self.match(call):
+            raise TypeError("expectation can only be called with matching 'Call' object")
+        self._total_calls += 1
+        return self._next_proxy(call)
+
+    @property
+    def mock_id(self):
+        """The ID of mock that created this expectation object."""
+        return self._mock_id
+
+    @property
+    def expected_call(self):
+        """Instance of :class:`mockify.engine.Call` representing expected mock
+        call pattern.
+
+        This basically is exactly the same :class:`Call` object as was passed
+        to :class:`Expectation` constructor.
+        """
+        return self._expected_call
+
+    def match(self, call):
+        """Check if :attr:`expected_call` matches ``call``."""
+        return self._expected_call == call
+
+    def is_satisfied(self):
+        """Check if this expectation is satisfied."""
+        tmp = self._next_proxy
+        while tmp is not None:
+            if not tmp._is_satisfied():
+                return False
+            tmp = getattr(tmp, '_next_proxy', None)
+        return True
+
+    def format_actual(self):
+        """Return textual representation of how many times this expectation was
+        called so far.
+
+        This is used by :class:`mockify.exc.Unsatisfied` exception when
+        rendering error message.
+        """
+        return _utils.format_actual_call_count(self._total_calls)
+
+    def format_expected(self):
+        """Return textual representation of how many times this expectation is
+        expected to be called.
+
+        This is used by :class:`mockify.exc.Unsatisfied` exception when
+        rendering error message.
+        """
+        return self._next_proxy._format_expected()
+
+    def format_action(self):
+        """Return textual representation of next action to be executed.
+
+        This method uses action's ``__str__`` method to render action name.
+
+        Returns ``None`` if there were no actions recorded or all were
+        consumed.
+
+        This is used by :class:`mockify.exc.Unsatisfied` exception when
+        rendering error message.
+        """
+        if hasattr(self._next_proxy, '_format_action'):
+            return self._next_proxy._format_action()
+
+    def format_location(self):
+        """Return textual representation of place (filename and lineno) where
+        this expectation was created.
+
+        Basically, it just returns ``[filename]:[lineno]`` string, where
+        ``filename`` and ``lineno`` are given via :class:`Expectation`
+        constructor.
+        """
+        return "{}:{}".format(self._filename, self._lineno)
+
+    def times(self, expected_count):
+        """Record how many times this expectation is expected to be called.
+
+        :param expected_count:
+            Expected call count.
+
+            This can be either integer number (exact call count) or instance of
+            one of classes from :mod:`mockify.times` module.
+        """
+        self._next_proxy = tmp = self._TimesProxy(expected_count, self)
+        return tmp
+
+    def will_once(self, action):
+        """Attach action to be executed when this expectation gets consumed.
+
+        This method can be used several times, making action chains. Once
+        expectation is consumed, next action is executed and removed from the
+        list. If there are no more actions, another call will fail with
+        :exc:`mockify.exc.OversaturatedCall` exception.
+
+        After this method is used, you can also use :meth:`will_repeatedly` to
+        record repeated action that will get executed after all single actions
+        are consumed.
+
+        :param action:
+            Action to be executed.
+
+            See :mod:`mockify.actions` for details.
+        """
+        self._next_proxy = tmp = self._ActionProxy(action, self)
+        return tmp
+
+    def will_repeatedly(self, action):
+        """Attach repeated action to be executed when this expectation is called.
+
+        This method is used to record one action that gets executed each time
+        this expectation object is called. By default, when repeated action is
+        recorded, expectation can be called any number of times (including
+        zero).
+
+        After setting repeated action, you can also set expected call count
+        using :meth:`times`.
+
+        :param action:
+            Action to be executed.
+
+            See :mod:`mockify.actions` for details.
+        """
+        self._next_proxy = tmp = self._RepeatedActionProxy(action, self)
+        return tmp

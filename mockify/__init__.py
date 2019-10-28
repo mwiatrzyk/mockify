@@ -11,6 +11,8 @@
 
 """Library core module."""
 
-from ._engine import *
+from ._call import Call
+from ._mock import MockFactory
+from ._engine import ordered, satisfied, patched
 
 version = (0, 6, 0)   # TODO: rename to __version__

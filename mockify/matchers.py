@@ -26,6 +26,7 @@ following methods:
         implementation.
 """
 
+import re
 import collections
 
 
@@ -119,6 +120,19 @@ class InstanceOf(Matcher):
 
     def __eq__(self, other):
         return isinstance(other, *self._types)
+
+
+class RegExp(Matcher):
+
+    def __init__(self, pattern):
+        self._pattern = re.compile(pattern)
+
+    def __repr__(self):
+        return f"RegExp({self._pattern.pattern!r})"
+
+    def __eq__(self, other):
+        return isinstance(other, str) and\
+            self._pattern.match(other) is not None
 
 
 _ = Any()

@@ -1,7 +1,6 @@
 import pytest
 
-from mockify import satisfies, ordered
-from mockify.mock import Function, Factory
+from mockify import ordered
 
 
 class Observable:
@@ -21,51 +20,46 @@ class Observable:
 class TestObservable:
 
     @pytest.fixture(autouse=True)
-    def make_uut(self):
+    def make_uut(self, mock_factory):
         self.uut = Observable()
+        self.mock_factory = mock_factory
 
     def test_subscribe_observer_and_notify_once(self):
-        observer = Function('observer')
+        observer = self.mock_factory('observer')
 
         self.uut.subscribe(observer)
 
         observer.expect_call(self.uut)
 
-        with satisfies(observer):
-            self.uut.notify()
+        self.uut.notify()
 
     def test_when_notify_called_twice__observer_is_triggered_twice(self):
-        observer = Function('observer')
+        observer = self.mock_factory('observer')
         observer.expect_call(self.uut).times(2)
 
         self.uut.subscribe(observer)
 
-        with satisfies(observer):
-            for _ in range(2):
-                self.uut.notify()
+        for _ in range(2):
+            self.uut.notify()
 
     def test_when_subscribed_twice__it_is_notified_only_once(self):
-        observer = Function('observer')
+        observer = self.mock_factory('observer')
 
         self.uut.subscribe(observer)
         self.uut.subscribe(observer)
 
         observer.expect_call(self.uut)
 
-        with satisfies(observer):
-            self.uut.notify()
+        self.uut.notify()
 
     def test_observers_are_triggered_in_subscribe_order(self):
-        factory = Factory(Function)
-
-        first, second = factory('first'), factory('second')
+        first, second = self.mock_factory('first'), self.mock_factory('second')
 
         self.uut.subscribe(first)
         self.uut.subscribe(second)
 
-        with ordered(first, second):
-            first.expect_call(self.uut)
-            second.expect_call(self.uut)
+        first.expect_call(self.uut)
+        second.expect_call(self.uut)
 
-            with factory.satisfied():
-                self.uut.notify()
+        with ordered(first, second):
+            self.uut.notify()
