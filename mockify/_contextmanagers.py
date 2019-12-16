@@ -9,19 +9,12 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import os
-import keyword
-import weakref
-import warnings
 import itertools
-import traceback
-import collections
 import unittest.mock
 
 from contextlib import contextmanager
 
-from . import exc, _utils
-
+from . import exc
 
 
 @contextmanager

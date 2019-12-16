@@ -12,7 +12,7 @@
 """Library core module."""
 
 from ._call import Call
-from ._engine import ordered, satisfied, patched
 from ._session import Session
+from ._contextmanagers import ordered, satisfied, patched
 
 version = (0, 6, 0)   # TODO: rename to __version__
