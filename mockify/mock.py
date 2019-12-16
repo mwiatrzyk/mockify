@@ -3,7 +3,7 @@ import itertools
 
 from . import _utils
 from ._call import Call
-from ._context import Context
+from ._session import Session
 from .matchers import _
 
 _next_mock_id = itertools.count()
@@ -11,12 +11,12 @@ _next_mock_id = itertools.count()
 
 class MockFactory:
 
-    def __init__(self, ctx=None):
-        self._ctx = ctx or Context()
+    def __init__(self, session=None):
+        self._session = session or Session()
         self._created_mocks = []
 
     def __call__(self, name):
-        mock = Mock(name, self)
+        mock = Mock(name, session=self._session)
         self._created_mocks.append(mock)
         return mock
 
@@ -24,75 +24,30 @@ class MockFactory:
         self._ctx.assert_satisfied()
 
 
-class MockInfo:
-
-    def __init__(self, mock):
-        self._mock = mock
-
-    def __repr__(self):
-        return f"<mockify._MockInfo({self._mock!r})>"
-
-    @property
-    def ctx(self):
-        return self.factory._ctx
-
-    @property
-    def name(self):
-        return self._mock._fullname
-
-    @property
-    def factory(self):
-        return self._mock._factory
-
-    @property
-    def expectations(self):
-        return self.ctx.expectations.by_name(self._mock._fullname)
-
-    @property
-    def children(self):
-        for name, obj in self._mock.__dict__.items():
-            if isinstance(obj, Mock):
-                if not obj._is_method():
-                    yield obj
-                yield from self.__class__(obj).children
-
-
 class Mock:
     _EXPECT_CALL_METHOD = 'expect_call'
 
-    def __init__(self, name, factory, _parent=None):
+    def __init__(self, name, session=None, _parent=None):
         self._name = name
-        self._factory = factory
+        self._session = session or Session()
         self._parent = _parent
         self._method_name = None
 
     def __repr__(self):
-        return f"<mockify._Mock({self._fullname!r})>"
+        return f"<mockify.mock.Mock({self._fullname!r})>"
 
     def __getattr__(self, name):
-        self.__dict__[name] = tmp = Mock(name, self._factory, _parent=self)
+        self.__dict__[name] = tmp = Mock(name, session=self._session, _parent=self)
         return tmp
 
     def __call__(self, *args, **kwargs):
         if self._name == self._EXPECT_CALL_METHOD:
             expected_call = Call(self._parent._fullname, *args, **kwargs)
             self._method_name = self._EXPECT_CALL_METHOD
-            return self._parent._ctx.expect_call(expected_call)
+            return self._parent._session.expect_call(expected_call)
         else:
             actual_call = Call(self._fullname, *args, **kwargs)
-            return self._ctx(actual_call)
-
-    @property
-    def _factory(self):
-        return self.__factory()
-
-    @_factory.setter
-    def _factory(self, value):
-        self.__factory = weakref.ref(value)
-
-    @property
-    def _ctx(self):
-        return self._factory._ctx
+            return self._session(actual_call)
 
     @property
     def _parent(self):
@@ -113,6 +68,18 @@ class Mock:
             return self._name
         else:
             return f"{parent._fullname}.{self._name}"
+
+    @property
+    def _children(self):
+        for name, obj in self.__dict__.items():
+            if isinstance(obj, Mock):
+                if not obj._is_method():
+                    yield obj
+                yield from obj._children
+
+    @property
+    def _expectations(self):
+        return self._session.expectations.by_name(self._fullname)
 
     def _is_method(self):
         return self._method_name is not None

@@ -21,8 +21,6 @@ import unittest.mock
 from contextlib import contextmanager
 
 from . import exc, _utils
-from ._mock import MockInfo
-from .cardinality import Exactly, AtLeast
 
 
 
@@ -37,35 +35,34 @@ def ordered(*mocks):
     an error.
     """
 
-    def get_context():
+    def get_session():
         num_mocks = len(mocks)
         if num_mocks == 1:
-            return MockInfo(mocks[0]).ctx
+            return mocks[0]._session
         for i in range(num_mocks-1):
             first, second = mocks[i], mocks[i+1]
-            ctx = MockInfo(first).ctx
-            if ctx is not MockInfo(second).ctx:
+            session = first._session
+            if session is not second._session:
                 raise TypeError(
-                    f"Unable to use ordered expectations: "
-                    f"mocks {mocks[i]!r} and {mocks[i+1]!r} use different "
-                    f"contexts.")
+                    f"Mocks {mocks[i]!r} and {mocks[i+1]!r} have to use same "
+                    f"session object to make ordered expectations work.")
         else:
-            return ctx
+            return session
 
-    ctx = get_context()
-    ctx.enable_ordered(*map(lambda x: x._fullname, mocks))
+    session = get_session()
+    session.enable_ordered(*map(lambda x: x._fullname, mocks))
     yield
-    ctx.disable_ordered()
+    session.disable_ordered()
 
 
 @contextmanager
 def patched(*mocks):
+    """Used to patch imported modules."""
 
     def having_expectations(*mocks):
         for mock in mocks:
-            for mock in itertools.chain([mock], MockInfo(mock).children):
-                info = MockInfo(mock)
-                if info.expectations.count() > 0:
+            for mock in itertools.chain([mock], mock._children):
+                if mock._expectations.count() > 0:
                     yield mock
 
     def patch_many(mocks):
@@ -73,7 +70,7 @@ def patched(*mocks):
         if mock is None:
             yield
             return
-        with unittest.mock.patch(MockInfo(mock).name, mock):
+        with unittest.mock.patch(mock._fullname, mock):
             yield from patch_many(mocks)
 
     for _ in patch_many(having_expectations(*mocks)):
@@ -120,8 +117,8 @@ def satisfied(*mocks):
     """
 
     def unsatisfied_expectations(mock):
-        for mock in itertools.chain([mock], MockInfo(mock).children):
-            yield from MockInfo(mock).expectations.unsatisfied()
+        for mock in itertools.chain([mock], mock._children):
+            yield from mock._expectations.unsatisfied()
 
     yield
     unsatisfied_expectations =\

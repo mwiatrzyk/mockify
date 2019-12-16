@@ -1,10 +1,16 @@
 import pytest
 
-from mockify import MockFactory
+from mockify import Session
+from mockify.mock import MockFactory
 
 
 @pytest.fixture
-def mock_factory():
-    factory = MockFactory()
-    yield factory
-    factory.done()
+def mock_session():
+    session = Session()
+    yield session
+    session.done()
+
+
+@pytest.fixture
+def mock_factory(mock_session):
+    return MockFactory(mock_session)

@@ -5,7 +5,7 @@ from . import exc
 from ._expectation import Expectation
 
 
-class Context:
+class Session:
     _uninterested_call_strategies = ('fail', 'warn', 'ignore')
 
     def __init__(self, uninterested_call_strategy='fail'):
@@ -75,7 +75,7 @@ class Context:
         self._unordered_expectations.append(expectation)
         return expectation
 
-    def assert_satisfied(self):
+    def done(self):
         unsatisfied_expectations = list(self.expectations.unsatisfied())
         if unsatisfied_expectations:
             raise exc.Unsatisfied(unsatisfied_expectations)

@@ -12,7 +12,7 @@
 """Library core module."""
 
 from ._call import Call
-from ._mock import MockFactory
 from ._engine import ordered, satisfied, patched
+from ._session import Session
 
 version = (0, 6, 0)   # TODO: rename to __version__
