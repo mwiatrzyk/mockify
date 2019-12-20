@@ -2,26 +2,86 @@ import weakref
 import itertools
 
 from . import _utils
-from ._call import Call
-from ._session import Session
+from ._engine import Call, Session
 from .matchers import _
 
-_next_mock_id = itertools.count()
+
+class MockInfo:
+
+    def __init__(self, mock):
+        self._mock = mock
+
+    @property
+    def mock(self):
+        return self._mock
+
+    @property
+    def name(self):
+        return self._mock._fullname
+
+    @property
+    def expectations(self):
+        return self._mock._expectations
+
+    @property
+    def children(self):
+        return self._mock._children
+
+    def walk(self):
+        """This is used to recursively iterate over all mock objects that are
+        part of target mock.
+
+        This method yields instances of :class:`MockInfo` for each mock
+        object it finds.
+        """
+
+        def walk(mock):
+            yield self.__class__(mock)
+            for child_mock in self.__class__(mock).children:
+                yield from walk(child_mock)
+
+        yield from walk(self._mock)
 
 
-class MockFactory:
+class MockGroup:
+    """A factory class used to create groups of related mocks.
 
-    def __init__(self, session=None):
+    This can be used if you need to create several mocks that need to be
+    checked all at once.
+
+    :param session:
+        Instance of :class:`mockify.Session` to be used.
+    """
+
+    def __init__(self, session=None, mock_class=None):
         self._session = session or Session()
+        self._mock_class = mock_class or Mock
         self._created_mocks = []
 
-    def __call__(self, name):
-        mock = Mock(name, session=self._session)
+    def mock(self, name):
+        """Create mock of given name and add it to this group.
+
+        Mocks created using this method will all share same session object
+        (the one that group owns).
+
+        Attempt to create second mock with same name (per group) will result
+        in :exc:`ValueError` exception.
+
+        :param name:
+            Name of the mock to be created.
+        """
+        mock = self._mock_class(name, session=self._session)
         self._created_mocks.append(mock)
         return mock
 
-    def done(self):
-        self._ctx.assert_satisfied()
+    @property
+    def _children(self):
+        return iter(self._created_mocks)
+
+    @property
+    def _expectations(self):
+        for mock in self._created_mocks:
+            yield from mock._expectations
 
 
 class Mock:
@@ -75,11 +135,12 @@ class Mock:
             if isinstance(obj, Mock):
                 if not obj._is_method():
                     yield obj
-                yield from obj._children
 
     @property
     def _expectations(self):
-        return self._session.expectations.by_name(self._fullname)
+        return filter(
+            lambda x: x.expected_call.name == self._fullname,
+            self._session.expectations)
 
     def _is_method(self):
         return self._method_name is not None

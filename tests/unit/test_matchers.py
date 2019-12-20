@@ -11,7 +11,7 @@
 
 import pytest
 
-from _mockify.matchers import _
+from mockify.matchers import _
 
 
 class TestAny:

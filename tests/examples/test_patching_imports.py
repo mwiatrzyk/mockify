@@ -1,6 +1,7 @@
 import os
 
 from mockify import satisfied, patched
+from mockify.mock import Mock
 from mockify.actions import Return, Iterate
 from mockify.matchers import RegExp
 
@@ -12,8 +13,8 @@ def list_files(path):
             yield fullpath
 
 
-def test_list_files(mock_factory):
-    os = mock_factory('os')
+def test_list_files():
+    os = Mock('os')
 
     os.listdir.expect_call('/tmp').\
         will_once(Iterate(['spam', 'foo.txt', 'bar.txt']))

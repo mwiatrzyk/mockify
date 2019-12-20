@@ -1,9 +1,38 @@
 import os
 import keyword
-import itertools
 import traceback
 
-_mockify_root_dir = os.path.dirname(__file__)
+from .. import exc, _utils, _globals
+
+
+class LocationInfo:
+    """Used to extract information about file location.
+
+    .. versionadded:: 1.0
+    """
+
+    def __init__(self, filename, lineno):
+        self._filename = filename
+        self._lineno = lineno
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @property
+    def lineno(self):
+        return self._lineno
+
+    def format_message(self):
+        return f"{self._filename}:{self._lineno}"
+
+    @classmethod
+    def get_external(cls):
+        stack = traceback.extract_stack()
+        for frame in reversed(stack):
+            if not frame.filename.startswith(_globals.ROOT_DIR) and\
+               not frame.filename.startswith('/usr/lib'):  # TODO: make this better
+                return cls(frame.filename, frame.lineno)
 
 
 class Call:
@@ -24,15 +53,8 @@ class Call:
         self._name = args[0]
         self._args = args[1:]
         self._kwargs = kwargs
-        self._location = self.__extract_fileinfo_from_traceback()
+        self._location = LocationInfo.get_external()
         self.__validate_name()
-
-    def __extract_fileinfo_from_traceback(self):
-        stack = traceback.extract_stack()
-        for frame in reversed(stack):
-            if not frame.filename.startswith(_mockify_root_dir) and\
-               not frame.filename.startswith('/usr/lib'):  # TODO: make this better
-                return frame.filename, frame.lineno
 
     def __validate_name(self):
         parts = self._name.split('.') if isinstance(self._name, str) else [self._name]
@@ -60,10 +82,7 @@ class Call:
         return not self.__eq__(other)
 
     def _format_params(self, *args, **kwargs):
-        args_gen = (repr(x) for x in args)
-        kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
-        all_gen = itertools.chain(args_gen, kwargs_gen)
-        return ', '.join(all_gen)
+        return _utils.format_args_kwargs(*args, **kwargs)
 
     @property
     def name(self):

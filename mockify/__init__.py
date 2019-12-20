@@ -11,8 +11,7 @@
 
 """Library core module."""
 
-from ._call import Call
-from ._session import Session
+from ._engine import Call, Session
 from ._contextmanagers import ordered, satisfied, patched
 
 version = (0, 6, 0)   # TODO: rename to __version__

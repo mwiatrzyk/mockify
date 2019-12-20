@@ -2,9 +2,9 @@ import weakref
 import warnings
 import collections
 
-from . import exc, _utils
-from ._call import Call
-from .cardinality import Exactly
+from .. import exc, _utils
+from .call import Call
+from ..cardinality import ActualCallCount, Exactly, AtLeast
 
 
 class Expectation:
@@ -78,26 +78,32 @@ class Expectation:
     class _TimesProxy(_ProxyBase):
 
         def __init__(self, expected_count, expectation):
-            self._actual_count = 0
             self._expectation = expectation
+            self._actual_count = ActualCallCount(0)
             self._expected_count = self._wrap_expected_count(expected_count)
+            self._next_action = None
 
         def __call__(self, call):
             self._actual_count += 1
 
         def _is_satisfied(self):
-            return self._expected_count.is_satisfied(self._actual_count)
+            return self._expected_count.match(self._actual_count)
 
-        def _format_expected(self):
-            return self._expected_count.format_expected()
+        @property
+        def _actual_call_count(self):
+            return self._actual_count
+
+        @property
+        def _expected_call_count(self):
+            return self._expected_count
 
     class _ActionProxy(_ProxyBase):
 
         def __init__(self, action, expectation):
-            self._actions = collections.deque([action])
+            self._action = action
             self._expectation = expectation
             self._expected_count = Exactly(1)
-            self._actual_count = 0
+            self._actual_count = ActualCallCount(0)
             self._next_proxy = None
 
         def __call__(self, call):
@@ -110,19 +116,15 @@ class Expectation:
 
         def __invoke_action(self, call):
             self._actual_count += 1
-            if not self._actions:
+            action = self._action
+            if action is None:
                 raise exc.OversaturatedCall(self._expectation, call)
             else:
-                return self.__trigger_next(call)
-
-        def __trigger_next(self, call):
-            try:
-                return self._actions[0](call)
-            finally:
-                self._actions.popleft()
+                self._action = None
+                return action(call)
 
         def _is_satisfied(self):
-            return self._expected_count.is_satisfied(self._actual_count)
+            return self._expected_count.match(self._actual_count)
 
         def _format_action(self):
             if self._actions:
@@ -133,13 +135,33 @@ class Expectation:
         def _format_expected(self, minimal=None):
             minimal = minimal or 0
             if self._next_proxy is None:
-                return self._expected_count.adjust_by(minimal).format_expected()
+                return self._expected_count.adjust_minimal_by(minimal).format_expected()
             else:
                 return self._next_proxy._format_expected(minimal=minimal + len(self._actions))
 
+        @property
+        def _actual_call_count(self):
+            if self._next_proxy is None:
+                return self._actual_count
+            else:
+                return self._next_proxy._actual_call_count
+
+        @property
+        def _expected_call_count(self):
+            if self._next_proxy is None:
+                return self._expected_count
+            else:
+                return self._next_proxy._expected_call_count
+
+        @property
+        def _next_action(self):
+            if self._next_proxy is None:
+                return self._action
+            else:
+                return self._next_proxy._next_action
+
         def will_once(self, action):
-            self._actions.append(action)
-            self._expected_count = self._expected_count.adjust_by(1)
+            self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
             return self
 
         def will_repeatedly(self, action):
@@ -151,8 +173,8 @@ class Expectation:
         def __init__(self, action, expectation):
             self._action = action
             self._expectation = expectation
-            self._expected_count = None
-            self._actual_count = 0
+            self._expected_count = AtLeast(0)
+            self._actual_count = ActualCallCount(0)
             self._next_proxy = None
 
         def __call__(self, call):
@@ -168,8 +190,7 @@ class Expectation:
             return self._action(call)
 
         def _is_satisfied(self):
-            return self._expected_count is None or\
-                self._expected_count.is_satisfied(self._actual_count)
+            return self._expected_count.match(self._actual_count)
 
         def _format_action(self):
             return str(self._action)
@@ -178,12 +199,24 @@ class Expectation:
             minimal = minimal or 0
             if self._next_proxy is None:
                 if self._expected_count is not None:
-                    return self._expected_count.adjust_by(minimal).format_expected()
+                    return self._expected_count.adjust_minimal_by(minimal).format_expected()
                 elif minimal > 0:
                     return AtLeast(minimal).format_expected()
             elif self._expected_count is not None:
                 return self._next_proxy._format_expected(
                     minimal=minimal + self._expected_count.minimal)
+
+        @property
+        def _actual_call_count(self):
+            return self._actual_count
+
+        @property
+        def _expected_call_count(self):
+            return self._expected_count
+
+        @property
+        def _next_action(self):
+            return self._action
 
         def times(self, expected_count):
             self._expected_count = self._wrap_expected_count(expected_count)
@@ -199,9 +232,7 @@ class Expectation:
 
     def __init__(self, expected_call):
         self._expected_call = expected_call
-        self._filename, self._lineno = expected_call.location
         self._next_proxy = self._DefaultProxy(self)
-        self._total_calls = 0
 
     def __repr__(self):
         return "<mockify.{}: {}>".format(self.__class__.__name__, self._expected_call)
@@ -222,13 +253,7 @@ class Expectation:
         """
         if not self.match(call):
             raise TypeError("expectation can only be called with matching 'Call' object")
-        self._total_calls += 1
         return self._next_proxy(call)
-
-    @property
-    def mock_id(self):
-        """The ID of mock that created this expectation object."""
-        return self._mock_id
 
     @property
     def expected_call(self):
@@ -252,48 +277,6 @@ class Expectation:
                 return False
             tmp = getattr(tmp, '_next_proxy', None)
         return True
-
-    def format_actual(self):
-        """Return textual representation of how many times this expectation was
-        called so far.
-
-        This is used by :class:`mockify.exc.Unsatisfied` exception when
-        rendering error message.
-        """
-        return _utils.format_actual_call_count(self._total_calls)
-
-    def format_expected(self):
-        """Return textual representation of how many times this expectation is
-        expected to be called.
-
-        This is used by :class:`mockify.exc.Unsatisfied` exception when
-        rendering error message.
-        """
-        return self._next_proxy._format_expected()
-
-    def format_action(self):
-        """Return textual representation of next action to be executed.
-
-        This method uses action's ``__str__`` method to render action name.
-
-        Returns ``None`` if there were no actions recorded or all were
-        consumed.
-
-        This is used by :class:`mockify.exc.Unsatisfied` exception when
-        rendering error message.
-        """
-        if hasattr(self._next_proxy, '_format_action'):
-            return self._next_proxy._format_action()
-
-    def format_location(self):
-        """Return textual representation of place (filename and lineno) where
-        this expectation was created.
-
-        Basically, it just returns ``[filename]:[lineno]`` string, where
-        ``filename`` and ``lineno`` are given via :class:`Expectation`
-        constructor.
-        """
-        return "{}:{}".format(self._filename, self._lineno)
 
     def times(self, expected_count):
         """Record how many times this expectation is expected to be called.
@@ -345,3 +328,31 @@ class Expectation:
         """
         self._next_proxy = tmp = self._RepeatedActionProxy(action, self)
         return tmp
+
+    @property
+    def actual_call_count(self):
+        """Number of matching calls this expectation object received so far.
+
+        This is relative value; if one action expires and another one is
+        started to be executed, then the counter starts counting from 0
+        again. Thanks to this you'll receive information about actual action
+        execution count. If your expectation does not use :meth:`will_once`
+        or :meth:`will_repeatedly`, then this counter will return total
+        number of calls.
+
+        .. versionadded:: 1.0
+        """
+        return self._next_proxy._actual_call_count
+
+    @property
+    def expected_call_count(self):
+        """Return :class:`mockify.cardinality.Cardinality` instance
+        representing expected number of mock calls."""
+        return self._next_proxy._expected_call_count
+
+    @property
+    def next_action(self):
+        """Return :class:`mockify.actions.Action` object representing next
+        action to be executed or ``None`` if there are no (more) actions
+        defined for this expectation object."""
+        return self._next_proxy._next_action

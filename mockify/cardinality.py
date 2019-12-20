@@ -9,68 +9,89 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-"""Module containing set of classes to be used with
-:meth:`mockify.engine.Expectation.times` method.
+import abc
 
-You can also create your own classes to be used with that method. The only
-thing required from such class is to implement following interface:
-
-    ``is_satisfied(self, actual)``
-        Return ``True`` if ``actual`` call count is satisfied by ``self``, or
-        ``False`` otherwise.
-
-        Here, ``actual`` is absolute call count expectation received so far. It
-        is completely implementation-specific of which values of ``actual`` are
-        said to be *satisfied* and which are not. For example, :class:`Exactly`
-        will compare ``actual`` with fixed value (given via constructor) and
-        return ``True`` only if those two are equal.
-
-    ``adjust_by(self, minimal)``
-        Adjust ``self`` by current ``minimal`` expected call count and return
-        new instance of ``type(self)``.
-
-        In some complex expectation there could be a situation in which
-        expectation must be computed again. This is not visible for library
-        user, but must be done behind the scenes to properly process
-        expectations. Such situation can be presented in this example:
-
-            >>> from _mockify.actions import Return
-            >>> from _mockify.mock import Function
-            >>> foo = Function('foo')
-            >>> foo.expect_call(1, 2).will_once(Return(1)).will_repeatedly(Return(2)).times(2)
-            <mockify.Expectation: foo(1, 2)>
-            >>> foo(1, 2)
-            1
-            >>> foo(1, 2)
-            2
-            >>> foo(1, 2)
-            2
-            >>> foo.assert_satisfied()
-
-        In example above we've used ``times(2)`` to tell that last repeated
-        action is expected to be called twice, but real expected call count
-        is 3 times, as ``will_once`` is used. Behind the scenes, this is
-        recalculated using this metho.
-
-    ``format_expected(self)``
-        Return textual representation of expected call count.
-
-        This is used by :class:`mockify.exc.Unsatisfied` exception when error
-        message is being rendered.
-
-    ``minimal(sefl)`` *(property)*
-        Property containing minimal call count that is considered valid for
-        given instance.
-
-        For example, for :class:`AtLeast` or :class:`Exactly` it would be just
-        its constructor argument, for :class`AtMost` it will be 0, for
-        :class:`Between` it will be its ``minimal`` argument.
-"""
+from functools import total_ordering
 
 from . import _utils
 
 
-class Exactly:
+@total_ordering
+class ActualCallCount:
+    """Proxy class that is used to calculate actual mock calls.
+
+    .. versionadded:: 1.0
+
+    This one is used to extract message formatting logic out of the
+    :class:`mockify.Expectation` class. Now, all mock call count related
+    classes reside in common module.
+    """
+
+    def __init__(self, initial_value):
+        self._value = initial_value
+
+    def __repr__(self):
+        return repr(self._value)
+
+    def __eq__(self, other):
+        return self._value == other
+
+    def __lt__(self, other):
+        return self._value < other
+
+    def __iadd__(self, other):
+        self._value += other
+        return self
+
+    def format_message(self):
+        """Return formatted textual representation of actual call count.
+
+        This is used to render error messages.
+        """
+        if self._value == 0:
+            return 'never called'
+        else:
+            return f"called {_utils.format_call_count(self._value)}"
+
+
+class ExpectedCallCount(abc.ABC):
+    """Abstract base class for classes used to set expected mock call count.
+
+    .. versionadded:: 1.0
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __repr__(self):
+        formatted_params = _utils.format_args_kwargs(*self.args, **self.kwargs)
+        return f"<{self.__module__}.{self.__class__.__name__}({formatted_params})>"
+
+    def __eq__(self, other):
+        return type(self) is type(other) and\
+            self.args == other.args and\
+            self.kwargs == other.kwargs
+
+    @abc.abstractmethod
+    def match(self, actual_call_count):
+        """Check if *actual_call_count* matches expected call count.
+
+        If actual call count matches expected call count, then return
+        ``True``. Otherwise return ``False``.
+        """
+        return False
+
+    @abc.abstractmethod
+    def format_message(self):
+        """Format message to be used in assertion reports.
+
+        This message must state how many times the mock was expected to be
+        called and will only be evaluated if expectation is not satisfied.
+        """
+
+
+class Exactly(ExpectedCallCount):
     """Used to expect fixed call count to be made.
 
     You do not have to use this class explicitly as its instances are
@@ -84,23 +105,23 @@ class Exactly:
     def __init__(self, expected):
         if expected < 0:
             raise TypeError("value of 'expected' must be >= 0")
-        self._expected = expected
+        super().__init__(expected)
 
     @property
-    def minimal(self):
-        return self._expected
+    def expected(self):
+        return self.args[0]
 
-    def is_satisfied(self, actual):
-        return self._expected == actual
+    def match(self, actual_call_count):
+        return self.expected == actual_call_count
 
-    def adjust_by(self, minimal):
-        return self.__class__(self._expected + minimal)
+    def format_message(self):
+        if self.expected == 0:
+            return 'to be never called'
+        else:
+            return f"to be called {_utils.format_call_count(self.expected)}"
 
-    def format_expected(self):
-        return _utils.format_expected_call_count(self._expected)
 
-
-class AtLeast:
+class AtLeast(ExpectedCallCount):
     """Used to set minimal expected call count.
 
     If this is used, then expectation is said to be satisfied if actual call
@@ -113,26 +134,23 @@ class AtLeast:
     def __init__(self, minimal):
         if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
-        self._minimal = minimal
+        super().__init__(minimal)
 
     @property
     def minimal(self):
-        return self._minimal
+        return self.args[0]
 
-    def is_satisfied(self, actual):
-        return actual >= self._minimal
+    def match(self, actual_call_count):
+        return actual_call_count >= self.args[0]
 
-    def adjust_by(self, minimal):
-        return self.__class__(self._minimal + minimal)
-
-    def format_expected(self):
-        if self._minimal == 0:
-            return "to be called optionally"
+    def format_message(self):
+        if self.minimal == 0:
+            return "to be called any number of times"
         else:
-            return "to be called at least {}".format(_utils.format_call_count(self._minimal))
+            return "to be called at least {}".format(_utils.format_call_count(self.minimal))
 
 
-class AtMost:
+class AtMost(ExpectedCallCount):
     """Used to set maximal expected call count.
 
     If this is used, then expectation is said to be satisfied if actual call
@@ -151,23 +169,20 @@ class AtMost:
             return super().__new__(cls)
 
     def __init__(self, maximal):
-        self._maximal = maximal
+        super().__init__(maximal)
 
     @property
-    def minimal(self):
-        return 0
+    def maximal(self):
+        return self.args[0]
 
-    def is_satisfied(self, actual):
-        return actual <= self._maximal
+    def match(self, actual_call_count):
+        return actual_call_count <= self.maximal
 
-    def adjust_by(self, minimal):
-        return Between(minimal, self._maximal + minimal)
-
-    def format_expected(self):
-        return "to be called at most {}".format(_utils.format_call_count(self._maximal))
+    def format_message(self):
+        return "to be called at most {}".format(_utils.format_call_count(self.maximal))
 
 
-class Between:
+class Between(ExpectedCallCount):
     """Used to set a range of valid call counts.
 
     If this is used, then expectation is said to be satisfied if actual call
@@ -193,19 +208,19 @@ class Between:
             return super().__new__(cls)
 
     def __init__(self, minimal, maximal):
-        self._minimal = minimal
-        self._maximal = maximal
+        super().__init__(minimal, maximal)
 
     @property
     def minimal(self):
-        return self._minimal
+        return self.args[0]
 
-    def is_satisfied(self, actual):
-        return actual >= self._minimal and\
-            actual <= self._maximal
+    @property
+    def maximal(self):
+        return self.args[1]
 
-    def adjust_by(self, minimal):
-        return self.__class__(self._minimal + minimal, self._maximal + minimal)
+    def match(self, actual_call_count):
+        return actual_call_count >= self.minimal and\
+            actual_call_count <= self.maximal
 
-    def format_expected(self):
-        return "to be called between {} and {} times".format(self._minimal, self._maximal)
+    def format_message(self):
+        return f"to be called from {self.minimal} to {self.maximal} times"

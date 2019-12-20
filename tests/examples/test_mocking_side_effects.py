@@ -1,6 +1,7 @@
 from io import BytesIO
 
 from mockify import satisfied
+from mockify.mock import Mock
 from mockify.actions import Invoke
 from mockify.matchers import _
 
@@ -20,8 +21,8 @@ def write(payload, fd):
     fd.write(payload)
 
 
-def test_get_payload(mock_factory):
-    image = mock_factory('image')
+def test_get_payload():
+    image = Mock('image')
     image.save.expect_call(_).will_once(Invoke(write, b'image data'))
 
     uut = ImageAdapter(image)

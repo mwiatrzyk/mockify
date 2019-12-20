@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from _mockify import exc, Call
+from mockify import exc, Call
 
 
 class ExpectationStub:

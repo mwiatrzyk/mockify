@@ -1,8 +1,9 @@
 import warnings
+import itertools
 import collections
 
-from . import exc
-from ._expectation import Expectation
+from .. import exc
+from .expectation import Expectation
 
 
 class Session:
@@ -32,7 +33,7 @@ class Session:
             raise exc.UnexpectedCallOrder(actual_call, head.expected_call)
 
     def __call_unordered(self, actual_call):
-        found_by_call = list(self.expectations.by_call(actual_call))
+        found_by_call = [x for x in self.expectations if x.expected_call == actual_call]
         if not found_by_call:
             return self.__handle_uninterested_call(actual_call)
         for expectation in found_by_call:
@@ -50,7 +51,7 @@ class Session:
             warnings.warn(str(actual_call), exc.UninterestedCallWarning)
 
     def __handle_uninterested_call_using_fail_strategy(self, actual_call):
-        found_by_name = list(self.expectations.by_name(actual_call.name))
+        found_by_name = [x for x in self.expectations if x.expected_call.name == actual_call.name]
         if not found_by_name:
             raise exc.UninterestedCall(actual_call)
         else:
@@ -58,7 +59,9 @@ class Session:
 
     @property
     def expectations(self):
-        return ExpectationFilter(self._unordered_expectations)
+        return itertools.chain(
+            self._unordered_expectations,
+            self._ordered_expectations)
 
     @property
     def uninterested_call_strategy(self):
@@ -76,11 +79,11 @@ class Session:
         return expectation
 
     def done(self):
-        unsatisfied_expectations = list(self.expectations.unsatisfied())
+        unsatisfied_expectations = [x for x in self.expectations if not x.is_satisfied()]
         if unsatisfied_expectations:
             raise exc.Unsatisfied(unsatisfied_expectations)
 
-    def enable_ordered(self, *names):
+    def enable_ordered(self, names):
         unordered_expectations = list(self._unordered_expectations)
         self._unordered_expectations = []
         self._ordered_expectations = collections.deque()
@@ -92,41 +95,10 @@ class Session:
                 self._unordered_expectations.append(expectation)
 
     def disable_ordered(self):
-        if self._ordered_expectations:  # TODO: move this back to unordered list
-            raise AssertionError("FIXME: non-consumed ordered expectations still present")
+        if self._ordered_expectations:
+            self._unordered_expectations.extend(self._ordered_expectations)
+        self._ordered_expectations = []
         self._ordered_expectations_enabled_for = set()
 
     def _is_ordered(self, call):
-        for prefix in self._ordered_expectations_enabled_for:
-            if call.name.startswith(prefix):
-                return True
-        return False
-
-
-class ExpectationFilter:
-
-    def __init__(self, expectations):
-        self._expectations = expectations
-
-    def __iter__(self):
-        return iter(self._expectations)
-
-    def by_func(self, func):
-        return self.__class__(
-            filter(func, self._expectations))
-
-    def by_call(self, call):
-        return self.by_func(lambda x: x.expected_call == call)
-
-    def by_name(self, name):
-        return self.by_func(lambda x: x.expected_call.name == name)
-
-    def by_name_prefix(self, prefix):
-        return self.by_func(lambda x: x.expected_call.name.startswith(prefix))
-
-    def unsatisfied(self):
-        return self.by_func(lambda x: not x.is_satisfied())
-
-    def count(self):
-        self._expectations = list(self._expectations)
-        return len(self._expectations)
+        return call.name in self._ordered_expectations_enabled_for

@@ -2,7 +2,7 @@ import pytest
 
 from inspect import currentframe, getframeinfo
 
-from _mockify import exc, Call
+from mockify import exc, Call
 
 
 def test_call_object_cannot_be_created_without_name():

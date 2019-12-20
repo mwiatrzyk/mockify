@@ -21,18 +21,11 @@ def format_call_count(count):
         return "{} times".format(count)
 
 
-def format_actual_call_count(count):
-    if count == 0:
-        return 'never called'
-    else:
-        return 'called ' + format_call_count(count)
-
-
-def format_expected_call_count(count):
-    if count == 0:
-        return 'to be never called'
-    else:
-        return 'to be called ' + format_call_count(count)
+def format_args_kwargs(*args, **kwargs):
+    args_gen = (repr(x) for x in args)
+    kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
+    all_gen = itertools.chain(args_gen, kwargs_gen)
+    return ', '.join(all_gen)
 
 
 class memoized_property:

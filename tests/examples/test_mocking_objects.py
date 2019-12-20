@@ -3,6 +3,7 @@ import struct
 import pytest
 
 from mockify import satisfied, ordered
+from mockify.mock import Mock
 from mockify.actions import Return
 
 
@@ -26,8 +27,8 @@ class ProtocolReader:
 class TestProtocolReader:
 
     @pytest.fixture(autouse=True)
-    def setup(self, mock_factory):
-        self.connection = mock_factory('connection')
+    def setup(self):
+        self.connection = Mock('connection')
         self.uut = ProtocolReader(self.connection)
 
     def test_read_fails_if_invalid_magic_bytes_are_received(self):

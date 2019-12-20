@@ -9,73 +9,151 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import re
+
 import pytest
 
-from _mockify.actions import Return, Raise, Invoke
+from mockify import Call, satisfied
+from mockify.mock import Mock
+from mockify.actions import Return, Iterate, Raise, Invoke
 
 
 class TestReturn:
 
-    def setup_method(self):
-        self.uut = Return(123)
+    @pytest.mark.parametrize('value, expected_str', [
+        (123, 'Return(123)'),
+        ('123', "Return('123')"),
+    ])
+    def test_string_representation(self, value, expected_str):
+        assert Return(value).format_message() == expected_str
 
-    ### Tests
+    def test_expect_mock_to_return_value_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Return(1))
+        with satisfied(mock):
+            assert mock() == 1
 
-    def test_string_representation(self):
-        assert str(self.uut) == 'Return(123)'
+    def test_expect_mock_to_return_two_values_in_given_order(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Return(1)).will_once(Return(2))
+        with satisfied(mock):
+            assert mock() == 1
+            assert mock() == 2
 
-    def test_when_called_without_args__then_return_given_value(self):
-        assert self.uut() == 123
+    def test_expect_mock_to_return_one_value_once_and_then_other_value_repeatedly(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Return(1)).will_repeatedly(Return(2))
+        with satisfied(mock):
+            assert mock() == 1
+            for _ in range(2):
+                assert mock() == 2
 
-    def test_when_called_with_positional_and_named_args__then_return_given_value(self):
-        assert self.uut(1, 2, c=3) == 123
+
+class TestIterate:
+
+    @pytest.mark.parametrize('value, expected_str', [
+        ([], 'Iterate([])'),
+        ('123', "Iterate('123')"),
+    ])
+    def test_string_representation(self, value, expected_str):
+        assert Iterate(value).format_message() == expected_str
+
+    def test_expect_mock_to_iterate_over_sequence_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Iterate('abc'))
+        with satisfied(mock):
+            assert list(mock()) == list('abc')
+
+    def test_expect_mock_to_iterate_over_two_sequences_in_given_order(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Iterate('abc')).will_once(Iterate('cde'))
+        with satisfied(mock):
+            assert list(mock()) == list('abc')
+            assert list(mock()) == list('cde')
+
+    def test_expect_mock_to_return_one_value_once_and_then_other_value_repeatedly(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Iterate('abc')).will_repeatedly(Iterate('cde'))
+        with satisfied(mock):
+            assert list(mock()) == list('abc')
+            for _ in range(2):
+                assert list(mock()) == list('cde')
 
 
 class TestRaise:
 
-    def setup_method(self):
-        self.exc = Exception('an error')
-        self.uut = Raise(self.exc)
+    @pytest.mark.parametrize('value, expected_str', [
+        (ValueError('an error'), "Raise(ValueError('an error'))"),
+    ])
+    def test_string_representation(self, value, expected_str):
+        assert Raise(value).format_message() == expected_str
 
-    ### Tests
+    def test_expect_mock_to_raise_exception_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Raise(ValueError('one')))
+        with satisfied(mock):
+            with pytest.raises(ValueError) as excinfo:
+                mock()
+            assert str(excinfo.value) == 'one'
 
-    @pytest.mark.skip('This test may fail depending on Python version - to be skipped for now')
-    def test_string_representation(self):
-        assert str(self.uut) == "Raise(Exception('an error'))"
+    def test_expect_mock_to_raise_two_exceptions_in_given_order(self):
+        first_exc, second_exc = ValueError('first'), ValueError('second')
+        mock = Mock('mock')
+        mock.expect_call().will_once(Raise(first_exc)).will_once(Raise(second_exc))
+        with satisfied(mock):
+            with pytest.raises(ValueError) as first_excinfo:
+                mock()
+            with pytest.raises(ValueError) as second_excinfo:
+                mock()
+            assert str(first_excinfo.value) == 'first'
+            assert str(second_excinfo.value) == 'second'
 
-    def test_when_called_without_args__then_raise_given_exception(self):
-        with pytest.raises(Exception) as excinfo:
-            self.uut()
-        assert excinfo.value is self.exc
-
-    def test_when_called_with_args_and_kwargs__then_raise_given_exception(self):
-        with pytest.raises(Exception) as excinfo:
-            self.uut(1, 2, c=3)
-        assert excinfo.value is self.exc
+    def test_expect_mock_to_raise_one_exception_once_and_then_other_exception_repeatedly(self):
+        first_exc, second_exc = ValueError('first'), ValueError('second')
+        mock = Mock('mock')
+        mock.expect_call().will_once(Raise(first_exc)).will_repeatedly(Raise(second_exc))
+        with satisfied(mock):
+            with pytest.raises(ValueError) as first_excinfo:
+                mock()
+            assert str(first_excinfo.value) == 'first'
+            for _ in range(2):
+                with pytest.raises(ValueError) as second_excinfo:
+                    mock()
+                assert str(second_excinfo.value) == 'second'
 
 
 class TestInvoke:
 
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def setup(self):
 
         def func(*args, **kwargs):
             self.called_with.append((args, kwargs))
-            return self.return_value
+            return sum(args)
 
         self.func = func
-        self.uut = Invoke(self.func)
         self.called_with = []
-        self.return_value = 123
 
     ### Tests
 
     def test_string_representation(self):
-        assert str(self.uut) == "Invoke(<function func>)"
+        action = Invoke(self.func)
+        assert 'Invoke(<function TestInvoke.setup.<locals>.func at 0x' in action.format_message()
 
-    def test_when_called_without_params__then_trigger_func_without_params(self):
-        assert self.uut() == self.return_value
-        assert self.called_with == [(tuple(), {})]
+    @pytest.mark.parametrize('args, kwargs', [
+        ((1, 2), {}),
+        ((1, 2, 3), {'c': 4}),
+    ])
+    def test_expect_mock_to_invoke_given_function_once(self, args, kwargs):
+        mock = Mock('mock')
+        mock.expect_call(*args, **kwargs).will_once(Invoke(self.func))
+        with satisfied(mock):
+            assert mock(*args, **kwargs) == sum(args)
+            assert self.called_with == [(args, kwargs)]
 
-    def test_when_called_with_args_and_kwargs__then_trigger_func_with_same_args_and_kwargs(self):
-        assert self.uut(1, 2, c=3) == self.return_value
-        assert self.called_with == [((1, 2), {'c': 3})]
+    def test_when_bound_args_attached_to_function__then_call_it_with_bound_args_and_call_args(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(Invoke(self.func, 1, 2, 3))
+        with satisfied(mock):
+            assert mock() == sum([1, 2, 3])
+            assert self.called_with == [((1, 2, 3), {})]

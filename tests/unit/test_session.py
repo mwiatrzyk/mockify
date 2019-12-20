@@ -1,14 +1,14 @@
 import pytest
 
-from _mockify import exc, Call, Context
-from _mockify.actions import Return
+from mockify import exc, Call, Session
+from mockify.actions import Return
 
 
 class TestContext:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.uut = Context()
+        self.uut = Session()
 
     def test_newly_created_context_is_already_satisfied(self):
         self.uut.assert_satisfied()

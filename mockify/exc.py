@@ -9,6 +9,10 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import logging
+
+logger = logging.getLogger('mockify')
+
 
 class MockifyWarning(Warning):
     pass
@@ -31,7 +35,7 @@ class InvalidMockName(MockifyError):
         return f"Mock name must be a valid Python identifier, got {self.invalid_name!r} instead"
 
 
-class MockifyAssertion(MockifyError):
+class MockifyAssertion(MockifyError, AssertionError):
     """Common base class for all Mockify assertion errors.
 
     .. versionadded:: 1.0
@@ -63,7 +67,13 @@ class UnexpectedCall(NoExpectationsFound):
         self._candidate_expectations = candidate_expectations
 
     def __str__(self):
-        location = "{}:{}".format(*self._call.location)
+        try:
+            return self.__prepare_str()
+        except Exception:
+            logger.error('An exception was raised during __str__() evaluation:', exc_info=True)
+
+    def __prepare_str(self):
+        location = self._call.location.format_message()
         message = ["No matching expectations found:\n",
             f"at {location}",
             "-" * (len(location) + 3),
@@ -265,6 +275,12 @@ class Unsatisfied(MockifyAssertion):
         self._expectations = expectations
 
     def __str__(self):
+        try:
+            return self.__prepare_str()
+        except Exception:
+            logger.error('An exception was raised during __str__() evaluation:', exc_info=True)
+
+    def __prepare_str(self):
         if len(self.expectations) == 1:
             prefix = 'following expectation is not satisfied:\n\n'
         else:
@@ -274,16 +290,16 @@ class Unsatisfied(MockifyAssertion):
         return prefix + '\n\n'.join(expectations_gen)
 
     def __format_expectation(self, expectation):
-        rows = ["at {}".format(expectation.format_location())]
+        rows = ["at {}".format(expectation.expected_call.location.format_message())]
         rows.append('-' * len(rows[0]))
         rows.append(
             "{:>13}".format("Pattern: ") + str(expectation.expected_call))
-        action = expectation.format_action()
+        action = expectation.next_action.format_message() if expectation.next_action is not None else None
         if action is not None:
             rows.append("{:>13}".format("Action: ") + action)
         rows.extend([
-            "{:>13}".format("Expected: ") + expectation.format_expected(),
-            "{:>13}".format("Actual: ") + expectation.format_actual()])
+            "{:>13}".format("Expected: ") + expectation.expected_call_count.format_message(),
+            "{:>13}".format("Actual: ") + expectation.actual_call_count.format_message()])
         return '\n'.join(rows)
 
     @property

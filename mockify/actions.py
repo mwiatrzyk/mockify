@@ -9,28 +9,43 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-"""Module containing predefined actions that can be used as argument for
-:meth:`Expectation.will_once` or :meth:`Expectation.will_repeatedly`.
-
-Basically, any class containing following methods is considered an **action**:
-
-    ``__str__(self)``
-
-        Returning string representation of an action.
-
-        This is used for error reporting.
-
-    ``__call__(self, *args, **kwargs)``
-
-        Method that is called when mock is called.
-
-        Entire action logic goes in here.
-"""
-
+import abc
 import functools
 
+from . import _utils
 
-class Return:
+
+class Action(abc.ABC):
+    """Common base class for all actions.
+
+    .. versionadded:: 1.0
+
+    Use this as a base for custom action classes.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    def __repr__(self):
+        formatted_params = _utils.format_args_kwargs(*self.args, **self.kwargs)
+        return f"<{self.__module__}.{self.__class__.__name__}({formatted_params})>"
+
+    def __eq__(self, other):
+        return type(self) is type(other) and\
+            self.args == other.args and\
+            self.kwargs == other.kwargs
+
+    def format_message(self):
+        formatted_params = _utils.format_args_kwargs(*self.args, **self.kwargs)
+        return f"{self.__class__.__name__}({formatted_params})"
+
+    @abc.abstractmethod
+    def __call__(self, actual_call):
+        pass
+
+
+class Return(Action):
     """Makes mock returning given value when called.
 
     :param value:
@@ -38,36 +53,30 @@ class Return:
     """
 
     def __init__(self, value):
-        self._value = value
+        super().__init__(value)
 
-    def __str__(self):
-        return "Return({!r})".format(self._value)
-
-    def __call__(self, *args, **kwargs):
-        return self._value
+    def __call__(self, actual_call):
+        return self.args[0]
 
 
-class Iterate:
+class Iterate(Action):
     """Similar to :class:`Return`, but returns an iterator to given
     iterable.
 
-    .. versionadded:: 0.6
+    .. versionadded:: 1.0
 
     :param iterable:
         Value to be iterated
     """
 
     def __init__(self, iterable):
-        self._iterable = iterable
+        super().__init__(iterable)
 
-    def __str__(self):
-        return f"Iterate({self._iterable!r})"
-
-    def __call__(self, call):
-        return iter(self._iterable)
+    def __call__(self, actual_call):
+        return iter(self.args[0])
 
 
-class Raise:
+class Raise(Action):
     """Makes mock raising given exception when called.
 
     :param exc:
@@ -75,30 +84,38 @@ class Raise:
     """
 
     def __init__(self, exc):
-        self._exc = exc
+        super().__init__(exc)
 
-    def __str__(self):
-        return "Raise({!r})".format(self._exc)
-
-    def __call__(self, *args, **kwargs):
-        raise self._exc
+    def __call__(self, actual_call):
+        raise self.args[0]
 
 
-class Invoke:
-    """Makes mock invoking given function when called.
+class Invoke(Action):
+    """Allows to invoke custom function when mock is called.
 
-    When mock is called, all arguments (if there are any) are passed to the
-    ``func`` and its return value is returned as mock's return value.
+    This is very handy if you want to do some sophisticated actions at the
+    time when mock is called, but still checking how many times it was called
+    and with what arguments.
+
+    All arguments the mock was called with are passed to underlying function,
+    and function's return value will be used as mock's return value.
+
+    .. versionchanged:: 1.0
+        Now this action allows binding args to function being called.
 
     :param func:
         Function to be executed
+
+    :param args:
+        Additional positional args to be bound to ``func``.
+
+    :param kwargs:
+        Additional named args to be bound to ``func``.
     """
 
     def __init__(self, func, *args, **kwargs):
+        super().__init__(func, *args, **kwargs)
         self._func = functools.partial(func, *args, **kwargs)
-
-    def __str__(self):
-        return f"Invoke({self._func.func!r})"
 
     def __call__(self, actual_call):
         return self._func(*actual_call.args, **actual_call.kwargs)

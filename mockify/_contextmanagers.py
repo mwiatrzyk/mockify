@@ -16,16 +16,15 @@ from contextlib import contextmanager
 
 from . import exc
 
+from .mock import MockInfo
+
 
 @contextmanager
 def ordered(*mocks):
     """Preserve order in what expectations are defined.
 
-    Use this to wrap test fragment in which you are recording expectations.
-    All expectations recorded for listed mocks will be tracked and their
-    order will be strictly checked during unit under test execution. If one
-    expectation is called earlier than another, then execution will fail with
-    an error.
+    Use this to wrap part of test code in which you run your unit under test.
+    This must be used after expectations are recorded.
     """
 
     def get_session():
@@ -42,8 +41,16 @@ def ordered(*mocks):
         else:
             return session
 
+    def iter_expectations(mocks):
+        for mock in mocks:
+            yield from MockInfo(mock).expectations
+
+    def iter_expected_mock_names(mocks):
+        for expectation in iter_expectations(mocks):
+            yield expectation.expected_call.name
+
     session = get_session()
-    session.enable_ordered(*map(lambda x: x._fullname, mocks))
+    session.enable_ordered(iter_expected_mock_names(mocks))
     yield
     session.disable_ordered()
 
@@ -52,70 +59,38 @@ def ordered(*mocks):
 def patched(*mocks):
     """Used to patch imported modules."""
 
-    def having_expectations(*mocks):
+    def iter_mocks_with_expectations(mocks):
         for mock in mocks:
-            for mock in itertools.chain([mock], mock._children):
-                if mock._expectations.count() > 0:
-                    yield mock
+            for mock_info in MockInfo(mock).walk():
+                next_expectation = next(mock_info.expectations, None)
+                if next_expectation is not None:
+                    yield mock_info.mock
 
     def patch_many(mocks):
         mock = next(mocks, None)
         if mock is None:
             yield
-            return
-        with unittest.mock.patch(mock._fullname, mock):
-            yield from patch_many(mocks)
+        else:
+            mock_name = MockInfo(mock).name
+            with unittest.mock.patch(mock_name, mock):
+                yield from patch_many(mocks)
 
-    for _ in patch_many(having_expectations(*mocks)):
+    for _ in patch_many(iter_mocks_with_expectations(mocks)):
         yield
         break
 
 
 @contextmanager
 def satisfied(*mocks):
-    """Context manager for checking if given mocks are all satisfied when
-    leaving the scope.
+    """Used to wrap tested code in order to check if it satisfies given
+    mocks."""
 
-    It can be used with any mock and also with :class:`mockify.Registry`
-    instances. The purpose of using this context manager is to emphasize the
-    place in test code where given mocks are used.
-
-    Here's an example test:
-
-    .. testcode::
-
-        from _mockify.mock import Function
-        from _mockify.actions import Return
-
-        class MockCaller:
-
-            def __init__(self, mock):
-                self._mock = mock
-
-            def call_mock(self, a, b):
-                return self._mock(a, b)
-
-        def test_mock_caller():
-            mock = Function('mock')
-
-            mock.expect_call(1, 2).will_once(Return(3))
-
-            uut = MockCaller(mock)
-            with assert_satisfied(mock):
-                assert uut.call_mock(1, 2) == 3
-
-    .. testcleanup::
-
-        test_mock_caller()
-    """
-
-    def unsatisfied_expectations(mock):
-        for mock in itertools.chain([mock], mock._children):
-            yield from mock._expectations.unsatisfied()
+    def iter_unsatisfied_expectations(mocks):
+        for mock in mocks:
+            for mock_info in MockInfo(mock).walk():
+                yield from (x for x in mock_info.expectations if not x.is_satisfied())
 
     yield
-    unsatisfied_expectations =\
-        itertools.chain(*map(lambda x: unsatisfied_expectations(x), mocks))
-    unsatisfied_expectations = list(unsatisfied_expectations)
+    unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))
     if unsatisfied_expectations:
         raise exc.Unsatisfied(unsatisfied_expectations)
