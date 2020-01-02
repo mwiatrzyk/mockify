@@ -1,2 +1,2 @@
-from .call import Call
+from .call import Call, LocationInfo
 from .session import Session

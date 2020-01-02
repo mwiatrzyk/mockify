@@ -53,7 +53,7 @@ class TestExactly:
         with pytest.raises(exc.Unsatisfied) as excinfo:
             with satisfied(mock):
                 mock()
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].actual_call_count == 1
         assert expectations[0].expected_call_count == Exactly(2)
@@ -72,7 +72,7 @@ class TestExactly:
             with satisfied(mock):
                 for _ in range(3):
                     mock()
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].actual_call_count == 3
         assert expectations[0].expected_call_count == Exactly(2)
@@ -84,7 +84,7 @@ class TestExactly:
             with satisfied(mock):
                 assert mock() == 1
                 assert mock() == 2
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].next_action == Return(2)
         assert expectations[0].actual_call_count == 1
@@ -98,7 +98,7 @@ class TestExactly:
                 assert mock() == 1
                 for _ in range(3):
                     assert mock() == 2
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].next_action == Return(2)
         assert expectations[0].actual_call_count == 3
@@ -136,7 +136,7 @@ class TestAtLeast:
         with pytest.raises(exc.Unsatisfied) as excinfo:
             with satisfied(mock):
                 pass
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].actual_call_count == 0
         assert expectations[0].expected_call_count == AtLeast(1)
@@ -160,7 +160,7 @@ class TestAtLeast:
         with pytest.raises(exc.Unsatisfied) as excinfo:
             with satisfied(mock):
                 pass
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].next_action == Return(1)
         assert expectations[0].actual_call_count == 0
@@ -200,7 +200,7 @@ class TestAtMost:
             with satisfied(mock):
                 for _ in range(3):
                     mock()
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].actual_call_count == 3
         assert expectations[0].expected_call_count == AtMost(2)
@@ -252,7 +252,7 @@ class TestBetween:
         with pytest.raises(exc.Unsatisfied) as excinfo:
             with satisfied(mock):
                 pass
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].actual_call_count == 0
         assert expectations[0].expected_call_count == Between(1, 2)
@@ -264,7 +264,7 @@ class TestBetween:
             with satisfied(mock):
                 for _ in range(3):
                     mock()
-        expectations = excinfo.value.expectations
+        expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].actual_call_count == 3
         assert expectations[0].expected_call_count == Between(1, 2)

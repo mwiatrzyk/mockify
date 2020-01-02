@@ -2,7 +2,7 @@ import pytest
 
 from inspect import currentframe, getframeinfo
 
-from mockify import exc, Call
+from mockify import exc, Call, LocationInfo
 
 
 def test_call_object_cannot_be_created_without_name():
@@ -61,7 +61,7 @@ def test_two_call_objects_are_not_equal_if_they_have_different_names_different_a
 def test_call_location():
     call = Call('foo')
     frameinfo = getframeinfo(currentframe())
-    assert call.location == (__file__, frameinfo.lineno - 1)
+    assert call.location == LocationInfo(__file__, frameinfo.lineno - 1)
 
 
 @pytest.mark.parametrize('invalid_name', [

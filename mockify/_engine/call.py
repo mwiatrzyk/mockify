@@ -15,6 +15,11 @@ class LocationInfo:
         self._filename = filename
         self._lineno = lineno
 
+    def __eq__(self, other):
+        return type(self) is type(other) and\
+            self._filename == other._filename and\
+            self._lineno == other._lineno
+
     @property
     def filename(self):
         return self._filename

@@ -63,17 +63,24 @@ class Expectation:
     class _DefaultProxy(_ProxyBase):
 
         def __init__(self, expectation):
-            self._actual_count = 0
+            self._actual_count = ActualCallCount(0)
+            self._expected_count = Exactly(1)
             self._expectation = expectation
+            self._next_action = None
 
         def __call__(self, call):
             self._actual_count += 1
 
         def _is_satisfied(self):
-            return self._actual_count == 1
+            return self._expected_count.match(self._actual_count)
 
-        def _format_expected(self):
-            return _utils.format_expected_call_count(1)
+        @property
+        def _actual_call_count(self):
+            return self._actual_count
+
+        @property
+        def _expected_call_count(self):
+            return self._expected_count
 
     class _TimesProxy(_ProxyBase):
 
@@ -100,7 +107,7 @@ class Expectation:
     class _ActionProxy(_ProxyBase):
 
         def __init__(self, action, expectation):
-            self._action = action
+            self._actions = collections.deque([action])
             self._expectation = expectation
             self._expected_count = Exactly(1)
             self._actual_count = ActualCallCount(0)
@@ -116,28 +123,16 @@ class Expectation:
 
         def __invoke_action(self, call):
             self._actual_count += 1
-            action = self._action
-            if action is None:
+            if not self._actions:
                 raise exc.OversaturatedCall(self._expectation, call)
             else:
-                self._action = None
-                return action(call)
+                try:
+                    return self._actions[0](call)
+                finally:
+                    self._actions.popleft()
 
         def _is_satisfied(self):
             return self._expected_count.match(self._actual_count)
-
-        def _format_action(self):
-            if self._actions:
-                return str(self._actions[0])
-            elif self._next_proxy is not None:
-                return self._next_proxy._format_action()
-
-        def _format_expected(self, minimal=None):
-            minimal = minimal or 0
-            if self._next_proxy is None:
-                return self._expected_count.adjust_minimal_by(minimal).format_expected()
-            else:
-                return self._next_proxy._format_expected(minimal=minimal + len(self._actions))
 
         @property
         def _actual_call_count(self):
@@ -155,25 +150,33 @@ class Expectation:
 
         @property
         def _next_action(self):
-            if self._next_proxy is None:
-                return self._action
-            else:
+            if self._actions:
+                return self._actions[0]
+            elif self._next_proxy is not None:
                 return self._next_proxy._next_action
 
         def will_once(self, action):
-            self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
+            if self._actions[-1] == action:
+                self._actions.append(action)
+                self._expected_count = Exactly(len(self._actions))
+            else:
+                self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
             return self
 
         def will_repeatedly(self, action):
-            self._next_proxy = tmp = Expectation._RepeatedActionProxy(action, self._expectation)
+            expected_call_count = None
+            if self._actions and self._actions[-1] == action:
+                expected_call_count = AtLeast(len(self._actions))
+            self._next_proxy = tmp = Expectation.\
+                _RepeatedActionProxy(action, self._expectation, expected_call_count)
             return tmp
 
     class _RepeatedActionProxy(_ProxyBase):
 
-        def __init__(self, action, expectation):
+        def __init__(self, action, expectation, expected_call_count=None):
             self._action = action
             self._expectation = expectation
-            self._expected_count = AtLeast(0)
+            self._expected_count = expected_call_count or AtLeast(0)
             self._actual_count = ActualCallCount(0)
             self._next_proxy = None
 
@@ -251,8 +254,7 @@ class Expectation:
 
             * if there are no actions recorded, just ``None`` is returned
         """
-        if not self.match(call):
-            raise TypeError("expectation can only be called with matching 'Call' object")
+        assert self._expected_call == call
         return self._next_proxy(call)
 
     @property
