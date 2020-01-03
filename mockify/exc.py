@@ -89,12 +89,12 @@ class UnexpectedCall(MockifyAssertion):
             logger.error('An exception was raised during __str__() evaluation:', exc_info=True)
 
     def __prepare_str(self):
-        location = self._call.location.format_message()
+        location = self._actual_call.location.format_message()
         message = ["No matching expectations found:\n",
             f"at {location}",
             "-" * (len(location) + 3),
             f"Actual:",
-            f"  {self._call}",
+            f"  {self._actual_call}",
             f"Candidates:",
         ]
         for i, expectation in enumerate(self._candidate_expectations):

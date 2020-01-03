@@ -11,23 +11,168 @@
 
 import pytest
 
-from mockify.matchers import _
+from mockify import exc, satisfied, Call
+from mockify.mock import Mock
+from mockify.matchers import _, Type, Value, Regex
 
 
 class TestAny:
+    _matching_values = [1, 3.14, 'spam']
 
-    def test_string_representation(self):
-        return repr(_) == '_'
+    def test_expected_call_formatting(self):
+        mock = Mock('mock')
+        expectation = mock.expect_call(_)
+        assert str(expectation.expected_call) == 'mock(_)'
 
-    def test_any_matcher_is_equal_to_any_value(self):
-        assert _ == 1
-        assert _ == []
-        assert _ == {}
+    @pytest.mark.parametrize('value', _matching_values)
+    def test_any_matcher_with_positional_argument(self, value):
+        mock = Mock('mock')
+        mock.expect_call(_)
+        with satisfied(mock):
+            mock(value)
 
-    def test_checking_if_inequal_always_returns_false(self):
-        assert not (_ != 1)
-        assert not (_ != [])
-        assert not (_ != {})
+    @pytest.mark.parametrize('value', _matching_values)
+    def test_any_matcher_with_keyword_argument(self, value):
+        mock = Mock('mock')
+        mock.expect_call(foo=_)
+        with satisfied(mock):
+            mock(foo=value)
 
-    def test_if_used_as_dict_value__then_that_dict_matches_another_dict_with_same_keys(self):
-        assert {'a': _} == {'a': 123}
+    @pytest.mark.parametrize('value', _matching_values)
+    def test_any_matcher_with_structured_value(self, value):
+        mock = Mock('mock')
+        mock.expect_call({'spam': _})
+        with satisfied(mock):
+            mock({'spam': value})
+
+
+class TestType:
+
+    @pytest.mark.parametrize('types, expected_repr', [
+        ((int,), "mock(Type(int))"),
+        ((int, float), "mock(Type(int, float))"),
+    ])
+    def test_expected_call_formatting(self, types, expected_repr):
+        mock = Mock('mock')
+        expectation = mock.expect_call(Type(*types))
+        assert str(expectation.expected_call) == expected_repr
+
+    def test_successful_match(self):
+        mock = Mock('mock')
+        mock.expect_call(Type(int))
+        with satisfied(mock):
+            mock(123)
+
+    def test_when_mock_call_does_not_match_expectation__then_fail_with_unexpected_call_error(self):
+        mock = Mock('mock')
+        mock.expect_call(Type(int))
+        with pytest.raises(exc.UnexpectedCall) as excinfo:
+            with satisfied(mock):
+                mock('spam')
+        value = excinfo.value
+        assert value.actual_call == Call('mock', 'spam')
+        assert len(value.candidate_expectations) == 1
+        assert str(value.candidate_expectations[0].expected_call) == "mock(Type(int))"
+
+    def test_when_matcher_is_created_without_args__then_fail_with_type_error(self):
+        with pytest.raises(TypeError) as excinfo:
+            Type()
+        assert str(excinfo.value) == "__init__() requires at least 1 positional argument, got 0"
+
+    def test_when_matcher_is_created_with_something_that_is_not_a_type__then_fail_with_type_error(self):
+        with pytest.raises(TypeError) as excinfo:
+            Type('spam')
+        assert str(excinfo.value) == "__init__() requires type instances, got 'spam'"
+
+
+class TestValue:
+
+    @pytest.mark.parametrize('values, expected_repr', [
+        ((1, ), "mock(Value(1))"),
+        (('foo', 'bar'), "mock(Value('foo', 'bar'))"),
+    ])
+    def test_expected_call_formatting(self, values, expected_repr):
+        mock = Mock('mock')
+        expectation = mock.expect_call(Value(*values))
+        assert str(expectation.expected_call) == expected_repr
+
+    def test_successful_match(self):
+        mock = Mock('mock')
+        mock.expect_call(Value('spam'))
+        with satisfied(mock):
+            mock('spam')
+
+    def test_when_match_is_not_found__then_raise_unexpected_call_error(self):
+        mock = Mock('mock')
+        mock.expect_call(Value('spam'))
+        with pytest.raises(exc.UnexpectedCall) as excinfo:
+            with satisfied(mock):
+                mock('more spam')
+        value = excinfo.value
+        assert value.actual_call == Call('mock', 'more spam')
+        assert len(value.candidate_expectations) == 1
+        assert str(value.candidate_expectations[0].expected_call) == "mock(Value('spam'))"
+
+    def test_when_matcher_is_created_without_args__then_fail_with_type_error(self):
+        with pytest.raises(TypeError) as excinfo:
+            Value()
+        assert str(excinfo.value) == "__init__() requires at least 1 positional argument, got 0"
+
+
+class TestRegex:
+
+    def test_expected_call_formatting(self):
+        mock = Mock('mock')
+        expectation = mock.expect_call(Regex(r'[0-9]+'))
+        assert str(expectation.expected_call) == "mock(Regex('[0-9]+'))"
+
+    def test_successful_match(self):
+        mock = Mock('mock')
+        mock.expect_call(Regex('[0-9]+'))
+        with satisfied(mock):
+            mock('0123456789')
+
+    def test_when_match_is_not_found__then_raise_unexpected_call_error(self):
+        mock = Mock('mock')
+        mock.expect_call(Regex('[0-9]+'))
+        with pytest.raises(exc.UnexpectedCall) as excinfo:
+            with satisfied(mock):
+                mock('spam')
+        value = excinfo.value
+        assert value.actual_call == Call('mock', 'spam')
+        assert len(value.candidate_expectations) == 1
+        assert str(value.candidate_expectations[0].expected_call) == "mock(Regex('[0-9]+'))"
+
+
+class TestAlt:
+
+    def test_expected_call_formatting(self):
+        mock = Mock('mock')
+        expectation = mock.expect_call(Type(int, float) | Value('spam'))
+        assert str(expectation.expected_call) == "mock(Type(int, float)|Value('spam'))"
+
+    def test_successful_match(self):
+        mock = Mock('mock')
+        mock.expect_call(Type(int) | Value('spam')).times(2)
+        with satisfied(mock):
+            mock(123)
+            mock('spam')
+
+    def test_successful_match_against_triple_alternative(self):
+        mock = Mock('mock')
+        mock.expect_call(Type(int)|Type(float)|Value('spam')).times(3)
+        with satisfied(mock):
+            mock(123)
+            mock(3.14)
+            mock('spam')
+
+    def test_when_match_is_not_found__then_raise_unexpected_call_error(self):
+        mock = Mock('mock')
+        mock.expect_call(Type(int)|Value('spam'))
+        with pytest.raises(exc.UnexpectedCall) as excinfo:
+            with satisfied(mock):
+                mock(3.14)
+        value = excinfo.value
+        assert value.actual_call == Call('mock', 3.14)
+        assert len(value.candidate_expectations) == 1
+        assert str(value.candidate_expectations[0].expected_call) == "mock(Type(int)|Value('spam'))"

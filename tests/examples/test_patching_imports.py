@@ -3,7 +3,7 @@ import os
 from mockify import satisfied, patched
 from mockify.mock import Mock
 from mockify.actions import Return, Iterate
-from mockify.matchers import RegExp
+from mockify.matchers import Regex
 
 
 def list_files(path):
@@ -20,7 +20,7 @@ def test_list_files():
         will_once(Iterate(['spam', 'foo.txt', 'bar.txt']))
     os.path.isfile.expect_call('/tmp/spam').\
         will_once(Return(False))
-    os.path.isfile.expect_call(RegExp(r'^/tmp/(.+)\.txt$')).\
+    os.path.isfile.expect_call(Regex(r'^/tmp/(.+)\.txt$')).\
         will_repeatedly(Return(True)).times(2)
 
     with patched(os):

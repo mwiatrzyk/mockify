@@ -1,24 +1,41 @@
-A list of ideas to be implemented:
+A list of ideas
+===============
 
-[] Make UnexpectedCall exception and check if there are expectations for
-   given mock name. Currently, even if mock name is the one we expect but
-   args are different, UninterestedCall is raised, and that may be confusing.
+Pending:
+--------
 
-[] Remove unsatisfied_call_strategy and implement mock-level default actions
-   instead. Once mock has a default action, it should not fail on unexpected
-   or uninterested calls but rather invoke action specified.
+* Make matchers ORable using | operator. For example::
 
-[] Make MockFactory for easier creation of mocks that share same context
-   (and, probably, some common settings).
+    foo.expect_call(Type(int, float) | Value('spam'))
 
-[] Make pytest plugin. Suggested name is `mockify_factory`. Such fixture
-   would expose factory method for creating and verifying mocks and also will
-   be automatically checked by pytest.
+  The above will mean that we are expecting foo to be called with any int,
+  any float or 'spam' as single argument.
 
-[] Add pretty printing to exceptions (if mocks receive large args, like dicts
-   or JSON objects, then exceptions are very hard to read)
+* Remove unsatisfied_call_strategy and implement mock-level default actions
+  instead. Once mock has a default action, it should not fail on unexpected
+  or uninterested calls but rather invoke action specified.
 
-[] Use setuptools-scm to get version from Git tag instead of hardcoding it in
-   the code. Thanks to this versioning will be completely handled by Git.
+* Make MockFactory for easier creation of mocks that share same context
+  (and, probably, some common settings).
 
-[x] Use deployed Mockify to test the one being developed.
+* Make pytest plugin. Suggested name is `mockify_factory`. Such fixture
+  would expose factory method for creating and verifying mocks and also will
+  be automatically checked by pytest.
+
+* Add pretty printing to exceptions (if mocks receive large args, like dicts
+  or JSON objects, then exceptions are very hard to read)
+
+* Use setuptools-scm to get version from Git tag instead of hardcoding it in
+  the code. Thanks to this versioning will be completely handled by Git.
+
+Done:
+-----
+
+* Make UnexpectedCall exception and check if there are expectations for
+  given mock name. Currently, even if mock name is the one we expect but
+  args are different, UninterestedCall is raised, and that may be confusing.
+
+Obsolete:
+---------
+
+* Use deployed Mockify to test the one being developed.
