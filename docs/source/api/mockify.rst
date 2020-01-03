@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/api/mockify.rst
 ..
-.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
