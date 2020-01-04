@@ -11,7 +11,7 @@
 import pytest
 
 from mockify import satisfied
-from mockify.mock import MockGroup
+from mockify.mock import MockFactory
 from mockify.actions import Return
 
 
@@ -29,11 +29,11 @@ class TestItemRepositoryFacade:
     def test_invoke_get_items_api_call(self):
         expected_result = [{'id': 1, 'name': 'foo'}]
 
-        group = MockGroup()
-        connection = group.mock('connection')
-        response = group.mock('response')
+        factory = MockFactory()
+        connection = factory.connection
+        response = factory.response
         connection.get.expect_call('/api/items').will_once(Return(response))
         response.json.expect_call().will_once(Return(expected_result))
 
-        with satisfied(group):
+        with satisfied(factory):
             assert ItemRepositoryFacade(connection).get_items() == expected_result

@@ -53,7 +53,7 @@ class MockInfo:
         yield from walk(self._mock)
 
 
-class MockGroup:
+class MockFactory:
     """A factory class used to create groups of related mocks.
 
     This can be used if you need to create several mocks that need to be
@@ -66,31 +66,20 @@ class MockGroup:
     def __init__(self, session=None, mock_class=None):
         self._session = session or Session()
         self._mock_class = mock_class or Mock
-        self._created_mocks = []
+        self._created_mocks = {}
 
-    def mock(self, name):
-        """Create mock of given name and add it to this group.
-
-        Mocks created using this method will all share same session object
-        (the one that group owns).
-
-        Attempt to create second mock with same name (per group) will result
-        in :exc:`ValueError` exception.
-
-        :param name:
-            Name of the mock to be created.
-        """
-        mock = self._mock_class(name, session=self._session)
-        self._created_mocks.append(mock)
-        return mock
+    def __getattr__(self, name):
+        if name not in self._created_mocks:
+            self._created_mocks[name] = self._mock_class(name, session=self._session)
+        return self._created_mocks[name]
 
     @property
     def _children(self):
-        return iter(self._created_mocks)
+        return iter(self._created_mocks.values())
 
     @property
     def _expectations(self):
-        for mock in self._created_mocks:
+        for mock in self._created_mocks.values():
             yield from mock._expectations
 
 

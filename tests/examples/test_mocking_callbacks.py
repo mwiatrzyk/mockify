@@ -11,7 +11,7 @@
 import pytest
 
 from mockify import ordered, satisfied
-from mockify.mock import Mock, MockGroup
+from mockify.mock import Mock, MockFactory
 
 
 class Observable:
@@ -66,8 +66,8 @@ class TestObservable:
             self.uut.notify()
 
     def test_observers_are_triggered_in_subscribe_order(self):
-        group = MockGroup()
-        first, second = group.mock('first'), group.mock('second')
+        factory = MockFactory()
+        first, second = factory.first, factory.second
 
         self.uut.subscribe(first)
         self.uut.subscribe(second)
@@ -75,6 +75,6 @@ class TestObservable:
         first.expect_call(self.uut)
         second.expect_call(self.uut)
 
-        with satisfied(group):
-            with ordered(group):
+        with satisfied(factory):
+            with ordered(factory):
                 self.uut.notify()

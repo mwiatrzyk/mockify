@@ -11,7 +11,6 @@
 
 import re
 import abc
-import collections
 
 
 class Matcher(abc.ABC):
