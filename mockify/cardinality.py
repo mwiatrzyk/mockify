@@ -33,6 +33,9 @@ class ActualCallCount:
     def __repr__(self):
         return repr(self._value)
 
+    def __str__(self):
+        return self.format_message()
+
     def __eq__(self, other):
         return self._value == other
 
@@ -72,6 +75,9 @@ class ExpectedCallCount(abc.ABC):
         return type(self) is type(other) and\
             self.args == other.args and\
             self.kwargs == other.kwargs
+
+    def __str__(self):
+        return self.format_message()
 
     @abc.abstractmethod
     def match(self, actual_call_count):

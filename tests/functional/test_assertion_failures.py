@@ -44,16 +44,13 @@ def test_when_mock_is_called_without_expectations_set__then_uninterested_call_is
 
 
 def test_when_mock_is_called_with_params_that_does_not_match_expectation__then_unexpected_call_is_raised(mock):
-    mock.expect_call(1, 2)
+    expectation = mock.expect_call(1, 2)
     with pytest.raises(exc.UnexpectedCall) as excinfo:
         mock(1, 2, 3)
     value = excinfo.value
     assert value.actual_call == Call('mock', 1, 2, 3)
-    assert len(value.candidate_expectations) == 1
-    assert_attr_match(value.candidate_expectations[0],
-        expected_call=Call('mock', 1, 2),
-        actual_call_count=0,
-        expected_call_count=Exactly(1))
+    assert len(value.expected_calls) == 1
+    assert value.expected_calls[0] == expectation.expected_call
 
 
 def test_when_mock_is_called_less_times_than_expected__then_unsatisfied_is_raised(mock):

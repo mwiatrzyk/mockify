@@ -71,8 +71,8 @@ class TestType:
                 mock('spam')
         value = excinfo.value
         assert value.actual_call == Call('mock', 'spam')
-        assert len(value.candidate_expectations) == 1
-        assert str(value.candidate_expectations[0].expected_call) == "mock(Type(int))"
+        assert len(value.expected_calls) == 1
+        assert str(value.expected_calls[0]) == "mock(Type(int))"
 
     def test_when_matcher_is_created_without_args__then_fail_with_type_error(self):
         with pytest.raises(TypeError) as excinfo:
@@ -110,8 +110,8 @@ class TestValue:
                 mock('more spam')
         value = excinfo.value
         assert value.actual_call == Call('mock', 'more spam')
-        assert len(value.candidate_expectations) == 1
-        assert str(value.candidate_expectations[0].expected_call) == "mock(Value('spam'))"
+        assert len(value.expected_calls) == 1
+        assert str(value.expected_calls[0]) == "mock(Value('spam'))"
 
     def test_when_matcher_is_created_without_args__then_fail_with_type_error(self):
         with pytest.raises(TypeError) as excinfo:
@@ -140,8 +140,8 @@ class TestRegex:
                 mock('spam')
         value = excinfo.value
         assert value.actual_call == Call('mock', 'spam')
-        assert len(value.candidate_expectations) == 1
-        assert str(value.candidate_expectations[0].expected_call) == "mock(Regex('[0-9]+'))"
+        assert len(value.expected_calls) == 1
+        assert str(value.expected_calls[0]) == "mock(Regex('[0-9]+'))"
 
 
 class TestAlt:
@@ -174,5 +174,5 @@ class TestAlt:
                 mock(3.14)
         value = excinfo.value
         assert value.actual_call == Call('mock', 3.14)
-        assert len(value.candidate_expectations) == 1
-        assert str(value.candidate_expectations[0].expected_call) == "mock(Type(int)|Value('spam'))"
+        assert len(value.expected_calls) == 1
+        assert str(value.expected_calls[0]) == "mock(Type(int)|Value('spam'))"

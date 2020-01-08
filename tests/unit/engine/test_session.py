@@ -57,11 +57,8 @@ class TestContext:
             self.uut(actual_call)
         value = excinfo.value
         assert value.actual_call == actual_call
-        assert len(value.candidate_expectations) == 1
-        assert_that.object_attr_match(value.candidate_expectations[0],
-            expected_call=expected_call,
-            actual_call_count=0,
-            expected_call_count=Exactly(1))
+        assert len(value.expected_calls) == 1
+        assert value.expected_calls[0] == expected_call
 
     def test_if_expected_to_be_called_once_but_called_twice__then_session_is_not_satisfied(self, assert_that):
         expected_call = Call('foo')

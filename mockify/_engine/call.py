@@ -30,6 +30,9 @@ class LocationInfo:
             self._filename == other._filename and\
             self._lineno == other._lineno
 
+    def __str__(self):
+        return f"{self._filename}:{self._lineno}"
+
     @property
     def filename(self):
         return self._filename
@@ -75,7 +78,7 @@ class Call:
         parts = self._name.split('.') if isinstance(self._name, str) else [self._name]
         for part in parts:
             if not self.__is_identifier(part):
-                raise exc.InvalidMockName(invalid_name=self._name)
+                raise TypeError(f"Mock name must be a valid Python identifier, got {self._name!r} instead")
 
     def __is_identifier(self, name):
         return isinstance(name, str) and\

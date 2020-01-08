@@ -134,7 +134,7 @@ class Expectation:
         def __invoke_action(self, call):
             self._actual_count += 1
             if not self._actions:
-                raise exc.OversaturatedCall(self._expectation, call)
+                raise exc.OversaturatedCall(call, self._expectation)
             else:
                 try:
                     return self._actions[0](call)

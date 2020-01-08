@@ -11,6 +11,8 @@
 
 import logging
 
+from . import _utils
+
 logger = logging.getLogger('mockify')
 
 
@@ -42,20 +44,6 @@ class MockifyError(Exception):
             setattr(self, k, v)
 
 
-class InvalidMockName(MockifyError):
-    """Raised when you choose incorrect name for your mock.
-
-    Mock names are simply string objects, but (for various reasons) that
-    names are restricted to be valid Python identifiers (which are f.e.
-    variable names).
-
-    .. versionadded:: 1.0
-    """
-
-    def __str__(self):
-        return f"Mock name must be a valid Python identifier, got {self.invalid_name!r} instead"
-
-
 class MockifyAssertion(MockifyError, AssertionError):
     """Common base class for all Mockify assertion errors.
 
@@ -67,194 +55,217 @@ class MockifyAssertion(MockifyError, AssertionError):
 
 
 class UnexpectedCall(MockifyAssertion):
-    """Informs that mock was called with parameters that couldn't be matched
-    to any of expected ones.
+    """Raised when mock was called with parameters that couldn't been matched
+    to any of existing expectations.
 
-    This exception was added to differentiate such mock calls (which can be
-    pretty frequent) from the ones that does not have any expectations
-    defined (that are still handled by :exc:`mockify.exc.UninterestedCall`
-    exception).
+    This exception was added for easier debugging of failing tests; unlike
+    :exc:`UninterestedCall` exception, this one signals that there are
+    expectations set for mock that was called.
 
     .. versionadded:: 1.0
+
+    :param actual_call:
+        Instance of :class:`mockify.Call` representing parameters of call
+        that was made
+
+    :param expected_calls:
+        List of :class:`mockify.Call` instances, each representing expected
+        parameters of single expectation
     """
 
-    def __init__(self, actual_call, candidate_expectations):
+    def __init__(self, actual_call, expected_calls):
         self._actual_call = actual_call
-        self._candidate_expectations = candidate_expectations
+        self._expected_calls = expected_calls
 
+    @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
-        try:
-            return self.__prepare_str()
-        except Exception:
-            logger.error('An exception was raised during __str__() evaluation:', exc_info=True)
-
-    def __prepare_str(self):
-        location = self._actual_call.location.format_message()
-        message = ["No matching expectations found:\n",
-            f"at {location}",
-            "-" * (len(location) + 3),
-            f"Actual:",
-            f"  {self._actual_call}",
-            f"Candidates:",
-        ]
-        for i, expectation in enumerate(self._candidate_expectations):
-            message.append(f"  {i+1}) {expectation.expected_call}")
-        return '\n'.join(message)
+        builder = _utils.ErrorMessageBuilder()
+        builder.append_line('No matching expectations found for call:')
+        builder.append_line('')
+        builder.append_location(self._actual_call.location)
+        builder.append_line('Called:')
+        builder.append_line('  {}', self._actual_call)
+        builder.append_line('Expected (any of):')
+        for i, call in enumerate(self._expected_calls):
+            builder.append_line('  {}', call)
+        return builder.build()
 
     @property
     def actual_call(self):
         return self._actual_call
 
     @property
-    def candidate_expectations(self):
-        return self._candidate_expectations
+    def expected_calls(self):
+        return self._expected_calls
 
 
 class UnexpectedCallOrder(MockifyAssertion):
-    """Raised when mock was called in unexpected order.
+    """Raised when mock was called but another one is expected to be called
+    before.
 
-    This can only be raised if you use ordered expectations (see
-    :func:`mockify.ordered` for more details), but code you are testing calls
-    a mock in invalid order.
+    This can only be raised if you use ordered expectations. See
+    :func:`mockify.ordered` for more details.
 
     .. versionadded:: 1.0
+
+    :param actual_call:
+        The call that was made
+
+    :param expected_call:
+        The call that is expected to be made
     """
 
     def __init__(self, actual_call, expected_call):
-        self.actual_call = actual_call
-        self.expected_call = expected_call
+        self._actual_call = actual_call
+        self._expected_call = expected_call
 
+    @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
-        location = "{}:{}".format(*self.actual_call.location)
-        message = ['Another mock was expected to be called:\n',
-            f"at {location}",
-            f'-' * (len(location) + 3),
-            f"Actual:",
-            f"  {self.actual_call}",
-            f"Expected:",
-            f"  {self.expected_call}"
-        ]
-        return '\n'.join(message)
+        builder = _utils.ErrorMessageBuilder()
+        builder.append_line('Another mock is expected to be called:')
+        builder.append_line('')
+        builder.append_location(self._actual_call.location)
+        builder.append_line('Called:')
+        builder.append_line('  {}', self._actual_call)
+        builder.append_line('Expected:')
+        builder.append_line('  {}', self._expected_call)
+        return builder.build()
+
+    @property
+    def actual_call(self):
+        return self._actual_call
+
+    @property
+    def expected_call(self):
+        return self._expected_call
 
 
 class UninterestedCall(MockifyAssertion):
-    """Raised when uninterested mock is called.
+    """Raised when call is made to a mock that has no expectations set.
 
-    This exception is raised when you call a mock that does not have any
-    expectations defined. It can be intercepted by changing unexpected call
-    strategy (see :class:`mockify.Session` for more details).
+    This exception can be disabled by changing unexpected call strategy. See
+    :class:`mockify.Session` for more details.
 
     :param actual_call:
-        Instance of :class:`mockify.Call` object representing uninterested
-        call being made
+        The call that was made
     """
 
     def __init__(self, actual_call):
         self._actual_call = actual_call
 
+    @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
-        location = "{}:{}".format(*self.actual_call.location)
-        message = [
-            "No expectations recorded for mock:\n",
-            f"at {location}",
-            "-" * (len(location) + 3),
-            "Actual:",
-            f"  {self.call}"
-        ]
-        return '\n'.join(message)
+        builder = _utils.ErrorMessageBuilder()
+        builder.append_line('No expectations recorded for mock:')
+        builder.append_line('')
+        builder.append_location(self._actual_call.location)
+        builder.append_line('Called:')
+        builder.append_line('  {}', self._actual_call)
+        builder.append_line('Expected:')
+        builder.append_line('  no expectations recorded')
+        return builder.build()
 
     @property
     def actual_call(self):
-        """Instance of :class:`mockify.engine.Call` passed to
-        :class:`UninterestedCall` constructor."""
         return self._actual_call
 
 
 class OversaturatedCall(MockifyAssertion):
-    """Raised when mock is executed but there are no more actions to be
-    performed.
+    """Raised when mock with actions recorded using
+    :meth:`mockify.Expectation.will_once` was called more times than
+    expected and has all recorded actions already consumed.
 
-    It is assumed that once mock has at least one action explicitly defined
-    by test writer (f.e. using :meth:`mockify.Expectation.will_once` method)
-    it cannot work with a default action (i.e. returning ``None``).
-
-    :param oversaturated_expectation:
-        Instance of :class:`mockify.Expectation` class representing
-        expectation that was oversaturated.
+    This exception can be avoided if you record repeated action to the end of
+    expected action chain (using
+    :meth:`mockify.Expectation.will_repeatedly`). However, it was added for a
+    reason. For example, if your mock returns value of incorrect type (the
+    default one), you'll result in production code errors instead of mock
+    errors. And that can possibly be harder to debug.
 
     :param actual_call:
-        Instance of :class:`mockify.Call` class containing actual mock call
-        parameters
+        The call that was made
+
+    :param oversaturated_expectation:
+        The expectation that was oversaturated
     """
 
-    def __init__(self, oversaturated_expectation, actual_call):
-        self._oversaturated_expectation = oversaturated_expectation
+    def __init__(self, actual_call, oversaturated_expectation):
         self._actual_call = actual_call
+        self._oversaturated_expectation = oversaturated_expectation
 
+    @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
-        return "at {}: {}: no more actions recorded for call: {}".format(
-            self.expectation.format_location(),
-            str(self.expectation.expected_call),
-            self.call)
+        builder = _utils.ErrorMessageBuilder()
+        builder.append_line('Following expectation was oversaturated:')
+        builder.append_line('')
+        builder.append_location(self._oversaturated_expectation.expected_call.location)
+        builder.append_line('Pattern:')
+        builder.append_line('  {}', self._oversaturated_expectation.expected_call)
+        builder.append_line('Expected:')
+        builder.append_line('  {}', self._oversaturated_expectation.expected_call_count)
+        builder.append_line('Actual:')
+        builder.append_line('  oversaturated by {} at {} (no more actions)', self._actual_call, self._actual_call.location)
+        return builder.build()
+
+    @property
+    def actual_call(self):
+        return self._actual_call
 
     @property
     def oversaturated_expectation(self):
         return self._oversaturated_expectation
 
-    @property
-    def actual_call(self):
-        return self._actual_call
-
 
 class Unsatisfied(MockifyAssertion):
-    """Raised by :func:`mockify.satisfied` or :meth:`mockify.Session.done`
-    during check if all mocks are satisfied.
+    """Raised when unsatisfied expectations are present.
 
-    A mock can only be satisfied if all expectations that were declared for
-    it are consumed according to expectation specification. This exception is
-    never raised during mock calls.
+    This can only be raised by either :func:`mockify.satisfied` or
+    :meth:`mockify.Session.done`. You'll not get this exception when mock is
+    called.
 
     :param unsatisfied_expectations:
-        List of :class:`mockify.Expectation` instances representing
-        unsatisfied expectations
+        List of all unsatisfied expectations found
     """
 
     def __init__(self, unsatisfied_expectations):
         self._unsatisfied_expectations = unsatisfied_expectations
 
+    @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
-        try:
-            return self.__prepare_str()
-        except Exception:
-            logger.error('An exception was raised during __str__() evaluation:', exc_info=True)
+        builder = _utils.ErrorMessageBuilder()
+        self.__append_title(builder)
+        for expectation in self._unsatisfied_expectations:
+            self.__append_expectation(builder, expectation)
+        return builder.build()
 
-    def __prepare_str(self):
-        if len(self.unsatisfied_expectations) == 1:
-            prefix = 'following expectation is not satisfied:\n\n'
+    def __append_title(self, builder):
+        if len(self._unsatisfied_expectations) > 1:
+            builder.append_line('Following {} expectations are not satisfied:', len(self._unsatisfied_expectations))
         else:
-            prefix = 'following {} expectations are not satisfied:\n\n'.format(len(self.unsatisfied_expectations))
-        expectations_gen = map(
-            lambda x: self.__format_expectation(x), self.unsatisfied_expectations)
-        return prefix + '\n\n'.join(expectations_gen)
+            builder.append_line('Following expectation is not satisfied:')
 
-    def __format_expectation(self, expectation):
-        rows = ["at {}".format(expectation.expected_call.location.format_message())]
-        rows.append('-' * len(rows[0]))
-        rows.append(
-            "{:>13}".format("Pattern: ") + str(expectation.expected_call))
+    def __append_expectation(self, builder, expectation):
+        builder.append_line('')
+        builder.append_location(expectation.expected_call.location)
+        builder.append_line('Pattern:')
+        builder.append_line('  {}', expectation.expected_call)
+        self.__append_action(builder, expectation)
+        builder.append_line('Expected:')
+        builder.append_line('  {}', expectation.expected_call_count)
+        builder.append_line('Actual:')
+        builder.append_line('  {}', expectation.actual_call_count)
+
+    def __append_action(self, builder, expectation):
         action = expectation.next_action.format_message() if expectation.next_action is not None else None
         if action is not None:
-            rows.append("{:>13}".format("Action: ") + action)
-        rows.extend([
-            "{:>13}".format("Expected: ") + expectation.expected_call_count.format_message(),
-            "{:>13}".format("Actual: ") + expectation.actual_call_count.format_message()])
-        return '\n'.join(rows)
+            builder.append_line('Action:')
+            builder.append_line('  {}', action)
 
     @property
     def unsatisfied_expectations(self):
-        """List of all unsatisfied expectation objects.
+        """List of unsatisfied expectations.
 
-        .. versionchanged:: 1.0
-            Previous ``expectations`` property was renamed.
+        .. versionadded:: 1.0
+            Previously it was called ``expectations``.
         """
         return self._unsatisfied_expectations

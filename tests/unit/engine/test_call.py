@@ -81,7 +81,7 @@ def test_call_location():
     123, [], {}, None, # Non string values
 ])
 def test_name_must_be_a_valid_python_identifier(invalid_name):
-    with pytest.raises(exc.InvalidMockName) as excinfo:
+    with pytest.raises(TypeError) as excinfo:
         call = Call(invalid_name)
     assert str(excinfo.value) == f"Mock name must be a valid Python identifier, got {invalid_name!r} instead"
 

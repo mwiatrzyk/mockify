@@ -61,7 +61,7 @@ class Session:
             warnings.warn(str(actual_call), exc.UninterestedCallWarning)
 
     def __handle_uninterested_call_using_fail_strategy(self, actual_call):
-        found_by_name = [x for x in self.expectations if x.expected_call.name == actual_call.name]
+        found_by_name = [x.expected_call for x in self.expectations if x.expected_call.name == actual_call.name]
         if not found_by_name:
             raise exc.UninterestedCall(actual_call)
         else:
