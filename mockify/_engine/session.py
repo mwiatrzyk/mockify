@@ -94,10 +94,10 @@ class Session:
             raise exc.Unsatisfied(unsatisfied_expectations)
 
     def enable_ordered(self, names):
+        self._ordered_expectations_enabled_for = set(names)
         unordered_expectations = list(self._unordered_expectations)
         self._unordered_expectations = []
         self._ordered_expectations = collections.deque()
-        self._ordered_expectations_enabled_for = set(names)
         for expectation in unordered_expectations:
             if self._is_ordered(expectation.expected_call):
                 self._ordered_expectations.append(expectation)

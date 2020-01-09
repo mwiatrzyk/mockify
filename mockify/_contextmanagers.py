@@ -35,19 +35,18 @@ def ordered(*mocks):
             first, second = mocks[i], mocks[i+1]
             session = first._session
             if session is not second._session:
+                first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
                 raise TypeError(
-                    f"Mocks {mocks[i]!r} and {mocks[i+1]!r} have to use same "
-                    f"session object to make ordered expectations work.")
+                    f"Mocks {first.name!r} and {second.name!r} have to use same "
+                    f"session object")
         else:
             return session
 
-    def iter_expectations(mocks):
-        for mock in mocks:
-            yield from MockInfo(mock).expectations
-
     def iter_expected_mock_names(mocks):
-        for expectation in iter_expectations(mocks):
-            yield expectation.expected_call.name
+        for mock in mocks:
+            expectations = list(MockInfo(mock).expectations)
+            for expectation in expectations:
+                yield expectation.expected_call.name
 
     session = get_session()
     session.enable_ordered(iter_expected_mock_names(mocks))
