@@ -19,13 +19,19 @@ from mockify.actions import Return, Iterate, Raise, Invoke
 
 
 class TestReturn:
-
-    @pytest.mark.parametrize('value, expected_str', [
+    _str_test_data = [
         (123, 'Return(123)'),
-        ('123', "Return('123')"),
-    ])
-    def test_string_representation(self, value, expected_str):
-        assert Return(value).format_message() == expected_str
+        (3.14, 'Return(3.14)'),
+        ('foo', "Return('foo')"),
+    ]
+
+    @pytest.mark.parametrize('value, expected_repr', _str_test_data)
+    def test_repr(self, value, expected_repr):
+        assert repr(Return(value)) == f"<mockify.actions.{expected_repr}>"
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(Return(value)) == expected_str
 
     def test_expect_mock_to_return_value_once(self):
         mock = Mock('mock')
@@ -50,13 +56,18 @@ class TestReturn:
 
 
 class TestIterate:
-
-    @pytest.mark.parametrize('value, expected_str', [
+    _str_test_data = [
         ([], 'Iterate([])'),
         ('123', "Iterate('123')"),
-    ])
-    def test_string_representation(self, value, expected_str):
-        assert Iterate(value).format_message() == expected_str
+    ]
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_repr(self, value, expected_str):
+        assert repr(Iterate(value)) == f"<mockify.actions.{expected_str}>"
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(Iterate(value)) == expected_str
 
     def test_expect_mock_to_iterate_over_sequence_once(self):
         mock = Mock('mock')
@@ -81,12 +92,17 @@ class TestIterate:
 
 
 class TestRaise:
-
-    @pytest.mark.parametrize('value, expected_str', [
+    _str_test_data = [
         (ValueError('an error'), "Raise(ValueError('an error'))"),
-    ])
-    def test_string_representation(self, value, expected_str):
-        assert Raise(value).format_message() == expected_str
+    ]
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_repr(self, value, expected_str):
+        assert repr(Raise(value)) == f"<mockify.actions.{expected_str}>"
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(Raise(value)) == expected_str
 
     def test_expect_mock_to_raise_exception_once(self):
         mock = Mock('mock')
@@ -136,9 +152,13 @@ class TestInvoke:
 
     ### Tests
 
-    def test_string_representation(self):
+    def test_repr(self):
         action = Invoke(self.func)
-        assert 'Invoke(<function TestInvoke.setup.<locals>.func at 0x' in action.format_message()
+        assert '<mockify.actions.Invoke(<function TestInvoke.setup.<locals>.func at 0x' in repr(action)
+
+    def test_str(self):
+        action = Invoke(self.func)
+        assert 'Invoke(<function TestInvoke.setup.<locals>.func at 0x' in str(action)
 
     @pytest.mark.parametrize('args, kwargs', [
         ((1, 2), {}),

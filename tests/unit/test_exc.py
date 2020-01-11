@@ -162,7 +162,7 @@ class TestUnsatisfied:
         builder.append_line('  {}', expectation.actual_call_count)
 
     def __append_action(self, builder, expectation):
-        action = expectation.next_action.format_message() if expectation.next_action is not None else None
+        action = str(expectation.next_action) if expectation.next_action is not None else None
         if action is not None:
             builder.append_line('Action:')
             builder.append_line('  {}', action)

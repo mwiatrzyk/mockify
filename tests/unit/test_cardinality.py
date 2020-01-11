@@ -27,7 +27,7 @@ class TestActualCallCount:
         (4, 'called 4 times')
     ])
     def test_message_formatting(self, value, message):
-        assert ActualCallCount(value).format_message() == message
+        assert str(ActualCallCount(value)) == message
 
 
 class TestExactly:
@@ -45,7 +45,7 @@ class TestExactly:
         (4, 'to be called 4 times')
     ])
     def test_message_formatting(self, value, message):
-        assert Exactly(value).format_message() == message
+        assert str(Exactly(value)) == message
 
     def test_when_mock_expected_to_be_called_twice_but_was_called_once__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -128,7 +128,7 @@ class TestAtLeast:
         (4, 'to be called at least 4 times')
     ])
     def test_message_formatting(self, value, message):
-        assert AtLeast(value).format_message() == message
+        assert str(AtLeast(value)) == message
 
     def test_when_mock_is_expected_to_be_called_at_least_once_and_was_never_called__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -191,7 +191,7 @@ class TestAtMost:
         (4, 'to be called at most 4 times')
     ])
     def test_message_formatting(self, value, message):
-        assert AtMost(value).format_message() == message
+        assert str(AtMost(value)) == message
 
     def test_when_mock_is_expected_to_be_called_at_most_twice_and_was_called_3_times__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -244,7 +244,7 @@ class TestBetween:
         (2, 2, 'to be called twice'),
     ])
     def test_message_formatting(self, minimal, maximal, message):
-        assert Between(minimal, maximal).format_message() == message
+        assert str(Between(minimal, maximal)) == message
 
     def test_when_expected_to_be_called_1_to_2_times_and_never_called__then_mock_is_not_satisfied(self):
         mock = Mock('mock')

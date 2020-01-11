@@ -16,33 +16,51 @@ from . import _utils
 
 
 class Action(abc.ABC):
-    """Common base class for all actions.
+    """Abstract base class for all actions.
+
+    If you like to create your own action, you should inherit from this
+    abstract class and implement all needed abstract methods. This class was
+    added to force users to implement all needed methods and to provide
+    implementation of common functionalities, like str(), repr() or
+    (in)equality operators.
 
     .. versionadded:: 1.0
-
-    Use this as a base for custom action classes.
     """
 
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
     def __repr__(self):
-        formatted_params = _utils.format_args_kwargs(*self.args, **self.kwargs)
-        return f"<{self.__module__}.{self.__class__.__name__}({formatted_params})>"
+        return f"<{self.__module__}.{self}>"
+
+    def __str__(self):
+        return f"{self.__class__.__name__}({self.format_params()})"
 
     def __eq__(self, other):
         return type(self) is type(other) and\
-            self.args == other.args and\
-            self.kwargs == other.kwargs
+            self.__dict__ == other.__dict__
 
-    def format_message(self):
-        formatted_params = _utils.format_args_kwargs(*self.args, **self.kwargs)
-        return f"{self.__class__.__name__}({formatted_params})"
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @abc.abstractmethod
     def __call__(self, actual_call):
-        pass
+        """Action body.
+
+        It receives actual call object and returns action result based on
+        that call object. This method may also raise exceptions if that is
+        functionality of the action being implemented.
+
+        :param actual_call:
+            Object representing parameters of mock call being made
+        """
+
+    @abc.abstractmethod
+    def format_params(self, *args, **kwargs):
+        """Used to calculate str() and repr() for this action.
+
+        This method should be overloaded in subclass without args, and then
+        call super() with args and kwargs that are needed to be used in str()
+        and repr() methods.
+        """
+        return _utils.format_args_kwargs(*args, **kwargs)
 
 
 class Return(Action):
@@ -53,10 +71,13 @@ class Return(Action):
     """
 
     def __init__(self, value):
-        super().__init__(value)
+        self.value = value
 
     def __call__(self, actual_call):
-        return self.args[0]
+        return self.value
+
+    def format_params(self):
+        return super().format_params(self.value)
 
 
 class Iterate(Action):
@@ -70,10 +91,13 @@ class Iterate(Action):
     """
 
     def __init__(self, iterable):
-        super().__init__(iterable)
+        self.iterable = iterable
 
     def __call__(self, actual_call):
-        return iter(self.args[0])
+        return iter(self.iterable)
+
+    def format_params(self):
+        return super().format_params(self.iterable)
 
 
 class Raise(Action):
@@ -84,21 +108,24 @@ class Raise(Action):
     """
 
     def __init__(self, exc):
-        super().__init__(exc)
+        self.exc = exc
 
     def __call__(self, actual_call):
-        raise self.args[0]
+        raise self.exc
+
+    def format_params(self):
+        return super().format_params(self.exc)
 
 
 class Invoke(Action):
-    """Allows to invoke custom function when mock is called.
+    """Makes mock invoking given custom function when called.
 
-    This is very handy if you want to do some sophisticated actions at the
-    time when mock is called, but still checking how many times it was called
-    and with what arguments.
-
-    All arguments the mock was called with are passed to underlying function,
-    and function's return value will be used as mock's return value.
+    This is very handy if you want to do some additional assertions on
+    parameters the mock was called with or to do some extra stuff during mock
+    call (like creating file or whatever you need). The function will receive
+    all positional and named args the mock was called with (in unchanged
+    way). If it then returns a value or raises exception, that value will
+    also be returned (or exception raised) by mock being called.
 
     .. versionchanged:: 1.0
         Now this action allows binding args to function being called.
@@ -114,8 +141,13 @@ class Invoke(Action):
     """
 
     def __init__(self, func, *args, **kwargs):
-        super().__init__(func, *args, **kwargs)
-        self._func = functools.partial(func, *args, **kwargs)
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, actual_call):
-        return self._func(*actual_call.args, **actual_call.kwargs)
+        partial_func = functools.partial(self.func, *self.args, **self.kwargs)
+        return partial_func(*actual_call.args, **actual_call.kwargs)
+
+    def format_params(self):
+        return super().format_params(self.func, *self.args, **self.kwargs)

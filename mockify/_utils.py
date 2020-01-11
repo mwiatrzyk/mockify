@@ -52,29 +52,6 @@ def log_unhandled_exceptions(logger):
     return decorator
 
 
-class memoized_property:
-    """A property that is evaluated once."""
-
-    def __init__(self, fget):
-        self.fget = fget
-
-    def __get__(self, obj, objtype):
-        if obj is None:
-            return self
-        else:
-            obj.__dict__[self.fget.__name__] = tmp = self.fget(obj)
-            return tmp
-
-
-class ExportList(list):
-    """An utility for automated filling in of module's ``__all__``
-    property."""
-
-    def __call__(self, obj):
-        self.append(obj.__name__)
-        return obj
-
-
 class ErrorMessageBuilder:
     """A helper class for easier building of assertion messages."""
 

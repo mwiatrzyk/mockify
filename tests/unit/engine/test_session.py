@@ -119,3 +119,25 @@ class TestContext:
         with pytest.raises(ValueError) as excinfo:
             self.uut.uninterested_call_strategy = 'dummy'
         assert str(excinfo.value) == "invalid strategy given: dummy"
+
+    def test_when_ordered_mocks_are_called_in_invalid_order__then_fail_with_unexpected_call_order_error(self):
+        first = Call('first')
+        second = Call('second')
+        self.uut.expect_call(first)
+        self.uut.expect_call(second)
+        with pytest.raises(exc.UnexpectedCallOrder) as excinfo:
+            self.uut.enable_ordered([first.name, second.name])
+            self.uut(second)
+        value = excinfo.value
+        assert value.actual_call == second
+        assert value.expected_call == first
+
+    def test_non_consumed_ordered_expectations_are_made_unordered_again_when_disable_ordered_is_called(self):
+        first = Call('first')
+        first_expectation = self.uut.expect_call(first)
+        self.uut.enable_ordered([first.name])
+        self.uut.disable_ordered()
+        with pytest.raises(exc.Unsatisfied) as excinfo:
+            self.uut.done()
+        assert len(excinfo.value.unsatisfied_expectations) == 1
+        assert excinfo.value.unsatisfied_expectations[0] == first_expectation

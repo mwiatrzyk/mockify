@@ -41,9 +41,6 @@ class LocationInfo:
     def lineno(self):
         return self._lineno
 
-    def format_message(self):
-        return f"{self._filename}:{self._lineno}"
-
     @classmethod
     def get_external(cls):
         stack = traceback.extract_stack()

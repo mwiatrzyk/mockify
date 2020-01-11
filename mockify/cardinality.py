@@ -34,7 +34,10 @@ class ActualCallCount:
         return repr(self._value)
 
     def __str__(self):
-        return self.format_message()
+        if self._value == 0:
+            return 'never called'
+        else:
+            return f"called {_utils.format_call_count(self._value)}"
 
     def __eq__(self, other):
         return self._value == other
@@ -46,38 +49,33 @@ class ActualCallCount:
         self._value += other
         return self
 
-    def format_message(self):
-        """Return formatted textual representation of actual call count.
-
-        This is used to render error messages.
-        """
-        if self._value == 0:
-            return 'never called'
-        else:
-            return f"called {_utils.format_call_count(self._value)}"
-
 
 class ExpectedCallCount(abc.ABC):
     """Abstract base class for classes used to set expected mock call count.
 
+    This class was added to force user to implement all needed methods and to
+    provide common implementation of repr() and (in)equality operators.
+
     .. versionadded:: 1.0
     """
 
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-
     def __repr__(self):
-        formatted_params = _utils.format_args_kwargs(*self.args, **self.kwargs)
-        return f"<{self.__module__}.{self.__class__.__name__}({formatted_params})>"
+        return f"<{self.__module__}.{self.__class__.__name__}({self.format_params()})>"
 
     def __eq__(self, other):
         return type(self) is type(other) and\
-            self.args == other.args and\
-            self.kwargs == other.kwargs
+            self.__dict__ == other.__dict__
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @abc.abstractmethod
     def __str__(self):
-        return self.format_message()
+        """Format message to be used in assertion reports.
+
+        This message must state how many times the mock was expected to be
+        called and will only be evaluated if expectation is not satisfied.
+        """
 
     @abc.abstractmethod
     def match(self, actual_call_count):
@@ -89,12 +87,13 @@ class ExpectedCallCount(abc.ABC):
         return False
 
     @abc.abstractmethod
-    def format_message(self):
-        """Format message to be used in assertion reports.
+    def format_params(self, *args, **kwargs):
+        """Format params to be used in repr().
 
-        This message must state how many times the mock was expected to be
-        called and will only be evaluated if expectation is not satisfied.
+        This method must be overloaded without params, and call super() with
+        args and kwargs you want to include in repr().
         """
+        return _utils.format_args_kwargs(*args, **kwargs)
 
 
 class Exactly(ExpectedCallCount):
@@ -111,20 +110,19 @@ class Exactly(ExpectedCallCount):
     def __init__(self, expected):
         if expected < 0:
             raise TypeError("value of 'expected' must be >= 0")
-        super().__init__(expected)
+        self.expected = expected
 
-    @property
-    def expected(self):
-        return self.args[0]
-
-    def match(self, actual_call_count):
-        return self.expected == actual_call_count
-
-    def format_message(self):
+    def __str__(self):
         if self.expected == 0:
             return 'to be never called'
         else:
             return f"to be called {_utils.format_call_count(self.expected)}"
+
+    def match(self, actual_call_count):
+        return self.expected == actual_call_count
+
+    def format_params(self):
+        return super().format_params(self.expected)
 
 
 class AtLeast(ExpectedCallCount):
@@ -140,20 +138,19 @@ class AtLeast(ExpectedCallCount):
     def __init__(self, minimal):
         if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
-        super().__init__(minimal)
+        self.minimal = minimal
 
-    @property
-    def minimal(self):
-        return self.args[0]
-
-    def match(self, actual_call_count):
-        return actual_call_count >= self.args[0]
-
-    def format_message(self):
+    def __str__(self):
         if self.minimal == 0:
             return "to be called any number of times"
         else:
             return "to be called at least {}".format(_utils.format_call_count(self.minimal))
+
+    def match(self, actual_call_count):
+        return actual_call_count >= self.minimal
+
+    def format_params(self):
+        return super().format_params(self.minimal)
 
 
 class AtMost(ExpectedCallCount):
@@ -175,17 +172,16 @@ class AtMost(ExpectedCallCount):
             return super().__new__(cls)
 
     def __init__(self, maximal):
-        super().__init__(maximal)
+        self.maximal = maximal
 
-    @property
-    def maximal(self):
-        return self.args[0]
+    def __str__(self):
+        return "to be called at most {}".format(_utils.format_call_count(self.maximal))
 
     def match(self, actual_call_count):
         return actual_call_count <= self.maximal
 
-    def format_message(self):
-        return "to be called at most {}".format(_utils.format_call_count(self.maximal))
+    def format_params(self):
+        return super().format_params(self.maximal)
 
 
 class Between(ExpectedCallCount):
@@ -214,19 +210,15 @@ class Between(ExpectedCallCount):
             return super().__new__(cls)
 
     def __init__(self, minimal, maximal):
-        super().__init__(minimal, maximal)
+        self.minimal = minimal
+        self.maximal = maximal
 
-    @property
-    def minimal(self):
-        return self.args[0]
-
-    @property
-    def maximal(self):
-        return self.args[1]
+    def __str__(self):
+        return f"to be called from {self.minimal} to {self.maximal} times"
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal and\
             actual_call_count <= self.maximal
 
-    def format_message(self):
-        return f"to be called from {self.minimal} to {self.maximal} times"
+    def format_params(self):
+        return super().format_params(self.minimal, self.maximal)

@@ -11,5 +11,7 @@ twine = "*"
 invoke = "*"
 sphinx-rtd-theme = "*"
 pytest-cov = "*"
+pylint = "*"
+rope = "*"
 
 [packages]
