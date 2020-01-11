@@ -4,19 +4,9 @@ A list of ideas
 Pending:
 --------
 
-* Make matchers ORable using | operator. For example::
-
-    foo.expect_call(Type(int, float) | Value('spam'))
-
-  The above will mean that we are expecting foo to be called with any int,
-  any float or 'spam' as single argument.
-
 * Remove unsatisfied_call_strategy and implement mock-level default actions
   instead. Once mock has a default action, it should not fail on unexpected
   or uninterested calls but rather invoke action specified.
-
-* Make MockFactory for easier creation of mocks that share same context
-  (and, probably, some common settings).
 
 * Make pytest plugin. Suggested name is `mockify_factory`. Such fixture
   would expose factory method for creating and verifying mocks and also will
@@ -30,6 +20,16 @@ Pending:
 
 Done:
 -----
+
+* Make MockFactory for easier creation of mocks that share same context
+  (and, probably, some common settings).
+
+* Make matchers ORable using | operator. For example::
+
+    foo.expect_call(Type(int, float) | Value('spam'))
+
+  The above will mean that we are expecting foo to be called with any int,
+  any float or 'spam' as single argument.
 
 * Make UnexpectedCall exception and check if there are expectations for
   given mock name. Currently, even if mock name is the one we expect but
