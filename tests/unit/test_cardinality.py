@@ -26,8 +26,11 @@ class TestActualCallCount:
         (3, 'called 3 times'),
         (4, 'called 4 times')
     ])
-    def test_message_formatting(self, value, message):
+    def test_str(self, value, message):
         assert str(ActualCallCount(value)) == message
+
+    def test_repr(self):
+        assert repr(ActualCallCount(123)) == repr(123)
 
 
 class TestExactly:
@@ -44,8 +47,11 @@ class TestExactly:
         (3, 'to be called 3 times'),
         (4, 'to be called 4 times')
     ])
-    def test_message_formatting(self, value, message):
+    def test_str(self, value, message):
         assert str(Exactly(value)) == message
+
+    def test_repr(self):
+        assert repr(Exactly(2)) == "<mockify.cardinality.Exactly(2)>"
 
     def test_when_mock_expected_to_be_called_twice_but_was_called_once__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -127,8 +133,11 @@ class TestAtLeast:
         (3, 'to be called at least 3 times'),
         (4, 'to be called at least 4 times')
     ])
-    def test_message_formatting(self, value, message):
+    def test_str(self, value, message):
         assert str(AtLeast(value)) == message
+
+    def test_repr(self):
+        assert repr(AtLeast(2)) == "<mockify.cardinality.AtLeast(2)>"
 
     def test_when_mock_is_expected_to_be_called_at_least_once_and_was_never_called__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -190,8 +199,11 @@ class TestAtMost:
         (3, 'to be called at most 3 times'),
         (4, 'to be called at most 4 times')
     ])
-    def test_message_formatting(self, value, message):
+    def test_str(self, value, message):
         assert str(AtMost(value)) == message
+
+    def test_repr(self):
+        assert repr(AtMost(2)) == "<mockify.cardinality.AtMost(2)>"
 
     def test_when_mock_is_expected_to_be_called_at_most_twice_and_was_called_3_times__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -243,8 +255,11 @@ class TestBetween:
         (1, 2, 'to be called from 1 to 2 times'),
         (2, 2, 'to be called twice'),
     ])
-    def test_message_formatting(self, minimal, maximal, message):
+    def test_str(self, minimal, maximal, message):
         assert str(Between(minimal, maximal)) == message
+
+    def test_repr(self):
+        assert repr(Between(1, 2)) == "<mockify.cardinality.Between(1, 2)>"
 
     def test_when_expected_to_be_called_1_to_2_times_and_never_called__then_mock_is_not_satisfied(self):
         mock = Mock('mock')

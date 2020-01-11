@@ -84,7 +84,6 @@ class ExpectedCallCount(abc.ABC):
         If actual call count matches expected call count, then return
         ``True``. Otherwise return ``False``.
         """
-        return False
 
     @abc.abstractmethod
     def format_params(self, *args, **kwargs):
