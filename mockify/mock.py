@@ -15,6 +15,8 @@ from . import _utils
 from ._engine import Call, Session
 from .matchers import _
 
+_EXPECT_CALL_METHOD_NAME = 'expect_call'
+
 
 class MockInfo:
 
@@ -83,30 +85,15 @@ class MockFactory:
             yield from mock._expectations
 
 
-class Mock:
-    _EXPECT_CALL_METHOD = 'expect_call'
+class BaseMock:
 
-    def __init__(self, name, session=None, _parent=None):
+    def __init__(self, name, session, parent=None):
         self._name = name
-        self._session = session or Session()
-        self._parent = _parent
-        self._method_name = None
+        self._session = session
+        self._parent = parent
 
     def __repr__(self):
-        return f"<mockify.mock.Mock({self._fullname!r})>"
-
-    def __getattr__(self, name):
-        self.__dict__[name] = tmp = Mock(name, session=self._session, _parent=self)
-        return tmp
-
-    def __call__(self, *args, **kwargs):
-        if self._name == self._EXPECT_CALL_METHOD:
-            expected_call = Call(self._parent._fullname, *args, **kwargs)
-            self._method_name = self._EXPECT_CALL_METHOD
-            return self._parent._session.expect_call(expected_call)
-        else:
-            actual_call = Call(self._fullname, *args, **kwargs)
-            return self._session(actual_call)
+        return f"<{self.__module__}.{self.__class__.__name__}({self._fullname!r})>"
 
     @property
     def _parent(self):
@@ -130,9 +117,9 @@ class Mock:
 
     @property
     def _children(self):
-        for name, obj in self.__dict__.items():
-            if isinstance(obj, Mock):
-                if not obj._is_method():
+        for obj in self.__dict__.values():
+            if isinstance(obj, BaseMock):
+                if not obj._name == _EXPECT_CALL_METHOD_NAME:
                     yield obj
 
     @property
@@ -141,9 +128,79 @@ class Mock:
             lambda x: x.expected_call.name == self._fullname,
             self._session.expectations)
 
-    def _is_method(self):
-        return self._method_name is not None
 
+class Mock(BaseMock):
+
+    def __init__(self, name, session=None, _parent=None):
+        session = session or Session()
+        super().__init__(name, session, parent=_parent)
+        self._has_expectations = False
+
+    def __setattr__(self, name, value):
+        if '__setattr__' in self.__dict__:
+            return self.__dict__['__setattr__'](name, value)
+        else:
+            return super().__setattr__(name, value)
+
+    def __getattr__(self, name):
+        if '__getattr__' in self.__dict__ :
+            return self.__dict__['__getattr__'](name)
+        else:
+            self.__dict__[name] = tmp = Mock(name, session=self._session, _parent=self)
+            return tmp
+
+    def __getattribute__(self, name):
+        if name not in ('__getattr__', '__setattr__'):
+            return super().__getattribute__(name)
+        elif name in self.__dict__:
+            return self.__dict__[name]
+        elif name == '__getattr__':
+            self.__dict__[name] = tmp = _GetAttrMock(self._session, self)
+            return tmp
+        else:
+            self.__dict__[name] = tmp = _SetAttrMock(self._session, self)
+            return tmp
+
+    def __call__(self, *args, **kwargs):
+        if not self._has_expectations and self._name == _EXPECT_CALL_METHOD_NAME:
+            expected_call = Call(self._parent._fullname, *args, **kwargs)
+            self._parent._has_expectations = True
+            return self._parent._session.expect_call(expected_call)
+        else:
+            actual_call = Call(self._fullname, *args, **kwargs)
+            return self._session(actual_call)
+
+
+class _GetAttrMock(BaseMock):
+
+    def __init__(self, session, parent):
+        super().__init__('__getattr__', session, parent=parent)
+
+    def __call__(self, name):
+        actual_call = Call(self._fullname, name)
+        return self._session(actual_call)
+
+    def expect_call(self, name):
+        if not _utils.is_identifier(name):
+            raise TypeError(f"__getattr__.expect_call() must be called with valid Python property name, got {name!r}")
+        expected_call = Call(self._fullname, name)
+        return self._session.expect_call(expected_call)
+
+
+class _SetAttrMock(BaseMock):
+
+    def __init__(self, session, parent):
+        super().__init__('__setattr__', session, parent=parent)
+
+    def __call__(self, name, value):
+        actual_call = Call(self._fullname, name, value)
+        return self._session(actual_call)
+
+    def expect_call(self, name, value):
+        if not _utils.is_identifier(name):
+            raise TypeError(f"__setattr__.expect_call() must be called with valid Python property name, got {name!r}")
+        expected_call = Call(self._fullname, name, value)
+        return self._session.expect_call(expected_call)
 
 """
 class _ExpectCallProxy:

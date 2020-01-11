@@ -9,6 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import keyword
 import functools
 import itertools
 
@@ -27,6 +28,13 @@ def format_args_kwargs(*args, **kwargs):
     kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
     all_gen = itertools.chain(args_gen, kwargs_gen)
     return ', '.join(all_gen)
+
+
+def is_identifier(name):
+    """Check if given name is a valid Python identifier."""
+    return isinstance(name, str) and\
+        name.isidentifier() and\
+        not keyword.iskeyword(name)
 
 
 def log_unhandled_exceptions(logger):
