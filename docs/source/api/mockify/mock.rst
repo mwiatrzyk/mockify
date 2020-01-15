@@ -13,10 +13,6 @@
 **mockify.mock** - Classes for mocking things
 =============================================
 
-.. testsetup::
-
-    from mockify.mock import Function, FunctionFactory
-
 .. automodule:: mockify.mock
     :members:
     :show-inheritance:

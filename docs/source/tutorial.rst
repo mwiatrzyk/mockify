@@ -13,8 +13,24 @@
 Tutorial
 ========
 
-.. toctree::
-    :maxdepth: 2
+.. .. doctest::
+    :options: -IGNORE_EXCEPTION_DETAIL
 
+    >>> partial()
+    Traceback (most recent call last):
+        ...
+    mockify.exc.UninterestedCall: No expectations recorded for mock:
+    <BLANKLINE>
+    at <doctest default[0]>:11
+    --------------------------
+    Called:
+      func()
+    Expected:
+      no expectations recorded
+
+.. toctree::
+    :maxdepth: 1
+
+    tutorial/introduction
     tutorial/creating-mocks
     tutorial/setting-expected-call-count

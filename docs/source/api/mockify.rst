@@ -13,10 +13,6 @@
 **mockify** - Library core
 ==========================
 
-.. testsetup::
-
-    from mockify import assert_satisfied, Call
-
 .. automodule:: mockify
     :members:
     :special-members: __call__

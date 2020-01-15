@@ -17,74 +17,55 @@
 Welcome to Mockify!
 ===================
 
-Welcome to Mockify library documentation!
+About Mockify
+-------------
 
-Mockify is a mocking toolkit for Python that follows principles originally
-introduced by Google Mock C++ mocking framework, but adapted to Python world.
-With Mockify you can create clean, expressive, easy to understand and highly
-customizable mocks or stubs for your tests.
+Mockify is a highly customizable and expressive mocking library for Python
+inspired by Google Mock C++ framework, but adopted to Python world.
 
-With Mockify you record **expectations** that are consumed during test
-execution. Expectations tell the mock what it should do once called with
-given arguments and how many times it is expected to be called. Finally, at
-the end of your test, you just check if all expectations are **satisfied**.
+Unlike tools like :mod:`unittest.mock`, Mockify is based on **expectations**
+that you record on your mocks **before** they are injected to code being
+under test. Each expectation represents arguments the mock is expected to be
+called with and provides sequence of **actions** the mock will do when called
+with that arguments. Actions allow to set a value to be returned, exception
+to be raised or just function to be called. Alternatively, if no actions
+should take place, you can just say how many times the mock is expected to be
+called. And all of these is provided by simple, expressive and easy to use
+API.
 
-Here's an example:
+Here's a simple example:
 
 .. testcode::
 
-    from mockify import assert_satisfied
-    from mockify.mock import Function
+    from mockify import satisfied
+    from mockify.mock import Mock
     from mockify.actions import Return
 
+    def invoke(func):
+        return func()
 
-    class Greeter:
+    def test_invoke_calls_func_returning_hello_world():
+        func = Mock('func')
+        func.expect_call().will_once(Return('Hello, world!'))
 
-        def __init__(self, name_getter):
-            self._name_getter = name_getter
-
-        def greet(self):
-            return 'Hello, ' + self._name_getter() + '!'
-
-
-    def test_greeter():
-        name_getter = Function('name_getter')
-
-        name_getter.expect_call().will_once(Return('John'))
-
-        greeter = Greeter(name_getter)
-        with assert_satisfied(name_getter):
-            assert greeter.greet() == 'Hello, John!'
+        with satisfied(func):
+            assert invoke(func) == 'Hello, world!'
 
 .. testcleanup::
 
-    test_greeter()
+    test_invoke_calls_func_returning_hello_world()
 
-Mockify allows you to create mocks that:
-
-    * Can be called with any number and kind of arguments
-    * Can have maximal, minimal or exact expected call count set
-    * Can be expected to be never called
-    * Can use **matchers** whenever you don't know or don't need exact argument
-      values the mock will be called with
-    * Can use matchers inside Python collections like dicts, lists etc. to
-      ignore certain keys or items
-    * Can have **action chains** recorded, so every new call consumes another
-      action from the chain, and each action can be different
-    * Can have **repeated actions** recorded, so you will be able to set one
-      action that is executed on every mock call
-    * Can pass all arguments to actions, so you are able to do basically
-      anything when the mock is called
+I hope you'll find this library useful.
 
 User's Guide
 ------------
 
 .. toctree::
-   :maxdepth: 3
+  :maxdepth: 3
 
-   installation
-   quickstart
-   tutorial
-   api
-   changelog
-   license
+  installation
+  quickstart
+  tutorial
+  api
+  changelog
+  license

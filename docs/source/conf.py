@@ -19,7 +19,7 @@ import sys
 from datetime import datetime
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-src_dir = os.path.join(this_dir, '..', '..', 'src')
+src_dir = os.path.join(this_dir, '..', '..')
 current_year = datetime.now().year
 
 sys.path.insert(0, src_dir)

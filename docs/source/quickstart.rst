@@ -1,225 +1,314 @@
-.. ----------------------------------------------------------------------------
-.. docs/source/quickstart.rst
-..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
-..
-.. This file is part of Mockify library documentation
-.. and is released under the terms of the MIT license:
-.. http://opensource.org/licenses/mit-license.php.
-..
-.. See LICENSE for details.
-.. ----------------------------------------------------------------------------
 Quickstart
 ==========
 
-Mockify does not try to re-implement :mod:`unittest.mock` from standard
-library, but instead it introduces a very different approach of mocking
-things.
+Introduction
+------------
 
-First thing you need to know is that in Mockify you record **expectations**
-on your mocks **before** those are called from the code you are testing.
-That's the main difference between Mockify and :mod:`unittest.mock`. If you
-are not familiar with that approach it may seem a bit confusing to you, but I
-hope you will enjoy it once you see it in action.
+In this quickstart guide you will get familiar with basic concepts of
+Mockify by writing example test for simple Python code.
 
-Let me now show how this works in practice by writing simple test using
-Mockify to mock stuff.
+Let's start then!
 
-The code to be tested
----------------------
-
-Look at following function:
-
-.. testcode::
-
-    def run_async(task, callback, *args, **kwargs):
-        result = task(*args, **kwargs)
-        callback(result)
-
-This is a very primitive "asynchronous" task runner. The function, once
-called, calls *task* with given arguments and its result is later passed to
-the *callback*.
-
-Creating mocks
---------------
-
-To write a test for **run_async** function we need to create mocks first. For
-that purpose we'll use :class:`mockify.mock.Function` that is meant to mock
-arbitrary functions:
-
-.. testcode::
-
-    from mockify.mock import Function
-
-    task = Function('task')
-    callback = Function('callback')
-
-In code above we've created two function mocks - one to mock *task* and one
-to mock *callback*. We can now use that mocks like we would use normal
-functions. Let's then call **run_async** function and see what happens:
-
-.. doctest::
-
-    >>> run_async(task, callback, 1, 2, c=3)
-    Traceback (most recent call last):
-        ...
-    mockify.exc.UninterestedCall: task(1, 2, c=3)
-
-As you've noticed, the code failed with :exc:`mockify.exc.UninterestedCall`
-exception, meaning that we have called a mock that does not have matching
-expectation set.
-
-Let's now record one.
-
-Recording first expectation
+The **MessageReader** class
 ---------------------------
 
-Every mock in Mockify provides **expect_call** method to record call
-expectations. This method must be called with exactly the same kind and
-number of arguments as the mock is later called with. For example, if mock is
-called with 2 positional and 1 named argument we must explicitly set such
-expectation. Expecting 3 positional arguments is not the same as expecting 2
-positional and 1 named - even if values are the same. Besides, names of
-keyword args are also important.
+We are going to test following Python class:
 
-Let's go back to our example and set an expectation on *task* mock (the one
-that failed earlier). For function mocks we'll write it like this:
+.. testcode::
+
+    class MessageReader:
+
+        def __init__(self, input_stream):
+            self._input_stream = input_stream
+
+        def read(self):
+            magic_bytes = self._input_stream.readline()
+            if magic_bytes != b'XYZ':
+                raise Exception(f"Invalid magic bytes: {magic_bytes!r}")
+            message_size = self._input_stream.readline()
+            if not message_size.isdigit():
+                raise Exception(f"Invalid message size: {message_size!r}")
+            return self._input_stream.read(int(message_size)).decode()
+
+This class implements reader of some dummy **XYZ** protocol for transferring
+textual messages of known size over some sort of stream. Each message of that
+protocol is textual and contains following ``\n``-separated parts::
+
+    MAGIC_BYTES | len(PAYLOAD) | PAYLOAD
+
+Where:
+
+``MAGIC_BYTES``
+    Usually every protocol has some magic string that identifies it. For HTTP
+    it is simply **HTTP**. For our dummy XYZ protocol it is **XYZ**.
+
+``len(PAYLOAD)``
+    Number of ``PAYLOAD`` characters.
+
+``PAYLOAD``
+    The body of single XYZ message.
+
+Also notice that that ``MessageReader`` class contains only message decoding
+logic, while connection details are hidden behind input stream interface that
+is given as a dependency. And that is what we're going to mock.
+
+Creating a mock of **InputStream** interface
+--------------------------------------------
+
+To create a mock, you have to import :class:`mockify.mock.Mock` class:
+
+.. testcode::
+
+    from mockify.mock import Mock
+
+And then instantiate it, giving it a name:
+
+.. testcode::
+
+    input_stream = Mock('input_stream')
+
+.. note::
+    The rule of thumb is to name your mocks using the same name as variable
+    it is assigned to. That name is used when Mockify reports errors and it
+    will be easier for you to debug if you follow that rule. The other thing
+    is that you can **only** use names that are **valid Python identifiers**.
+    That check was added to even enforce previous rule.
+
+We have just created our first mock in Mockify. And for the code we want to
+test it is the only one we need. Now we can instantiate ``MessageReader``
+class using our newly created mock as an argument:
+
+.. testcode::
+
+    message_reader = MessageReader(input_stream)
+
+Of course nothing interesting has happened inside the constructor, but if you
+now call ``read()`` method, the call will fail with
+:exc:`mockify.exc.UninterestedCall` exception:
 
 .. doctest::
+    :options: -IGNORE_EXCEPTION_DETAIL
 
-    >>> task.expect_call(1, 2, c=3)
-    <mockify.Expectation: task(1, 2, c=3)>
-
-We've just recorded an expectation that *task* function will be called once
-with given arguments. As you've noticed, **expect_call** method have returned
-:class:`mockify.Expectation` object that is bound to mock and arguments we've
-given in expectation. And since we haven't call a mock yet we can do a lot of
-things using that returned expectation object, including side effects chain
-recording or maximal call count setting.
-
-We'll go back to this later, but for now let's just call our function again:
-
-.. doctest::
-
-    >>> run_async(task, callback, 1, 2, c=3)
+    >>> message_reader.read()
     Traceback (most recent call last):
         ...
-    mockify.exc.UninterestedCall: callback(None)
+    mockify.exc.UninterestedCall: No expectations recorded for mock:
+    <BLANKLINE>
+    at <doctest default[0]>:7
+    -------------------------
+    Called:
+      input_stream.readline()
+    Expected:
+      no expectations recorded
 
-As you can see, our function have failed again, but on another call, so we've
-moved forward, but another expectation is needed. But why *callback* was
-called with ``None``? Well, each mock by default returns ``None`` when
-called, and we did not record anything other.
+The error states that the reason of failure was unexpected call of ``read()``
+method. That's it - in Mockify we need to first record **expectation** on a mock
+**before** it gets called. Otherwise that error will be reported and test will
+be terminated. If the error occurs you have to check if that's a missing
+expectation, or call to a method that should not take place. In our case we
+need to record expectation.
 
-Let's change that.
+Recording expectations
+----------------------
 
-Recording remaining expectations
---------------------------------
+To record expectation on a mock you need to call mock's ``expect_call()``
+method that creates and returns :class:`mockify.Expectation` objects. That
+method however must be prefixed with a path that leads to a method that is
+expected to be called. You also need to know how many times the mock is
+expected to be called and what it should do once called.
 
-Now we are going to record two expectations, as both functions are called
-once **run_async** is called. But now we'll record a different return value
-for *task* function, so the *callback* will get something other than
-``None``.
+In our case, we need ``input_stream.readline()`` method to be called **once
+without params** and to **return** XYZ protocol's **magic bytes**. Therefore
+we need to record expectation that:
 
-Here are our expectations again:
+* will be expected to be called once,
+* will return ``b'XYZ'`` when called.
+
+Recording such expectation in Mockify is very easy:
 
 .. testcode::
 
     from mockify.actions import Return
 
-    task.expect_call(1, 2, c=3).will_once(Return('spam'))
-    callback.expect_call('spam')
+    input_stream.readline.expect_call().will_once(Return(b'XYZ'))
 
-As you can see, now we are doing something more with our expectation object
-recorded on *task* mock. We've called a **will_once** method that is used to
-record **next** action to be performed once mock is called (yes, you can
-record more and each can be different!). And we've picked a
-:class:`mockify.actions.Return` action, that will cause our mock to return
-given value once called.
+We've used ``will_once()`` method to set a **return action** to be executed
+once.
 
-Let's now invoke our code under test.
+.. note::
+    You will find more actions in :mod:`mockify.actions` module.
 
-Invoking code with mocked dependencies
---------------------------------------
+And if we now call ``message_reader.read()``, the call will fail again, but
+with :exc:`mockify.exc.OversaturatedCall` exception this time:
 
-As you can see, calling **run_async** will pass now without an error:
+.. doctest::
+    :options: -IGNORE_EXCEPTION_DETAIL
 
-.. testcode::
-
-    run_async(task, callback, 1, 2, c=3)
-
-Okay, the code is now running fine, but how do we know if our expectations
-were all satisfied? For that purpose we use **assert_satisfied** method or
-:func:`mockify.assert_satisfied` context manager, which is highly
-recommended.
-
-Since we have two mocks, we need to call **assert_satisfied** on both:
-
-.. testcode::
-
-    task.assert_satisfied()
-    callback.assert_satisfied()
-
-And in case of any unsatisfied expectations at least one of that calls will
-fail with exception similar to this:
-
-.. testsetup:: grp-1
-
-    from mockify.mock import Function
-    callback = Function('callback')
-    callback.expect_call(1, 2)
-
-.. doctest:: grp-1
-
-    >>> callback.assert_satisfied()
+    >>> message_reader.read()
     Traceback (most recent call last):
         ...
-    mockify.exc.Unsatisfied: following expectation is not satisfied:
+    mockify.exc.OversaturatedCall: Following expectation was oversaturated:
     <BLANKLINE>
-    at <doctest default (setup code)[0]>:3
-    --------------------------------------
-        Pattern: callback(1, 2)
-       Expected: to be called once
-         Actual: never called
+    at <doctest default[0]>:3
+    -------------------------
+    Pattern:
+      input_stream.readline()
+    Expected:
+      to be called once
+    Actual:
+      oversaturated by input_stream.readline() at <doctest default[0]>:10 (no more actions)
+
+This kind of exception is raised when actions are recorded on a mock, but it
+gets called more times than expected. This behavior is intentional, because a
+mock that needs to return a value (in this case) will most likely cause code
+being tested to fail if no value is returned. And that could potentially be
+harder to investigate than special error reported by Mockify.
+
+To fix that we have to record two expectations, as ``MessageReader`` will
+call ``readline()`` twice: once for getting magic bytes, and once for getting
+payload size:
+
+.. testcode::
+
+    input_stream.readline.expect_call().will_once(Return(b'XYZ'))
+    input_stream.readline.expect_call().will_once(Return(b'13'))
+
+If we now call ``message_reader.read()`` again, it will no longer report
+problems with ``readline()`` method. However, it will fail with uninterested
+call error one more time:
+
+.. doctest::
+    :options: -IGNORE_EXCEPTION_DETAIL
+
+    >>> message_reader.read()
+    Traceback (most recent call last):
+        ...
+    mockify.exc.UninterestedCall: No expectations recorded for mock:
+    <BLANKLINE>
+    at <doctest default[0]>:13
+    --------------------------
+    Called:
+      input_stream.read(13)
+    Expected:
+      no expectations recorded
+
+This is the last call to mocked interface - reading message payload. Notice,
+that ``input_stream.read(13)`` is now called, and it is called with parameter
+this time - payload size that we have injected to the code thanks to our
+previous expectation.
+
+Okay, so let's record our final expectation:
+
+.. testcode::
+
+    input_stream.readline.expect_call().will_once(Return(b'XYZ'))
+    input_stream.readline.expect_call().will_once(Return(b'13'))
+    input_stream.read.expect_call(13).will_once(Return(b'Hello, world!'))
+
+And this time the code will execute fine and return what we have told the
+mock to return:
+
+.. doctest::
+
+    >>> message_reader.read()
+    'Hello, world!'
+
+.. note::
+    This **fast fail** feature of Mockify may be helpful for writing tests
+    for legacy code that has no tests. You just create and inject mock, run
+    test, see where it failed, record necessary expectation, run again and so
+    on.
+
+Verifying expectations
+----------------------
+
+In previous example we've managed our tested method to run successfully.
+However, we did not verify everything. Notice that all errors Mockify
+reported so far were raised **during execution** of tested code. But what
+will happen if tested code is broken and some expectations will never get
+called or will get called less times than expected?
+
+When test is done, every recorded expectation should be **satisfied** (i.e.
+called expected number of times). And we need an assertion to verify that.
+For the purpose of this example we can use :func:`mockify.satisfied` context
+manager. Here's almost complete solution:
+
+.. testcode::
+
+    from mockify import satisfied
+
+    input_stream.readline.expect_call().will_once(Return(b'XYZ'))
+    input_stream.readline.expect_call().will_once(Return(b'13'))
+    input_stream.read.expect_call(13).will_once(Return(b'Hello, world!'))
+
+    with satisfied(input_stream):
+        assert message_reader.read() == 'Hello, world!'
+
+Context manager we've used accepts mock objects as arguments (you can give
+more than one) and checks if every expectation recorded for each of these
+mocks is satisfied when scope is left. Besides, use of this context manager
+also emphasizes part of test code where unit under test is actually being
+executed.
 
 Putting it all together
 -----------------------
 
-Let's sum things up into the final solution:
+Finally, let's put it all together into a single working example:
 
-.. testcode::
+.. testcode:: summary
 
-    from mockify import assert_satisfied
-    from mockify.mock import Function
+    from mockify import satisfied
+    from mockify.mock import Mock
     from mockify.actions import Return
 
+    class MessageReader:
 
-    def run_async(task, callback, *args, **kwargs):
-        """The code to be tested."""
-        result = task(*args, **kwargs)
-        callback(result)
+        def __init__(self, input_stream):
+            self._input_stream = input_stream
 
+        def read(self):
+            magic_bytes = self._input_stream.readline()
+            if magic_bytes != b'XYZ':
+                raise Exception(f"Invalid magic bytes: {magic_bytes!r}")
+            message_size = self._input_stream.readline()
+            if not message_size.isdigit():
+                raise Exception(f"Invalid message size: {message_size!r}")
+            return self._input_stream.read(int(message_size)).decode()
 
-    def test_run_async():
-        """The test."""
+    def test_read_single_message_from_input_stream():
+        # 1. Creating mocks and unit under test
+        input_stream = Mock('input_stream')
+        message_reader = MessageReader(input_stream)
 
-        # Step 1: Creating necessary mocks
-        task, callback = Function('task'), Function('callback')
+        # 2. Recording expectations
+        input_stream.readline.expect_call().will_once(Return(b'XYZ'))
+        input_stream.readline.expect_call().will_once(Return(b'13'))
+        input_stream.read.expect_call(13).will_once(Return(b'Hello, world!'))
 
-        # Step 2: Setting up expectations
-        task.expect_call(1, 2, c=3).will_once(Return('spam'))
-        callback.expect_call('spam')
+        # 3. Running unit under test with expectations check
+        with satisfied(input_stream):
+            assert message_reader.read() == 'Hello, world!'
 
-        # Step 3: Calling code under test under assert_satisfied() context manager
-        with assert_satisfied(task, callback):
-            run_async(task, callback, 1, 2, c=3)
+.. testcleanup:: summary
 
-.. testcleanup::
+    test_read_single_message_from_input_stream()
 
-    test_run_async()
+Now we have our first test ready. Notice that it is composed of three major
+parts:
 
-We've came up with a solution that will most likely become a backbone or a
-template for all your tests that will use Mockify to mock things around. Of
-course you still can use helper methods or functions, give some extra
-assertions etc. - the only important thing here is to always create
-expectations **before** mocks are called.
+* creating mocks and injecting into unit under test,
+* recording expectations,
+* and running unit under test.
+
+And that structure will most likely become a backbone also for your tests. Of
+course you can use helper methods for creating mocks or recording
+expectations, but in general the structure of the test will remain the same.
+
+Summary
+-------
+
+In this quickstart guide you've learned basic concepts of Mockify. You know
+how to create mocks, how to record basic expectations and how to verify if
+expectations are satisfied. Now you can start using Mockify in your tests.
+But if you want to learn more, please proceed to :ref:`Tutorial` section that
+will explain each aspect of Mockify in more detailed form.
