@@ -30,6 +30,14 @@ def format_args_kwargs(*args, **kwargs):
     return ', '.join(all_gen)
 
 
+def validate_mock_name(name):
+    """Check if *name* can be used as a mock name."""
+    parts = name.split('.') if isinstance(name, str) else [name]
+    for part in parts:
+        if not is_identifier(part):
+            raise TypeError(f"Mock name must be a valid Python identifier, got {name!r} instead")
+
+
 def is_identifier(name):
     """Check if given name is a valid Python identifier."""
     return isinstance(name, str) and\
@@ -77,3 +85,21 @@ class ErrorMessageBuilder:
             f"at {location}",
             "-" * (len(str(location)) + 3)
         ])
+
+
+class IterableQuery:
+    """A helper class for querying iterables."""
+
+    def __init__(self, iterable):
+        self._iterable = iterable
+
+    def find_first(self, func):
+        """Find and return first item matching given *func*.
+
+        If no matching item was found, then return ``None``.
+        """
+        return next(filter(func, self._iterable), None)
+
+    def exists(self, func):
+        """Check if there is an item matching *func*."""
+        return self.find_first(func) is not None

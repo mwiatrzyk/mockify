@@ -54,10 +54,26 @@ class TestMock:
         with satisfied(uut):
             assert uut.foo == 1
 
+    def test_when_property_already_exists__it_is_not_possible_to_record_get_expectation(self, uut):
+        _ = uut.foo
+        with pytest.raises(TypeError) as excinfo:
+            uut.__getattr__.expect_call('foo').will_once(Return(1))
+        assert str(excinfo.value) ==\
+            "__getattr__.expect_call() must be called with a non existing "\
+            "property name, got 'foo' which already exists"
+
     def test_expect_namespaced_property_get_and_get_it(self, uut):
         uut.foo.__getattr__.expect_call('bar').will_once(Return(1))
         with satisfied(uut):
             assert uut.foo.bar == 1
+
+    def test_when_namespaced_property_already_exists__it_is_not_possible_to_record_get_expectation(self, uut):
+        _ = uut.foo.bar
+        with pytest.raises(TypeError) as excinfo:
+            uut.foo.__getattr__.expect_call('bar').will_once(Return(1))
+        assert str(excinfo.value) ==\
+            "__getattr__.expect_call() must be called with a non existing "\
+            "property name, got 'bar' which already exists"
 
     def test_when_property_get_expectation_is_recorded_with_invalid_number_of_params__then_raise_type_error(self, uut):
         with pytest.raises(TypeError) as excinfo:
@@ -98,6 +114,14 @@ class TestMock:
         with satisfied(uut):
             uut.foo = 123
 
+    def test_when_property_already_exists__it_is_not_possible_to_record_set_expectation(self, uut):
+        uut.foo = 1
+        with pytest.raises(TypeError) as excinfo:
+            uut.__setattr__.expect_call('foo', 2)
+        assert str(excinfo.value) ==\
+            "__setattr__.expect_call() must be called with a non existing "\
+            "property name, got 'foo' which already exists"
+
     def test_when_property_set_expectation_is_recorded_with_invalid_number_of_params__then_raise_type_error(self, uut):
         with pytest.raises(TypeError) as excinfo:
             uut.__setattr__.expect_call('foo', 'bar', 'baz')
@@ -123,3 +147,10 @@ class TestMock:
         unsatisfied_expectations = excinfo.value.unsatisfied_expectations
         assert len(unsatisfied_expectations) == 1
         assert unsatisfied_expectations[0] == expectation
+
+    def test_record_set_and_get_expectations_for_same_property(self, uut):
+        uut.__setattr__.expect_call('foo', 123)
+        uut.__getattr__.expect_call('foo').will_once(Return(123))
+        with satisfied(uut):
+            uut.foo = 123
+            assert uut.foo == 123

@@ -176,7 +176,7 @@ def test_when_mock_has_one_action_but_is_called_twice__then_oversaturated_call_i
     assert value.actual_call == Call('mock')
     assert_attr_match(value.oversaturated_expectation,
         expected_call=Call('mock'),
-        actual_call_count=2,
+        actual_call_count=1,
         expected_call_count=Exactly(1))
 
 

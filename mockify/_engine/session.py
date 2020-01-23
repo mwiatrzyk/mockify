@@ -50,7 +50,6 @@ class Session:
             if not expectation.is_satisfied():
                 return expectation(actual_call)
         else:
-            print(found_by_call)
             return found_by_call[-1](actual_call)  # Oversaturate last found if all are satisfied
 
     def __handle_uninterested_call(self, actual_call):

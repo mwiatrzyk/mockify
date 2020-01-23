@@ -69,18 +69,7 @@ class Call:
         self._args = args[1:]
         self._kwargs = kwargs
         self._location = LocationInfo.get_external()
-        self.__validate_name()
-
-    def __validate_name(self):
-        parts = self._name.split('.') if isinstance(self._name, str) else [self._name]
-        for part in parts:
-            if not self.__is_identifier(part):
-                raise TypeError(f"Mock name must be a valid Python identifier, got {self._name!r} instead")
-
-    def __is_identifier(self, name):
-        return isinstance(name, str) and\
-            name.isidentifier() and\
-            not keyword.iskeyword(name)
+        _utils.validate_mock_name(self._name)
 
     def __str__(self):
         return f"{self._name}({self._format_params(*self._args, **self._kwargs)})"
