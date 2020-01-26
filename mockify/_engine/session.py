@@ -74,7 +74,13 @@ class Session:
             self._ordered_expectations)
 
     @property
-    def uninterested_call_strategy(self):
+    def config(self):
+        return {
+            'uninterested_call_strategy': self.uninterested_call_strategy
+        }
+
+    @property
+    def uninterested_call_strategy(self): # XXX: remove me
         return self._uninterested_call_strategy
 
     @uninterested_call_strategy.setter
@@ -82,6 +88,9 @@ class Session:
         if value not in self._uninterested_call_strategies:
             raise ValueError(f"invalid strategy given: {value}")
         self._uninterested_call_strategy = value
+
+    def configure(self, option, value):
+        self.uninterested_call_strategy = value
 
     def expect_call(self, expected_call):
         expectation = Expectation(expected_call)

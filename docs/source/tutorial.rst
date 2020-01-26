@@ -13,8 +13,8 @@
 Tutorial
 ========
 
-Using **Mock** class
---------------------
+Creating mocks
+--------------
 
 Introduction
 ^^^^^^^^^^^^
@@ -452,8 +452,8 @@ That makes it pretty easy to mock any nested object calls. This feature of
 Mockify is used to implement patching of imported modules. See :ref:`Patching
 imports` secion for more details.
 
-Using **MockFactory** class
----------------------------
+Using mock factory
+------------------
 
 If you need to create several mocks inside your tests, remembering all of
 them may become difficult. To make things easier, Mockify provides
@@ -633,6 +633,98 @@ using factory object.
 
 Using sessions
 --------------
+
+What is a session?
+^^^^^^^^^^^^^^^^^^
+
+A core part of Mockify library is a **session**. Sessions are automatically
+created for each mock or mock factory, but can also be created explicitly
+using :class:`mockify.Session` class and passed to mocks/mock factories via
+*session* parameter. Sessions can be shared between multiple mocks or mock
+factories, and some features of Mockify (like ordered expectations, see
+:ref:`Ordered expectations` for more details) will require common session to
+be used.
+
+Each session instance receive mock calls and expectation registrations from
+all mocks that use that session. A session may therefore be perceived as a
+kind of **expectation resolver**, because in fact all happens inside a
+session - mocks or mock factories are only facades on top of it.
+
+Sessions can be used in similar way as mock factories - you can create one
+inside setup part of the test, and verify later in teardown. Then, after
+session is created, you can use it for example to create mock factory. Here's
+an example in :mod:`pytest`:
+
+.. testcode::
+
+    import pytest
+
+    from mockify import Session
+    from mockify.mock import MockFactory
+
+    @pytest.fixture
+    def mock_session():
+        session = Session()
+        yield session
+        session.done()
+
+    @pytest.fixture
+    def mock_factory(mock_session):
+        factory = MockFactory(session=mock_session)
+        return factory
+
+    def test_something(mock_factory):
+        mock = mock_factory.mock('mock')
+        # ....
+
+Although this may be seen as too complicated (since mock factory is good
+enough to provide same functionality), but you will have to create session
+manually to change some of Mockify internal behavior for mocks that share
+that session.
+
+And now let's have a brief tour on what can be changed.
+
+Changing uninterested call strategy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, when you call a mock that does not have any expectations
+recorded, the call will fail with uninterested call error. But this default
+behavior can be changed by setting ``'uninterested_call_strategy'`` config
+option. Following values for that option are available:
+
+``'fail'``
+    This is the default.
+
+    When there are no expectations found for mock call,
+    :exc:`mockify.exc.UninterestedCall` exception is raised.
+
+``'ignore'``
+    Any calls that have no matching expectations found are silently ignored
+    and test is not terminated instantly.
+
+``'warn'``
+    Same as ``'ignore'``, but :exc:`mockify.exc.UninterestedCallWarning`
+    warning is emitted.
+
+To change session options you have to use :meth:`mockify.Session.configure`
+method. Here's an example of setting ``'ignore'`` uninterested call strategy:
+
+.. testcode::
+
+    from mockify import Session
+    from mockify.mock import Mock
+
+    session = Session()
+    session.configure('uninterested_call_strategy', 'ignore')
+
+    first = Mock('first', session=session)
+    first.foo()  # This will not fail...
+
+    second = Mock('second', session=session)
+    second.bar()  # ...and this either
+
+If you run that code, both *first* and *second* mocks won't fail, as we've
+changed uninterested call strategy for them.
 
 Recording actions
 -----------------
