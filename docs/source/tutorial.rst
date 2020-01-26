@@ -400,18 +400,14 @@ Mocking modules (a.k.a. namespaces)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All features of :class:`mockify.mock.Mock` we've discussed so far can also be
-used in form of module paths or namespaces.
-
-For example, to expect call of a method of some nested object to be called,
-you just record following expectation:
+used in form of module paths or namespaces. For example, to expect call of a
+method *bar()* of some nested object *foo*, you just record following
+expectation:
 
 .. testcode::
 
     mock = Mock('mock')
     mock.foo.bar.expect_call().will_once(Return(123))
-
-We've just recorded that *bar()* method of some nested object *foo* will be
-called. Now we can call it:
 
 .. doctest::
 
@@ -426,9 +422,6 @@ And we can do the same with setters and getters:
     mock.foo.__setattr__.expect_call('bar', 123)
     mock.foo.__getattr__.expect_call('bar').will_once(Return(123))
 
-We've just recorded that *bar* property on nested object *foo* will be set
-and get once:
-
 .. doctest::
 
     >>> mock.foo.bar = 123
@@ -441,8 +434,11 @@ And with data objects as well:
 
     >>> mock = Mock('mock')
     >>> mock.foo.bar = 123
+    >>> mock.foo.spam.more_spam = 'need more spam'
     >>> mock.foo.bar
     123
+    >>> mock.foo.spam.more_spam
+    'need more spam'
 
 And there is no limit of how deep you can go:
 
@@ -452,28 +448,194 @@ And there is no limit of how deep you can go:
     mock.it.can.be.very.deep.nested.object.path.expect_call().will_once(Return('indeed'))
     assert mock.it.can.be.very.deep.nested.object.path() == 'indeed'
 
-That makes it pretty easy to mock any nested object calls.
+That makes it pretty easy to mock any nested object calls. This feature of
+Mockify is used to implement patching of imported modules. See :ref:`Patching
+imports` secion for more details.
 
 Using **MockFactory** class
 ---------------------------
 
-.. .. doctest::
-    :options: -IGNORE_EXCEPTION_DETAIL
+If you need to create several mocks inside your tests, remembering all of
+them may become difficult. To make things easier, Mockify provides
+:class:`mockify.mock.MockFactory` class that can create and manage several
+mocks at once. Thanks to this, you record expectations on different mocks,
+but check all at once using factory object.
 
-    >>> partial()
-    Traceback (most recent call last):
-        ...
-    mockify.exc.UninterestedCall: No expectations recorded for mock:
-    <BLANKLINE>
-    at <doctest default[0]>:11
-    --------------------------
-    Called:
-      func()
-    Expected:
-      no expectations recorded
+Each mock factory ensures that:
+
+* each mock will be created once,
+* always same mock object will be returned for given name,
+* all created mocks will share one common **session** object (more about
+  sessions in :ref:`Using sessions` section).
+
+Here's an example code where you find that useful:
+
+.. testcode::
+
+    import hashlib
+
+    class RegisterUserAction:
+
+        class UserAlreadyRegistered(Exception):
+            pass
+
+        def __init__(self, database, mailer):
+            self._database = database
+            self._mailer = mailer
+
+        def invoke(self, email, password):
+            if self._database.user_registered(email):
+                raise self.UserAlreadyRegistered()
+            password_hash = self._hash_password(password)
+            self._database.add_inactive_user(email, password_hash)
+            self._mailer.send_activation_email(email)
+
+        def _hash_password(self, password):
+            password = password.encode()
+            password_hash = hashlib.sha1(password).hexdigest()  # Not safe, but it's an example
+            return password_hash
+
+That class implements simplified logic of user registration process. We check
+if user is already registered, add it to database and send activation e-mail,
+so the user will be able to finalize registration by clicking on the link
+that is received.
+
+The *RegisterUserAction* class has two dependencies:
+
+* an interface to database,
+* and an interface to some kind of e-mail sending service.
+
+We therefore need two mocks and you would have to remember to check both just
+before test ends. And that's were mock factories come into play and help you
+deal with that:
+
+.. testcode::
+
+    from mockify.mock import MockFactory
+
+    def test_invoke_register_user_action():
+        factory = MockFactory()
+        database = factory.mock('database')
+        mailer = factory.mock('mailer')
+
+        database.user_registered.\
+            expect_call('foo@example.com').will_once(Return(False))
+        database.add_inactive_user.\
+            expect_call('foo@example.com', 'ce0b2b771f7d468c0141918daea704e0e5ad45db')
+        mailer.send_activation_email.\
+            expect_call('foo@example.com')
+
+        action = RegisterUserAction(database, mailer)
+        with satisfied(factory):
+            action.invoke('foo@example.com', 'p@55w0rd')
+
+.. testcleanup::
+
+    test_invoke_register_user_action()
+
+As you can see in the example above, we've created mock factory named
+*factory*, then - using it - two mocks: *database* and *mailer*. The rest of
+the code is pretty much the same as in all previous examples, but we've used
+*factory* instead of two created mocks as argument of *satisfied()* context
+manager. Therefore, when factory is used, you only have to remember to check
+your factory object - no matter how many mocks were created using it.
+
+Mock factory can also be very handy if you have multiple tests for your unit
+under test and need to use test setup and teardown for parts of test code
+that are repeating between tests. Here's an example of complete test suite
+for *RegisterUserAction* class based on :mod:`unittest` testing toolkit:
+
+.. testcode::
+
+    from unittest import TestCase
+
+    from mockify import assert_satisfied
+
+    class TestRegisterUserAction(TestCase):
+
+        def setUp(self):
+            self.factory = MockFactory()
+            self.database = self.factory.mock('database')
+            self.mailer = self.factory.mock('mailer')
+            self.uut = RegisterUserAction(self.database, self.mailer)
+
+        def tearDown(self):
+            assert_satisfied(self.factory)
+
+        def test_invoke_register_user_action(self):
+            self.database.user_registered.\
+                expect_call('foo@example.com').will_once(Return(False))
+            self.database.add_inactive_user.\
+                expect_call('foo@example.com', 'ce0b2b771f7d468c0141918daea704e0e5ad45db')
+            self.mailer.send_activation_email.\
+                expect_call('foo@example.com')
+
+            self.uut.invoke('foo@example.com', 'p@55w0rd')
+
+        def test_when_user_name_already_exists__an_exception_is_raised(self):
+            self.database.user_registered.\
+                expect_call('foo@example.com').will_once(Return(True))
+
+            with self.assertRaises(RegisterUserAction.UserAlreadyRegistered):
+                self.uut.invoke('foo@example.com', 'p@55w0rd')
+
+.. testcleanup::
+
+    import contextlib
+
+    @contextlib.contextmanager
+    def assert_raises(exc):
+        try:
+            yield
+        except exc:
+            pass
+        else:
+            raise AssertionError(f"EXCEPTION NOT RAISED: {exc}")
+
+    tc = TestRegisterUserAction()
+    tc.assertRaises = assert_raises  # Don't know why this does not work...
+    tests = [
+        tc.test_invoke_register_user_action,
+        tc.test_when_user_name_already_exists__an_exception_is_raised]
+    for test in tests:
+        tc.setUp()
+        test()
+        tc.tearDown()
+
+In example above we've used *setUp()* method to create factory, all mocks,
+and unit under test. Next, all our tests use mocks created during setup
+phase. Finally, after each test, :meth:`mockify.assert_satisfied` is used on
+factory object to check if all mocks are satisfied. Following that approach
+we can have automated base part of our test, and create mocks when needed
+using factory object.
+
+.. tip::
+    If you are using :mod:`pytest` framework for testing (which I personally
+    highly recommend), things can become even easier with a use of
+    **fixtures**:
+
+    .. testcode::
+
+        import pytest
+
+        from mockify import satisfied
+        from mockify.mock import MockFactory
+
+        @pytest.fixture
+        def mock_factory():
+            factory = MockFactory()
+            with satisfied(factory):
+                yield factory
+
+        def test_something(mock_factory):
+            mock = mock_factory.mock('mock')
+            # ....
 
 Using sessions
 --------------
 
 Recording actions
 -----------------
+
+Patching imports
+----------------

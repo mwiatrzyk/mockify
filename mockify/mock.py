@@ -221,6 +221,11 @@ class MockFactory:
             self._created_mocks[name] = self._mock_class(name, session=self._session)
         return self._created_mocks[name]
 
+    def mock(self, name):
+        if name not in self._created_mocks:
+            self._created_mocks[name] = self._mock_class(name, session=self._session)
+        return self._created_mocks[name]
+
     @property
     def _children(self):
         return iter(self._created_mocks.values())
