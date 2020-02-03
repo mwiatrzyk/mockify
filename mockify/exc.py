@@ -161,8 +161,6 @@ class UninterestedCall(MockifyAssertion):
         builder.append_location(self._actual_call.location)
         builder.append_line('Called:')
         builder.append_line('  {}', self._actual_call)
-        builder.append_line('Expected:')
-        builder.append_line('  no expectations recorded')
         return builder.build()
 
     @property

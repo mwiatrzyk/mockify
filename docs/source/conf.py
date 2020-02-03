@@ -15,6 +15,7 @@
 
 import os
 import sys
+import doctest
 
 from datetime import datetime
 
@@ -194,3 +195,6 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# Doctest
+doctest_default_flags = doctest.ELLIPSIS | doctest.DONT_ACCEPT_TRUE_FOR_1

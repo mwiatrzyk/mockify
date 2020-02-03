@@ -20,7 +20,7 @@ from ._assert import assert_satisfied
 
 
 @contextmanager
-def ordered(*mocks):
+def ordered(*mocks):  # TODO: add more tests
     """Preserve order in what expectations are defined.
 
     Use this to wrap part of test code in which you run your unit under test.
@@ -44,9 +44,10 @@ def ordered(*mocks):
 
     def iter_expected_mock_names(mocks):
         for mock in mocks:
-            expectations = list(MockInfo(mock).expectations)
-            for expectation in expectations:
-                yield expectation.expected_call.name
+            for mock_info in MockInfo(mock).walk():
+                expectations = list(mock_info.expectations)
+                for expectation in expectations:
+                    yield expectation.expected_call.name
 
     session = get_session()
     session.enable_ordered(iter_expected_mock_names(mocks))

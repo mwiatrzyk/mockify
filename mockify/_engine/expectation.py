@@ -169,9 +169,10 @@ class Expectation:
             if self._actions[-1] == action:
                 self._actions.append(action)
                 self._expected_count = Exactly(len(self._actions))
+                return self
             else:
                 self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
-            return self
+                return tmp
 
         def will_repeatedly(self, action):
             expected_call_count = None

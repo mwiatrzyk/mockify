@@ -13,6 +13,11 @@
 Tutorial
 ========
 
+.. toctree::
+    :maxdepth: 3
+
+    tutorial/creating-mocks
+
 Creating mocks
 --------------
 
@@ -98,8 +103,6 @@ But if you try to use it before any expectations are recorded, you'll get
     -------------------------
     Called:
       func(1)
-    Expected:
-      no expectations recorded
 
 And to record expectations on a function mocks, just use *expect_call* method
 like in this example:
@@ -167,8 +170,6 @@ Now let's use the mock and call *StreamReader.read()* method. We'll receive
     --------------------------
     Called:
       stream.read(2)
-    Expected:
-      no expectations recorded
 
 As you can see, *StreamReader* tried to call
 *stream.read()* method but failed due to lack of expectations. To record
@@ -729,5 +730,261 @@ changed uninterested call strategy for them.
 Recording actions
 -----------------
 
+Introduction
+^^^^^^^^^^^^
+
+Let's create a mock and record most basic expectation on it:
+
+.. testcode::
+
+    mock = Mock('mock')
+    mock.expect_call()
+
+If now that mock is called, it will return ``None``:
+
+.. doctest::
+
+    >>> mock() is None
+    True
+
+This is the default behavior, and you would use it to mock methods or
+functions that have no side effects. But what if mocked method needs to
+return a value or raise an exception? For that purpose Mockify provides
+**actions** that are available under :mod:`mockify.actions` module.
+
+Setting return value
+^^^^^^^^^^^^^^^^^^^^
+
+To set return value on a mock, use :class:`mockify.actions.Return` action:
+
+.. testcode::
+
+    from mockify.actions import Return
+
+    mock = Mock('mock')
+    mock.expect_call().will_once(Return('It works!'))
+
+If you now call that mock, it will return what we've just told it to return:
+
+.. doctest::
+
+    >>> mock()
+    'It works!'
+
+Setting exception to be raised
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you want your mock to raise given exception when called, use
+:class:`mockify.actions.Raise` action:
+
+.. testcode::
+
+    from mockify.actions import Raise
+
+    mock = Mock('mock')
+    mock.expect_call().will_once(Raise(TypeError('got error')))
+
+If now mock is called, it will raise :exc:`TypeError` we've told it to raise:
+
+.. doctest::
+    :options: -IGNORE_EXCEPTION_DETAIL
+
+    >>> mock()
+    Traceback (most recent call last):
+        ...
+    TypeError: got error
+
+Setting custom function to be invoked by mock
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If needed, you can set a custom function to be executed when mock is called.
+Such function will receive all arguments mock was called with, and value it
+returns (or exception it raises) will also be used by mock:
+
+.. testcode::
+
+    from mockify.actions import Invoke
+
+    def func(a, b, c):
+        return (a, b, c)
+
+    mock = Mock('mock')
+    mock.expect_call(1, 2, c=3).will_once(Invoke(func))
+
+Now, when mock is called, it will pass all its arguments to given *func*, and
+that function will return given arguments packed into tuple:
+
+.. doctest::
+
+    >>> mock(1, 2, c=3)
+    (1, 2, 3)
+
+You can also bind arguments to function:
+
+.. testcode::
+
+    mock.expect_call('middle').will_once(Invoke(func, 'first', c='last'))
+
+.. doctest::
+
+    >>> mock('middle')
+    ('first', 'middle', 'last')
+
+This is the most generic action.
+
+Recording action chains
+^^^^^^^^^^^^^^^^^^^^^^^
+
+So far we've recorded only one action, implicitly expecting mock to be
+executed once. But it is possible to record more actions simply by making
+chained call to *will_once()* method, giving it next action to be executed
+and increasing expected mock call count each time by one.
+
+For example, let's now record 3 return values:
+
+.. testcode::
+
+    mock = Mock('mock')
+    mock.expect_call().\
+        will_once(Return(1)).\
+        will_once(Return(2)).\
+        will_once(Return(3))
+
+Now each time *mock()* is called, next available action is executed:
+
+.. doctest::
+
+    >>> mock()
+    1
+    >>> mock()
+    2
+    >>> mock()
+    3
+
+And now the mock is satisfied - it was called three times and all actions
+were consumed:
+
+.. testcode::
+
+    assert_satisfied(mock)
+
+Recording repeated actions
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In Mockify there also are so called **repeated actions**. Repeated actions
+are useful if you need to make your mock, for example, returning always the
+same value. When repeated action is recorded on given expectation, it can be
+executed any number of times (including zero), unless explicitly limited (see
+:ref:`Setting expected call count` for details). To record repeated action,
+you will have to call **will_repeatedly()** method on expectation object and
+give it an action:
+
+.. testcode::
+
+    mock = Mock('mock')
+    mock.expect_call().will_repeatedly(Return('repeated'))
+
+With repeated action declared in that way, a mock is already satisfied:
+
+.. testcode::
+
+    assert_satisfied(mock)
+
+And if you call it several times, it will always return same value:
+
+.. doctest::
+
+    >>> mock()
+    'repeated'
+    >>> mock()
+    'repeated'
+
+Setting expected call count
+---------------------------
+
+In Mockify you will not find any method for checking if mock was called given
+number of times. Instead, you can set expected call count on expectations
+using :meth:`mockify.Expectation.times` method.
+
+Expecting mock to be never called
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is possible to record expectation that mock will never be called. Here's
+an example:
+
+.. testcode::
+
+    mock = Mock('mock')
+    mock.foo.expect_call(0).times(0)
+
+Here we have recorded that *mock.foo(0)* is expected to be **never** called.
+If you now invoke that mocked method, you'll see that nothing happens:
+
+.. testcode::
+
+    mock.foo(0)
+
+But if you now check if mock is satisfied, :exc:`mockify.exc.Unsatisfied`
+error will be reported:
+
+.. doctest::
+    :options: -IGNORE_EXCEPTION_DETAIL
+
+    >>> assert_satisfied(mock)
+    Traceback (most recent call last):
+        ...
+    mockify.exc.Unsatisfied: Following expectation is not satisfied:
+    <BLANKLINE>
+    at <doctest default[0]>:2
+    -------------------------
+    Pattern:
+      mock.foo(0)
+    Expected:
+      to be never called
+    Actual:
+      called once
+
+That can be useful to explicitly state that mock is not allowed to be called
+with given set of params, and to avoid :exc:`mockify.exc.UninterestedCall`
+exception that would be raised during mock call if we didn't record any
+expectation.
+
+Expecting mock to be called given number of times
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When you record expectation without use of *times()* method, then you
+**implicitly** expect your mock to be called once. But there are some
+scenarios you will need to set higher count of expected calls. For example,
+if mock gets called in a loop:
+
+.. testcode::
+
+    import time
+
+    class RetryProxy:
+
+        def __init__(self, connection, retry_count=3, retry_interval=100):
+            self._connection = connection
+            self._retry_count = retry_count
+            self._retry_interval = retry_interval
+
+        def get(self, url):
+            count = self._retry_count
+            while count > 0:
+                response = self._connection.get(url)
+                if response is not None:
+                    return response
+                time.sleep(self._retry_interval)
+                count -= 1
+
+Using matchers
+--------------
+
 Patching imports
 ----------------
+
+Customizing Mockify
+-------------------
+
+Creating custom actions
+^^^^^^^^^^^^^^^^^^^^^^^

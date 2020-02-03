@@ -154,3 +154,11 @@ class TestMock:
         with satisfied(uut):
             uut.foo = 123
             assert uut.foo == 123
+
+    def test_when_action_chain_is_recorded__invoking_mock_consumes_actions_one_by_one(self, uut):
+        uut.expect_call().\
+            will_once(Return(1)).\
+            will_once(Return(2)).\
+            will_once(Return(3))
+        with satisfied(uut):
+            assert [uut() for _ in range(3)] == [1, 2, 3]
