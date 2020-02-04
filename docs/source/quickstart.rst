@@ -728,10 +728,83 @@ instead of ``None``:
 
     test_read_xyz_message()
 
-Refactoring the code
---------------------
+Refactoring tests
+-----------------
 
-Let's now take a look at our **XYZReader** class:
+If you take a look at all three tests at once you'll see a some parts are
+basically copied and pasted. Creating *stream_reader* mock, instantiating
+**XYZReader** class and checking if mocks are satisfied can be done better if
+we use organize our tests with a class:
+
+.. testcode::
+
+    import pytest
+
+    from mockify import assert_satisfied
+    from mockify.mock import Mock
+    from mockify.actions import Return
+
+    class TestXYZReader:
+
+        def setup_method(self):
+            self.stream_reader = Mock('stream_reader')  # (1)
+            self.uut = XYZReader(self.stream_reader)  # (2)
+
+        def teardown_method(self):
+            assert_satisfied(self.stream_reader)  # (3)
+
+        def test_read_xyz_message(self):
+            self.stream_reader.readline.expect_call().will_once(Return(b'XYZ\n'))
+            self.stream_reader.readline.expect_call().will_once(Return(b'1.0\n'))
+            self.stream_reader.readline.expect_call().will_once(Return(b'12\n'))
+            self.stream_reader.read.expect_call(12).will_once(Return(b'Hello world!'))
+            assert self.uut.read() == b'Hello world!'
+
+        def test_when_invalid_magic_bytes_received__then_xyz_error_is_raised(self):
+            self.stream_reader.readline.expect_call().will_once(Return(b'ABC\n'))
+            with pytest.raises(XYZError) as excinfo:
+                self.uut.read()
+            assert str(excinfo.value) == "Invalid magic bytes: b'ABC'"
+
+        def test_when_invalid_version_received__then_xyz_error_is_raised(self):
+            self.stream_reader.readline.expect_call().will_once(Return(b'XYZ\n'))
+            self.stream_reader.readline.expect_call().will_once(Return(b'2.0\n'))
+            with pytest.raises(XYZError) as excinfo:
+                self.uut.read()
+            assert str(excinfo.value) == "Unsupported version: b'2.0'"
+
+.. testcode::
+    :hide:
+
+    tc = TestXYZReader()
+    for name in dir(tc):
+        if name.startswith('test_'):
+            test = getattr(tc, name)
+            tc.setup_method()
+            test()
+            tc.teardown_method()
+
+.. tip::
+    Alternatively you can use **fixtures** instead of **setup_method()** and
+    **teardown_method()**. Fixtures are way more powerful. For more details
+    please visit https://docs.pytest.org/en/latest/fixture.html.
+
+We've moved mock (1) and unit under test (2) construction into
+**setup_method()** method and used :func:`mockify.assert_satisfied` function
+(3) in **teardown_method()**. That function works the same as
+:func:`mockify.satisfied`, but is not a context manager. Notice that we've
+also removed context manager from OK test, as it is no longer needed.
+
+Now, once tests are refactored, you can just add another tests without even
+remembering to check the mock before test is done - it all happens
+automatically. And the tests look much cleaner than before refactoring. There
+is even more: you can easily extract recording expectations to separate
+methods if needed.
+
+Putting it all together
+-----------------------
+
+Here's once again complete **XYZReader** class:
 
 .. testcode::
 
@@ -757,81 +830,31 @@ Let's now take a look at our **XYZReader** class:
             payload_size = int(payload_size)
             return self._stream_reader.read(payload_size)
 
-It's not complex code, but few things can be done better. Before we've
-started writing two additional NOK tests, the code was looking much cleaner,
-because there was no validation in it. Let's clean it a bit by extracting
-reading and verification of magic bytes and version to separate helper
-methods. Here's final solution:
-
-.. testcode::
-
-    class XYZError(Exception):
-        pass
-
-    class XYZReader:
-
-        def __init__(self, stream_reader):
-            self._stream_reader = stream_reader
-
-        def read(self):
-            self.__read_magic_bytes()
-            self.__read_version()
-            payload_size = self.__read_payload_size()
-            return self._stream_reader.read(payload_size)
-
-        def __read_magic_bytes(self):
-            magic_bytes = self._stream_reader.readline()
-            magic_bytes = magic_bytes.rstrip()
-            if magic_bytes != b'XYZ':
-                raise XYZError(f"Invalid magic bytes: {magic_bytes!r}")
-
-        def __read_version(self):
-            version = self._stream_reader.readline()
-            version = version.rstrip()
-            if version != b'1.0':
-                raise XYZError(f"Unsupported version: {version!r}")
-
-        def __read_payload_size(self):
-            payload_size = self._stream_reader.readline()
-            payload_size = payload_size.rstrip()
-            return int(payload_size)
-
-Now the code looks much cleaner.
-
-Refactoring tests
------------------
-
-Wrapping test functions with a class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you take a look at all three tests at once you'll see a lot of repeating
-code there. In every test you have to create mock, create **XYZReader**
-instance, record expectations, run tested code and check some assertions. If
-you now refactor all those tests and wrap them with a test case class, it
-will be possible to move some parts of repeating code into **setup_method()**
-method (if you're using :mod:`pytest`). Here's an example:
+And tests:
 
 .. testcode::
 
     import pytest
 
-    from mockify import satisfied
+    from mockify import assert_satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
     class TestXYZReader:
 
         def setup_method(self):
-            self.stream_reader = Mock('stream_reader')
-            self.uut = XYZReader(self.stream_reader)
+            self.stream_reader = Mock('stream_reader')  # (1)
+            self.uut = XYZReader(self.stream_reader)  # (2)
+
+        def teardown_method(self):
+            assert_satisfied(self.stream_reader)  # (3)
 
         def test_read_xyz_message(self):
             self.stream_reader.readline.expect_call().will_once(Return(b'XYZ\n'))
             self.stream_reader.readline.expect_call().will_once(Return(b'1.0\n'))
             self.stream_reader.readline.expect_call().will_once(Return(b'12\n'))
             self.stream_reader.read.expect_call(12).will_once(Return(b'Hello world!'))
-            with satisfied(self.stream_reader):
-                assert self.uut.read() == b'Hello world!'
+            assert self.uut.read() == b'Hello world!'
 
         def test_when_invalid_magic_bytes_received__then_xyz_error_is_raised(self):
             self.stream_reader.readline.expect_call().will_once(Return(b'ABC\n'))
@@ -855,6 +878,10 @@ method (if you're using :mod:`pytest`). Here's an example:
             test = getattr(tc, name)
             tc.setup_method()
             test()
+            tc.teardown_method()
 
-.. tip::
-    Alternatively you can use **fixtures** instead of **setup_method()**.
+And that's the end of quickstart guide :-)
+
+Now you can proceed to :ref:`Tutorial` section, covering some more advanced
+features, or just try it out in your projects. Thanks for reaching that far.
+I hope you will find Mockify useful.

@@ -16,7 +16,14 @@ Tutorial
 .. toctree::
     :maxdepth: 3
 
-    tutorial/creating-mocks
+    tutorial/using-mock-class
+    tutorial/using-mock-factory-class
+    tutorial/using-sessions
+    tutorial/recording-actions
+    tutorial/setting-expected-call-count-range
+    tutorial/using-matchers
+    tutorial/using-ordered
+    tutorial/patching-imports
 
 Creating mocks
 --------------

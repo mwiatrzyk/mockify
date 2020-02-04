@@ -93,8 +93,6 @@ class TestUninterestedCall:
         builder.append_location(actual_call.location)
         builder.append_line('Called:')
         builder.append_line('  {}', actual_call)
-        builder.append_line('Expected:')
-        builder.append_line('  no expectations recorded')
         return builder.build()
 
     @pytest.mark.parametrize('actual_call', [
