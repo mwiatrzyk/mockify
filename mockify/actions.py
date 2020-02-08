@@ -16,13 +16,10 @@ from . import _utils
 
 
 class Action(abc.ABC):
-    """Abstract base class for all actions.
+    """Abstract base class for actions.
 
-    If you like to create your own action, you should inherit from this
-    abstract class and implement all needed abstract methods. This class was
-    added to force users to implement all needed methods and to provide
-    implementation of common functionalities, like str(), repr() or
-    (in)equality operators.
+    This is common base class for all actions defined in this module. Custom
+    actions should also inherit from this one.
 
     .. versionadded:: 1.0
     """
@@ -49,25 +46,35 @@ class Action(abc.ABC):
         functionality of the action being implemented.
 
         :param actual_call:
-            Object representing parameters of mock call being made
+            Instance of :class:`mockify.Call` containing params of actual
+            call being made
         """
 
     @abc.abstractmethod
     def format_params(self, *args, **kwargs):
-        """Used to calculate str() and repr() for this action.
+        """Used to calculate **str()** and **repr()** for this action.
 
-        This method should be overloaded in subclass without args, and then
-        call super() with args and kwargs that are needed to be used in str()
-        and repr() methods.
+        This method should be overloaded in subclass as a no argument method,
+        and then call **super().format_params(...)** with args and kwargs
+        you want to be included in **str()** and **repr()** methods.
         """
         return _utils.format_args_kwargs(*args, **kwargs)
 
 
 class Return(Action):
-    """Makes mock returning given value when called.
+    """Forces mock to return *value* when called.
 
-    :param value:
-        Value to be returned
+    For example:
+
+    .. doctest::
+
+        >>> from mockify.mock import Mock
+        >>> from mockify.actions import Return
+        >>> mock = Mock('mock')
+        >>> mock.expect_call().will_once(Return('foo'))
+        <mockify.Expectation: mock()>
+        >>> mock()
+        'foo'
     """
 
     def __init__(self, value):
@@ -82,12 +89,21 @@ class Return(Action):
 
 class Iterate(Action):
     """Similar to :class:`Return`, but returns an iterator to given
-    iterable.
+    *iterable*.
+
+    For example:
+
+    .. doctest::
+
+        >>> from mockify.mock import Mock
+        >>> from mockify.actions import Iterate
+        >>> mock = Mock('mock')
+        >>> mock.expect_call().will_once(Iterate('foo'))
+        <mockify.Expectation: mock()>
+        >>> next(mock())
+        'f'
 
     .. versionadded:: 1.0
-
-    :param iterable:
-        Value to be iterated
     """
 
     def __init__(self, iterable):
@@ -101,10 +117,21 @@ class Iterate(Action):
 
 
 class Raise(Action):
-    """Makes mock raising given exception when called.
+    """Forces mock to raise *exc* when called.
 
-    :param exc:
-        Instance of exception to be raised
+    For example:
+
+    .. doctest::
+
+        >>> from mockify.mock import Mock
+        >>> from mockify.actions import Raise
+        >>> mock = Mock('mock')
+        >>> mock.expect_call().will_once(Raise(ValueError('invalid value')))
+        <mockify.Expectation: mock()>
+        >>> mock()
+        Traceback (most recent call last):
+            ...
+        ValueError: invalid value
     """
 
     def __init__(self, exc):
@@ -118,14 +145,27 @@ class Raise(Action):
 
 
 class Invoke(Action):
-    """Makes mock invoking given custom function when called.
+    """Forces mock to invoke *func* when called.
 
-    This is very handy if you want to do some additional assertions on
-    parameters the mock was called with or to do some extra stuff during mock
-    call (like creating file or whatever you need). The function will receive
-    all positional and named args the mock was called with (in unchanged
-    way). If it then returns a value or raises exception, that value will
-    also be returned (or exception raised) by mock being called.
+    When *func* is called, it is called with all bound arguments plus all
+    arguments mock was called with. Value that mock returns is the one *func*
+    returns. Use this action when more sophisticated checks have to be done
+    when mock gets called or when your mock must operate on some **output
+    parameter**.
+
+    See :ref:`func-with-out-params` for more details.
+
+    Here's an example using one of built-in functions as a *func*:
+
+    .. doctest::
+
+        >>> from mockify.mock import Mock
+        >>> from mockify.actions import Invoke
+        >>> mock = Mock('mock')
+        >>> mock.expect_call([1, 2, 3]).will_once(Invoke(sum))
+        <mockify.Expectation: mock([1, 2, 3])>
+        >>> mock([1, 2, 3])
+        6
 
     .. versionchanged:: 1.0
         Now this action allows binding args to function being called.

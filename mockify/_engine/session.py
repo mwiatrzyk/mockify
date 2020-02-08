@@ -16,16 +16,57 @@ from .. import exc
 from .expectation import Expectation
 
 
-class Session:
-    _uninterested_call_strategies = ('fail', 'warn', 'ignore')
+class Config:
 
-    def __init__(self, uninterested_call_strategy='fail'):
+    def __init__(self):
+        self._config = {
+            'uninterested_call_strategy': 'fail'
+        }
+
+    def get(self, key):
+        return self._config.get(key)
+
+    def set(self, key, value):
+        validate = getattr(self, f"_validate_{key}", None)
+        if validate is not None:
+            validate(key, value)
+        self._config[key] = value
+
+    def _validate_uninterested_call_strategy(self, key, value):
+        if value not in ('fail', 'warn', 'ignore'):
+            raise ValueError(f"Invalid value for {key!r} config option given: {value!r}")
+
+
+class Session:
+    """Used to create repositories for :class:`mockify.Expectation`
+    instances."""
+
+    def __init__(self):
         self._unordered_expectations = []
         self._ordered_expectations = collections.deque()
         self._ordered_expectations_enabled_for = set()
-        self.uninterested_call_strategy = uninterested_call_strategy
+        self._config = Config()
+
+    @property
+    def config(self):
+        """Set or get configuration options for this session.
+
+        This property returns a configuration object providing following
+        methods:
+
+        * **get(key)** for getting option matching *key*,
+        * and **set(key, value)** for setting option *key* to given *value*.
+        """
+        return self._config
 
     def __call__(self, actual_call):
+        """Trigger expectation matching *actual_call* received from mock
+        being called.
+
+        This method compares given *actual_call* with
+        :attr:`mockify.Expectation.expected_call` attribute of each
+        expectation to find a one that matches the call.
+        """
         if self._is_ordered(actual_call):
             return self.__call_ordered(actual_call)
         else:
@@ -53,11 +94,12 @@ class Session:
             return found_by_call[-1](actual_call)  # Oversaturate last found if all are satisfied
 
     def __handle_uninterested_call(self, actual_call):
-        if self.uninterested_call_strategy == 'fail':
+        uninterested_call_strategy = self._config.get('uninterested_call_strategy')
+        if uninterested_call_strategy == 'fail':
             self.__handle_uninterested_call_using_fail_strategy(actual_call)
-        elif self.uninterested_call_strategy == 'ignore':
+        elif uninterested_call_strategy == 'ignore':
             pass
-        elif self.uninterested_call_strategy == 'warn':
+        elif uninterested_call_strategy == 'warn':
             warnings.warn(str(actual_call), exc.UninterestedCallWarning)
 
     def __handle_uninterested_call_using_fail_strategy(self, actual_call):
@@ -72,25 +114,6 @@ class Session:
         return itertools.chain(
             self._unordered_expectations,
             self._ordered_expectations)
-
-    @property
-    def config(self):
-        return {
-            'uninterested_call_strategy': self.uninterested_call_strategy
-        }
-
-    @property
-    def uninterested_call_strategy(self): # XXX: remove me
-        return self._uninterested_call_strategy
-
-    @uninterested_call_strategy.setter
-    def uninterested_call_strategy(self, value):
-        if value not in self._uninterested_call_strategies:
-            raise ValueError(f"invalid strategy given: {value}")
-        self._uninterested_call_strategy = value
-
-    def configure(self, option, value):
-        self.uninterested_call_strategy = value
 
     def expect_call(self, expected_call):
         expectation = Expectation(expected_call)

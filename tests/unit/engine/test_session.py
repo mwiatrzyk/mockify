@@ -107,18 +107,18 @@ class TestContext:
         self.uut.done()
 
     def test_if_uninterested_call_strategy_set_to_ignore__then_do_nothing_on_uninterested_calls(self):
-        self.uut.uninterested_call_strategy = 'ignore'
+        self.uut.config.set('uninterested_call_strategy', 'ignore')
         assert self.uut(Call('foo')) is None
 
     def test_if_uninterested_call_strategy_set_to_warn__then_issue_warning_on_uninterested_calls(self):
-        self.uut.uninterested_call_strategy = 'warn'
+        self.uut.config.set('uninterested_call_strategy', 'warn')
         with pytest.warns(exc.UninterestedCallWarning, match='foo()'):
             assert self.uut(Call('foo')) is None
 
     def test_if_uninterested_call_strategy_set_to_an_invalid_value__then_issue_value_error(self):
         with pytest.raises(ValueError) as excinfo:
-            self.uut.uninterested_call_strategy = 'dummy'
-        assert str(excinfo.value) == "invalid strategy given: dummy"
+            self.uut.config.set('uninterested_call_strategy', 'dummy')
+        assert str(excinfo.value) == "Invalid value for 'uninterested_call_strategy' config option given: 'dummy'"
 
     def test_when_ordered_mocks_are_called_in_invalid_order__then_fail_with_unexpected_call_order_error(self):
         first = Call('first')

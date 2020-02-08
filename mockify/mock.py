@@ -160,7 +160,11 @@ class _ExpectCallMock(_ChildMock):
 
 
 class MockInfo:
-    """An object used to inspect given mock.
+    """An object used to inspect given target mock.
+
+    This class provides a sort of public interface on top of underlying
+    :class:`Mock` instance, that due to its specific features has no methods
+    or properties publicly available.
 
     :param mock:
         Instance of :class:`Mock` object to be inspected
@@ -168,6 +172,9 @@ class MockInfo:
 
     def __init__(self, mock):
         self._mock = mock
+
+    def __repr__(self):
+        return f"<{self.__module__}.{self.__class__.__name__}({self._mock!r})>"
 
     @property
     def mock(self):
@@ -178,6 +185,11 @@ class MockInfo:
     def name(self):
         """Name of target mock."""
         return self._mock._fullname
+
+    @property
+    def session(self):
+        """Instance of :class:`mockify.Session` assigned to given target mock."""
+        return self._mock._session
 
     def expectations(self):
         """An iterator over all :class:`mockify.Expectation` objects recorded
@@ -194,11 +206,10 @@ class MockInfo:
             yield self.__class__(child)
 
     def walk(self):
-        """Recursively iterates over all target mock's children and yields
-        :class:`MockInfo` object for each found child.
+        """Recursively iterates in depth-first order over all target mock's
+        children and yields :class:`MockInfo` object for each found child.
 
-        It always yields itself (the info object for target mock) as first
-        element.
+        It always yields *self* as first element.
         """
 
         def walk(mock_info):
@@ -212,9 +223,27 @@ class MockInfo:
 class MockFactory:
     """A factory class used to create groups of related mocks.
 
-    This can be used if you need to create several mocks that need to be
-    checked all at once or mocks that must share same
-    :class:`mockify.Session` object (some features require this).
+    This class allows to create mocks using class given by *mock_class*
+    ensuring that:
+
+    * names of created mocks are **unique**,
+    * all mocks share one common session object.
+
+    Instances of this class keep track of created mocks. Moreover, functions
+    that would accept :class:`Mock` instances will also accept
+    :class:`MockFactory` instances, so you can later f.e. check if all
+    created mocks are satisfied using just a factory object. That makes it
+    easy to manage multiple mocks in large test suites.
+
+    See :ref:`managing-multiple-mocks` for more details.
+
+    .. versionadded:: 1.0
+
+    :param name:
+        This is optional.
+
+        Name of this factory to be used as a common prefix for all created
+        mocks and nested factories.
 
     :param session:
         Instance of :class:`mockify.Session` to be used.
@@ -228,31 +257,107 @@ class MockFactory:
         By default it will use :class:`Mock` class.
     """
 
-    def __init__(self, session=None, mock_class=None):
+    def __init__(self, name=None, session=None, mock_class=None):
+        self._name = name
         self._session = session or Session()
         self._mock_class = mock_class or Mock
-        self._created_mocks = {}
+        self._factories = {}
+        self._mocks = {}
 
     def mock(self, name):
-        """Create and return mock of given name."""
-        if name not in self._created_mocks:
-            self._created_mocks[name] = self._mock_class(name, session=self._session)
-        return self._created_mocks[name]
+        """Create and return mock of given *name*.
+
+        This method will raise :exc:`TypeError` if *name* is already used by
+        either mock or child factory.
+        """
+        self._validate_name(name)
+        self._mocks[name] = tmp =\
+            self._mock_class(self._format_name(name), session=self._session)
+        return tmp
+
+    def factory(self, name):
+        """Create and return child factory.
+
+        Child factory will use session from its parent, and will prefix all
+        mocks and grandchild factories with given *name*.
+
+        This method will raise :exc:`TypeError` if *name* is already used by
+        either mock or child factory.
+
+        :rtype: MockFactory
+        """
+        self._validate_name(name)
+        self._factories[name] = tmp = self.__class__(
+            self._format_name(name),
+            session=self._session,
+            mock_class=self._mock_class)
+        return tmp
+
+    def _validate_name(self, name):
+        if name in self._mocks or name in self._factories:
+            raise TypeError(f"Name {name!r} is already in use")
+
+    def _format_name(self, name):
+        if self._name is None:
+            return name
+        else:
+            return f"{self._name}.{name}"
 
     def _children(self):
-        return iter(self._created_mocks.values())
+        yield from self._mocks.values()
+        for child_factory in self._factories.values():
+            yield from child_factory._children()
 
     def _expectations(self):
-        for mock in self._created_mocks.values():
+        for mock in self._children():
             yield from mock._expectations()
 
 
 class Mock(_ChildMock):
-    """General purpose mocking utility.
+    """All-in-one mocking utility.
 
-    This class can be used to mock functions, methods, getters & setters,
-    modules and can also be used to create ad-hoc data objects. See
-    :ref:`Tutorial` for more details.
+    This class is used to:
+
+    * create mocks of functions,
+    * create mocks of objects with methods, setters and getters,
+    * create mocks of modules,
+    * create ad-hoc data objects.
+
+    No matter what you will be mocking, for all cases creating mock objects
+    is always the same - by giving it a *name* and optionally *session*. Mock
+    objects automatically create attributes on demand, and that attributes
+    form some kind of **nested** or **child** mocks.
+
+    To record expectations, you have to call **expect_call()** method on one
+    of that attributes, or on mock object itself (for function mocks). Then
+    you pass mock object to unit under test. Finally, you will need
+    :func:`mockify.assert_satisfied` function or :func:`mockify.satisfied`
+    context manager to check if the mock is satisfied.
+
+    Here's an example:
+
+    .. testcode::
+
+        from mockify import satisfied
+        from mockify.mock import Mock
+
+        def caller(func, a, b):
+            func(a + b)
+
+        def test_caller():
+            func = Mock('func')
+            func.expect_call(5)
+            with satisfied(func):
+                caller(func, 2, 3)
+
+    .. testcode::
+        :hide:
+
+        test_caller()
+
+    See :ref:`creating-mocks` for more details.
+
+    .. versionadded:: 1.0
     """
 
     def __init__(self, name, session=None):

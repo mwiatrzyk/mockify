@@ -11,11 +11,16 @@
 
 """Library core module."""
 
+from pkg_resources import get_distribution, DistributionNotFound
+
 from ._engine import Call, LocationInfo, Session, Expectation
 from ._assert import assert_satisfied
 from ._contextmanagers import ordered, satisfied, patched
 
-__version__ = (1, 0, 0)
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    __version__ = (0, 0, 0)
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',

@@ -20,11 +20,18 @@ from . import _utils
 class ActualCallCount:
     """Proxy class that is used to calculate actual mock calls.
 
-    .. versionadded:: 1.0
+    Provides all needed arithmetic operators and a logic of rendering actual
+    call message that is used in assertion messages.
 
-    This one is used to extract message formatting logic out of the
-    :class:`mockify.Expectation` class. Now, all mock call count related
-    classes reside in common module.
+    Here's an example:
+
+        >>> from mockify.cardinality import ActualCallCount
+        >>> str(ActualCallCount(0))
+        'never called'
+        >>> str(ActualCallCount(1))
+        'called once'
+
+    .. versionadded:: 1.0
     """
 
     def __init__(self, initial_value):
@@ -51,10 +58,8 @@ class ActualCallCount:
 
 
 class ExpectedCallCount(abc.ABC):
-    """Abstract base class for classes used to set expected mock call count.
-
-    This class was added to force user to implement all needed methods and to
-    provide common implementation of repr() and (in)equality operators.
+    """Abstract base class for classes used to set expected call count on
+    mock objects.
 
     .. versionadded:: 1.0
     """
@@ -79,31 +84,28 @@ class ExpectedCallCount(abc.ABC):
 
     @abc.abstractmethod
     def match(self, actual_call_count):
-        """Check if *actual_call_count* matches expected call count.
-
-        If actual call count matches expected call count, then return
-        ``True``. Otherwise return ``False``.
-        """
+        """Check if *actual_call_count* matches expected call count."""
 
     @abc.abstractmethod
     def format_params(self, *args, **kwargs):
-        """Format params to be used in repr().
+        """Format params to be used in **repr()**.
 
-        This method must be overloaded without params, and call super() with
-        args and kwargs you want to include in repr().
+        This method must be overloaded without params, and call
+        **super().format_params(...)** with args and kwargs you want to
+        include in **repr()**.
         """
         return _utils.format_args_kwargs(*args, **kwargs)
 
 
 class Exactly(ExpectedCallCount):
-    """Used to expect fixed call count to be made.
+    """Used to set expected call count to fixed *expected* value.
+
+    Expectations marked with this cardinality object will have to be called
+    **exactly** *expected* number of times to be satisfied.
 
     You do not have to use this class explicitly as its instances are
-    automatically created when you call ``times`` method with integer value as
-    argument.
-
-    :param expected:
-        Integer value representing expected call count
+    automatically created when you call :meth:`mockify.Expectation.times`
+    method with integer value as argument.
     """
 
     def __init__(self, expected):
@@ -125,13 +127,10 @@ class Exactly(ExpectedCallCount):
 
 
 class AtLeast(ExpectedCallCount):
-    """Used to set minimal expected call count.
+    """Used to set expected call count to given *minimal* value.
 
-    If this is used, then expectation is said to be satisfied if actual call
-    count is not less that ``minimal``.
-
-    :param minimal:
-        Integer value representing minimal expected call count
+    Expectation will be satisfied if called not less times that given
+    *minimal*.
     """
 
     def __init__(self, minimal):
@@ -153,13 +152,10 @@ class AtLeast(ExpectedCallCount):
 
 
 class AtMost(ExpectedCallCount):
-    """Used to set maximal expected call count.
+    """Used to set expected call count to given *maximal* value.
 
     If this is used, then expectation is said to be satisfied if actual call
-    count is not greater than ``maximal``.
-
-    :param maximal:
-        Integer value representing maximal expected call count
+    count is not greater than *maximal*.
     """
 
     def __new__(cls, maximal):
@@ -184,16 +180,11 @@ class AtMost(ExpectedCallCount):
 
 
 class Between(ExpectedCallCount):
-    """Used to set a range of valid call counts.
+    """Used to set a range of expected call counts between *minimal* and
+    *maximal*, both included.
 
     If this is used, then expectation is said to be satisfied if actual call
-    count is not less than ``minimal`` and not greater than ``maximal``.
-
-    :param minimal:
-        Integer value representing minimal expected call count
-
-    :param maximal:
-        Integer value representing maximal expected call count
+    count is not less than *minimal* and not greater than *maximal*.
     """
 
     def __new__(cls, minimal, maximal):

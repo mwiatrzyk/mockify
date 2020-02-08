@@ -13,12 +13,24 @@
 Tutorial
 ========
 
+.. _creating-mocks:
+
 Creating mocks
 --------------
 
 Mockify provides :class:`mockify.mock.Mock` class for creating mocks. With
 that class you will be able to mock functions, objects with methods and
 properties and modules.
+
+.. _func-with-out-params:
+
+Mocking functions with output parameters
+----------------------------------------
+
+.. _managing-multiple-mocks:
+
+Managing multiple mocks
+-----------------------
 
 .. _recording-and-validating-expectations:
 

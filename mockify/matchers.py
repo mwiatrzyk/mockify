@@ -22,11 +22,15 @@ class Matcher(abc.ABC):
 
     @abc.abstractmethod
     def __repr__(self):
-        pass
+        """Return matcher's textual representation.
+
+        Pay attention to this, as it is later used to render string
+        representation of expected call parameters.
+        """
 
     @abc.abstractmethod
     def __eq__(self, other):
-        return False
+        """Check if *other* matches this matcher."""
 
     def __ne__(self, other):
         return not self.__eq__(other)

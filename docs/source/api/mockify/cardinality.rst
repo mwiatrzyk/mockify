@@ -15,5 +15,5 @@
 
 .. automodule:: mockify.cardinality
     :members:
-    :special-members: __eq__
+    :special-members: __str__
     :show-inheritance:

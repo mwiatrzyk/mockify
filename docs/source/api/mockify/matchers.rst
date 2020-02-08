@@ -15,4 +15,5 @@
 
 .. automodule:: mockify.matchers
     :members:
+    :special-members: __repr__, __eq__
     :show-inheritance:
