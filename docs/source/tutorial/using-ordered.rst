@@ -1,2 +1,0 @@
-Using **ordered()** context manager
-===================================

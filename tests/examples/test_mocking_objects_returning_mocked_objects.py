@@ -30,8 +30,8 @@ class TestItemRepositoryFacade:
         expected_result = [{'id': 1, 'name': 'foo'}]
 
         factory = MockFactory()
-        connection = factory.connection
-        response = factory.response
+        connection = factory.mock('connection')
+        response = factory.mock('response')
         connection.get.expect_call('/api/items').will_once(Return(response))
         response.json.expect_call().will_once(Return(expected_result))
 

@@ -25,7 +25,7 @@ current_year = datetime.now().year
 
 sys.path.insert(0, src_dir)
 
-from mockify import version
+from mockify import __version__
 
 
 # -- Project information -----------------------------------------------------
@@ -35,7 +35,7 @@ copyright = f"2018 - {current_year}, Maciej Wiatrzyk"
 author = 'Maciej Wiatrzyk'
 
 # The short X.Y version
-version = '.'.join(str(x) for x in version[:-1])
+version = '.'.join(str(x) for x in __version__[:-1])
 
 # The full version, including alpha/beta/rc tags
 release = '.'.join(str(x) for x in version)
@@ -198,3 +198,6 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 # Doctest
 doctest_default_flags = doctest.ELLIPSIS | doctest.DONT_ACCEPT_TRUE_FOR_1
+
+# Autodoc
+autodoc_member_order = 'bysource'  # Order as in source files

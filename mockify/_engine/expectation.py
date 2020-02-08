@@ -18,37 +18,22 @@ from ..cardinality import ActualCallCount, Exactly, AtLeast
 
 
 class Expectation:
-    """Class representing single expectation.
+    """An class representing single expectation.
 
-    Instances of this class are normally created by registry objects using
-    :meth:`Registry.expect_call` method. Each instance of this class is
-    correlated with exactly one :class:`mockify.engine.Call` object
-    representing expected mock call pattern.
+    Instances of this class are created and returned by factory
+    **expect_call()** method you will use to record expectations on your
+    mocks:
 
-    After :class:`Expectation` object is created by call to some
-    ``expect_call`` method, it can be mutated using following methods:
+    .. doctest::
 
-        * :meth:`times`
-        * :meth:`will_once`
-        * :meth:`will_repeatedly`
+        >>> from mockify.mock import Mock
+        >>> mock = Mock('mock')
+        >>> mock.expect_call(1, 2)
+        <mockify.Expectation: mock(1, 2)>
 
-    :param call:
-        Instance of :class:`mockify.engine.Call` representing expected mock
-        call pattern
-
-    :param filename:
-        File name were this expectation was created
-
-        .. deprecated:: 0.6
-            This parameter is no longer used and will be removed in one
-            of upcoming releases.
-
-    :param lineno:
-        Line number where this expectation was created
-
-        .. deprecated:: 0.6
-            This parameter is no longer used and will be removed in one
-            of upcoming releases.
+    :param expected_call:
+        Instance of :class:`Call` class containing parameters passed to
+        **expect_call()** factory method that created this expectation object.
     """
 
     class _ProxyBase:
@@ -236,13 +221,17 @@ class Expectation:
             self._expected_count = self._wrap_expected_count(expected_count)
             return self
 
-        def will_once(self, action):
-            self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
-            return tmp
+        # TODO: these will have to be done by another proxy, returned once you
+        # call times() on your mock. Without that, these actions will never get
+        # executed, so expectation will be broken...
 
-        def will_repeatedly(self, action):
-            self._next_proxy = tmp = self.__class__(action, self._expectation)
-            return self
+        # def will_once(self, action):
+        #     self._next_proxy = tmp = Expectation._ActionProxy(action, self._expectation)
+        #     return tmp
+
+        # def will_repeatedly(self, action):
+        #     self._next_proxy = tmp = self.__class__(action, self._expectation)
+        #     return tmp
 
     def __init__(self, expected_call):
         self._expected_call = expected_call
@@ -268,22 +257,16 @@ class Expectation:
         assert self._expected_call == call
         return self._next_proxy(call)
 
-    @property
-    def expected_call(self):
-        """Instance of :class:`mockify.engine.Call` representing expected mock
-        call pattern.
-
-        This basically is exactly the same :class:`Call` object as was passed
-        to :class:`Expectation` constructor.
-        """
-        return self._expected_call
-
-    def match(self, call):
-        """Check if :attr:`expected_call` matches ``call``."""
-        return self._expected_call == call
-
     def is_satisfied(self):
-        """Check if this expectation is satisfied."""
+        """Check if this expectation is satisfied.
+
+        Expectation object is satisfied if and only if:
+
+        * total number of calls is not exceeding expected number of calls,
+        * all actions (if any were recorded) are **consumed**.
+
+        :rtype: bool
+        """
         tmp = self._next_proxy
         while tmp is not None:
             if not tmp._is_satisfied():
@@ -291,56 +274,71 @@ class Expectation:
             tmp = getattr(tmp, '_next_proxy', None)
         return True
 
-    def times(self, expected_count):
-        """Record how many times this expectation is expected to be called.
+    def times(self, cardinality):
+        """Set expected number or range of call counts.
 
-        :param expected_count:
-            Expected call count.
+        Following values are possible:
 
-            This can be either integer number (exact call count) or instance of
-            one of classes from :mod:`mockify.times` module.
+        * integer number (for setting expected call count to fixed value),
+        * instance of :class:`mockify.cardinality.ExpectedCallCount` (for
+          setting expected call count to **ranged** value).
+
+        See :ref:`setting-expected-call-count` tutorial section for more
+        details.
         """
-        self._next_proxy = tmp = self._TimesProxy(expected_count, self)
+        self._next_proxy = tmp = self._TimesProxy(cardinality, self)
         return tmp
 
     def will_once(self, action):
-        """Attach action to be executed when this expectation gets consumed.
+        """Append next action to be executed when this expectation object
+        receives a call.
 
-        This method can be used several times, making action chains. Once
-        expectation is consumed, next action is executed and removed from the
-        list. If there are no more actions, another call will fail with
-        :exc:`mockify.exc.OversaturatedCall` exception.
+        Once this method is called, it returns special proxy object that you
+        can use to mutate this expectation even further by calling one of
+        given methods on that proxy:
 
-        After this method is used, you can also use :meth:`will_repeatedly` to
-        record repeated action that will get executed after all single actions
-        are consumed.
+        * **will_once()** (this one again),
+        * **will_repeatedly()** (see :meth:`will_repeatedly`).
 
-        :param action:
-            Action to be executed.
+        Thanks to that you can record so called **action chains** (see
+        :ref:`recording-action-chains` for more details).
 
-            See :mod:`mockify.actions` for details.
+        This method can be called with any action object from
+        :mod:`mockify.actions` as an argument.
         """
         self._next_proxy = tmp = self._ActionProxy(action, self)
         return tmp
 
     def will_repeatedly(self, action):
-        """Attach repeated action to be executed when this expectation is called.
+        """Attach so called **repeated action** to be executed when this
+        expectation is called.
 
-        This method is used to record one action that gets executed each time
-        this expectation object is called. By default, when repeated action is
-        recorded, expectation can be called any number of times (including
-        zero).
+        Unlike single actions, recorded with :meth:`will_once`, repeated
+        actions are by default executed any number of times, including zero
+        (see :ref:`recording-repeated-actions` for more details).
 
-        After setting repeated action, you can also set expected call count
-        using :meth:`times`.
+        Once this method is called, it returns a proxy object you can use to
+        adjust repeated action even more by calling one of following methods:
 
-        :param action:
-            Action to be executed.
+        * **times()**, used to record repeated action call count limits (see
+          :meth:`times`).
 
-            See :mod:`mockify.actions` for details.
+        This method accepts actions defined in :mod:`mockify.actions` module.
         """
         self._next_proxy = tmp = self._RepeatedActionProxy(action, self)
         return tmp
+
+    @property
+    def expected_call(self):
+        """Returns *expected_call* parameter passed during construction.
+
+        This is used when this expectation is compared with :class:`Call`
+        object representing **actual call**, to find expectations matching
+        that call.
+
+        :rtype: Call
+        """
+        return self._expected_call
 
     @property
     def actual_call_count(self):
@@ -359,13 +357,20 @@ class Expectation:
 
     @property
     def expected_call_count(self):
-        """Return :class:`mockify.cardinality.Cardinality` instance
-        representing expected number of mock calls."""
+        """Return object representing expected number of mock calls.
+
+        Like :attr:`actual_call_count`, this varies depending on internal
+        expectation object state.
+
+        :rtype: mockify.cardinality.ExpectedCallCount
+        """
         return self._next_proxy._expected_call_count
 
     @property
     def next_action(self):
-        """Return :class:`mockify.actions.Action` object representing next
-        action to be executed or ``None`` if there are no (more) actions
-        defined for this expectation object."""
+        """Return action to be executed when this expectation receives
+        another call or ``None`` if there are no (more) actions.
+
+        :rtype: mockify.actions.Action
+        """
         return self._next_proxy._next_action

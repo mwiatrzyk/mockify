@@ -67,7 +67,7 @@ class TestObservable:
 
     def test_observers_are_triggered_in_subscribe_order(self):
         factory = MockFactory()
-        first, second = factory.first, factory.second
+        first, second = factory.mock('first'), factory.mock('second')
 
         self.uut.subscribe(first)
         self.uut.subscribe(second)

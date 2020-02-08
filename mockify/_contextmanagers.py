@@ -21,10 +21,13 @@ from ._assert import assert_satisfied
 
 @contextmanager
 def ordered(*mocks):  # TODO: add more tests
-    """Preserve order in what expectations are defined.
+    """Context manager that checks if expectations in wrapped scope are
+    consumed in same order as they were defined.
 
-    Use this to wrap part of test code in which you run your unit under test.
-    This must be used after expectations are recorded.
+    This context manager will raise :exc:`mockify.exc.UnexpectedCallOrder`
+    assertion on first found mock that is executed out of specified order.
+
+    See :ref:`Recording ordered expectations` for more details.
     """
 
     def get_session():
@@ -45,8 +48,7 @@ def ordered(*mocks):  # TODO: add more tests
     def iter_expected_mock_names(mocks):
         for mock in mocks:
             for mock_info in MockInfo(mock).walk():
-                expectations = list(mock_info.expectations)
-                for expectation in expectations:
+                for expectation in mock_info.expectations():
                     yield expectation.expected_call.name
 
     session = get_session()
@@ -57,12 +59,20 @@ def ordered(*mocks):  # TODO: add more tests
 
 @contextmanager
 def patched(*mocks):
-    """Used to patch imported modules."""
+    """Context manager that replaces imported objects and functions with
+    their mocks using mock name as a name of patched module.
+
+    It will patch only functions or objects that have expectations recorded,
+    so all needed expectations will have to be recorded before this context
+    manager is used.
+
+    See :ref:`Patching imported modules` for more details.
+    """
 
     def iter_mocks_with_expectations(mocks):
         for mock in mocks:
             for mock_info in MockInfo(mock).walk():
-                next_expectation = next(mock_info.expectations, None)
+                next_expectation = next(mock_info.expectations(), None)
                 if next_expectation is not None:
                     yield mock_info.mock
 
@@ -82,7 +92,6 @@ def patched(*mocks):
 
 @contextmanager
 def satisfied(*mocks):
-    """Used to wrap tested code in order to check if it satisfies given
-    mocks."""
+    """Context manager wrapper for :func:`assert_satisfied`."""
     yield
     assert_satisfied(*mocks)

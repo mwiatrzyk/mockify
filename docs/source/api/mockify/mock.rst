@@ -10,9 +10,8 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.mock** - Classes for mocking things
-=============================================
+**mockify.mock** - Classes for creating and inspecting mocks
+============================================================
 
 .. automodule:: mockify.mock
     :members:
-    :show-inheritance:

@@ -85,13 +85,11 @@ class _ChildMock:
         else:
             return f"{parent._fullname}.{self._name}"
 
-    @property
     def _children(self):
         for obj in self.__dict__.values():
             if isinstance(obj, _ChildMock):
                 yield obj
 
-    @property
     def _expectations(self):
         return filter(
             lambda x: x.expected_call.name == self._fullname,
@@ -162,7 +160,11 @@ class _ExpectCallMock(_ChildMock):
 
 
 class MockInfo:
-    """Allows to read some metainformation from given *mock* object."""
+    """An object used to inspect given mock.
+
+    :param mock:
+        Instance of :class:`Mock` object to be inspected
+    """
 
     def __init__(self, mock):
         self._mock = mock
@@ -177,38 +179,53 @@ class MockInfo:
         """Name of target mock."""
         return self._mock._fullname
 
-    @property
     def expectations(self):
-        """An iterator over all expectations recorded for target mock."""
-        return self._mock._expectations
+        """An iterator over all :class:`mockify.Expectation` objects recorded
+        for target mock."""
+        return self._mock._expectations()
 
-    @property
     def children(self):
-        """An iterator over target mock's children."""
-        return self._mock._children
+        """An iterator over target mock's direct children.
+
+        It yields :class:`MockInfo` object for each target mock's
+        children.
+        """
+        for child in self._mock._children():
+            yield self.__class__(child)
 
     def walk(self):
-        """Recursively iterate over all target mock's children (including
-        target mock itself) in depth-first order and yield :class:`MockInfo`
-        object for each found mock.
+        """Recursively iterates over all target mock's children and yields
+        :class:`MockInfo` object for each found child.
+
+        It always yields itself (the info object for target mock) as first
+        element.
         """
 
-        def walk(mock):
-            yield self.__class__(mock)
-            for child_mock in self.__class__(mock).children:
-                yield from walk(child_mock)
+        def walk(mock_info):
+            yield mock_info
+            for child_info in mock_info.children():
+                yield from walk(child_info)
 
-        yield from walk(self._mock)
+        yield from walk(self)
 
 
 class MockFactory:
     """A factory class used to create groups of related mocks.
 
     This can be used if you need to create several mocks that need to be
-    checked all at once.
+    checked all at once or mocks that must share same
+    :class:`mockify.Session` object (some features require this).
 
     :param session:
         Instance of :class:`mockify.Session` to be used.
+
+        If not given, a default session will be created and shared across all
+        mocks created by this factory.
+
+    :param mock_class:
+        The class that will be used by this factory to create mocks.
+
+        By default it will use :class:`Mock` class.
     """
 
     def __init__(self, session=None, mock_class=None):
@@ -216,24 +233,18 @@ class MockFactory:
         self._mock_class = mock_class or Mock
         self._created_mocks = {}
 
-    def __getattr__(self, name):
-        if name not in self._created_mocks:
-            self._created_mocks[name] = self._mock_class(name, session=self._session)
-        return self._created_mocks[name]
-
     def mock(self, name):
+        """Create and return mock of given name."""
         if name not in self._created_mocks:
             self._created_mocks[name] = self._mock_class(name, session=self._session)
         return self._created_mocks[name]
 
-    @property
     def _children(self):
         return iter(self._created_mocks.values())
 
-    @property
     def _expectations(self):
         for mock in self._created_mocks.values():
-            yield from mock._expectations
+            yield from mock._expectations()
 
 
 class Mock(_ChildMock):

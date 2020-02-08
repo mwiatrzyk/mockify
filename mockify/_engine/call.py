@@ -16,9 +16,18 @@ from .. import exc, _utils, _globals
 
 
 class LocationInfo:
-    """Used to extract information about file location.
+    """A placeholder for file name and line number obtained from the stack.
+
+    Used by :class:`Call` objects to get their location in the code. That
+    information is later used in assertion messages.
 
     .. versionadded:: 1.0
+
+    :param filename:
+        Name of the file
+
+    :param lineno:
+        Line number in given file
     """
 
     def __init__(self, filename, lineno):
@@ -30,23 +39,37 @@ class LocationInfo:
             self._filename == other._filename and\
             self._lineno == other._lineno
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __str__(self):
         return f"{self._filename}:{self._lineno}"
 
     @property
     def filename(self):
+        """File name from stack."""
         return self._filename
 
     @property
     def lineno(self):
+        """Line number form stack."""
         return self._lineno
 
     @classmethod
     def get_external(cls):
+        """Factory method for creating instances of this class.
+
+        It extracts stack and finds (in reversed order) first frame that is
+        **outside** of the Mockify library. Thanks to this all mock calls or
+        expectation recordings will point to test function or tested code
+        that uses Mockify, not to Mockify's internals.
+
+        :rtype: LocationInfo
+        """
         stack = traceback.extract_stack()
         for frame in reversed(stack):
             if not frame.filename.startswith(_globals.ROOT_DIR) and\
-               not frame.filename.startswith('/usr/lib'):  # TODO: make this better
+               not frame.filename.startswith('/usr/lib'):  # FIXME: make this better
                 return cls(frame.filename, frame.lineno)
 
 
@@ -54,19 +77,20 @@ class Call:
     """An object representing mock call.
 
     Instances of this class are created when expectations are recorded or
-    when mock is called. The role of this class is to keep mock name and its
-    call params as a single object for easier comparison between expected and
-    actual mock calls.
+    when mock is called. Call objects are comparable. Two call objects are
+    equal if and only if:
 
-    This class also provides some basic stack info to be used for error
-    reporting (f.e. to display where failed expectation was defined).
+    * mock names are the same,
+    * args are the same,
+    * and keyword args are the same.
+
+    :param _name_:
+        The name of a mock
     """
 
-    def __init__(self, *args, **kwargs):
-        if not args:
-            raise TypeError("__init__() missing 1 required positional argument: 'name'")
-        self._name = args[0]
-        self._args = args[1:]
+    def __init__(self, _name_, *args, **kwargs):
+        self._name = _name_
+        self._args = args
         self._kwargs = kwargs
         self._location = LocationInfo.get_external()
         _utils.validate_mock_name(self._name)
@@ -90,27 +114,28 @@ class Call:
 
     @property
     def name(self):
-        """Mock name."""
+        """The name of a mock."""
         return self._name
 
     @property
     def args(self):
-        """Mock positional args."""
+        """Positional args mock was called with or is expected to be called
+        with."""
         return self._args
 
     @property
     def kwargs(self):
-        """Mock named args."""
+        """Keyword args mock was called with or is expected to be called
+        with."""
         return self._kwargs
 
     @property
     def location(self):
-        """Location (a tuple containing file name and line number) where this
-        call object was created.
+        """Information of place in test or tested code where this call object
+        was created.
 
         .. versionadded:: 1.0
 
-        This is used to display where failed expectation was declared or
-        where failed call was orinally made.
+        :rtype: LocationInfo
         """
         return self._location

@@ -17,7 +17,7 @@ class TestOrdered:
 
     def test_run_ordered_expectations_for_two_distinct_mocks(self):
         factory = MockFactory()
-        first, second = factory.first, factory.second
+        first, second = factory.mock('first'), factory.mock('second')
         first.expect_call(1, 2)
         second.expect_call()
         with satisfied(factory):

@@ -29,12 +29,6 @@ class TestLocationInfo:
 
 class TestCall:
 
-    def test_call_object_cannot_be_created_without_name(self):
-        with pytest.raises(TypeError) as excinfo:
-            call = Call()
-        assert str(excinfo.value) == "__init__() missing 1 required positional argument: 'name'"
-
-
     def test_create_call_object_with_name_only(self):
         call = Call('foo')
         assert str(call) == 'foo()'
@@ -42,7 +36,6 @@ class TestCall:
         assert call.name == 'foo'
         assert call.args == tuple()
         assert call.kwargs == {}
-
 
     def test_create_call_object_with_name_and_positional_args(self):
         call = Call('foo', 1, 'spam')
@@ -52,7 +45,6 @@ class TestCall:
         assert call.args == (1, 'spam')
         assert call.kwargs == {}
 
-
     def test_create_call_object_with_name_and_with_both_positional_and_keyword_args(self):
         call = Call('foo', 1, 'spam', c=2, b=3)
         assert str(call) == "foo(1, 'spam', b=3, c=2)"
@@ -61,7 +53,6 @@ class TestCall:
         assert call.args == (1, 'spam')
         assert call.kwargs == {'c': 2, 'b': 3}
 
-
     @pytest.mark.parametrize('first, second', [
         (Call('foo'), Call('foo')),
         (Call('foo', 1, 2), Call('foo', 1, 2)),
@@ -69,7 +60,6 @@ class TestCall:
     ])
     def test_two_call_objects_are_equal_if_names_and_params_are_equal(self, first, second):
         assert first == second
-
 
     @pytest.mark.parametrize('first, second', [
         (Call('foo'), Call('bar')),
@@ -81,12 +71,10 @@ class TestCall:
     def test_two_call_objects_are_not_equal_if_they_have_different_names_different_arg_values_or_different_args_count(self, first, second):
         assert first != second
 
-
     def test_call_location(self):
         call = Call('foo')
         frameinfo = getframeinfo(currentframe())
         assert call.location == LocationInfo(__file__, frameinfo.lineno - 1)
-
 
     @pytest.mark.parametrize('invalid_name', [
         '!@$asd', '123', '1abc', '', # Invalid identifier
@@ -98,7 +86,6 @@ class TestCall:
         with pytest.raises(TypeError) as excinfo:
             call = Call(invalid_name)
         assert str(excinfo.value) == f"Mock name must be a valid Python identifier, got {invalid_name!r} instead"
-
 
     @pytest.mark.parametrize('namespaced_name', [
         'foo.bar',
