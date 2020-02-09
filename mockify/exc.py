@@ -62,6 +62,32 @@ class UnexpectedCall(MockifyAssertion):
     :exc:`UninterestedCall` exception, this one signals that there are
     expectations set for mock that was called.
 
+    For example, we have expectation defined like this:
+
+    .. testcode::
+
+        from mockify.mock import Mock
+
+        mock = Mock('mock')
+        mock.expect_call(1, 2)
+
+    And if the mock is now called f.e. without params, this exception will be
+    raised:
+
+    .. doctest::
+
+        >>> mock()
+        Traceback (most recent call last):
+            ...
+        mockify.exc.UnexpectedCall: No matching expectations found for call:
+        <BLANKLINE>
+        at <doctest default[0]>:1
+        -------------------------
+        Called:
+          mock()
+        Expected (any of):
+          mock(1, 2)
+
     .. versionadded:: 1.0
 
     :param actual_call:
@@ -103,8 +129,10 @@ class UnexpectedCallOrder(MockifyAssertion):
     """Raised when mock was called but another one is expected to be called
     before.
 
-    This can only be raised if you use ordered expectations. See
-    :func:`mockify.ordered` for more details.
+    This can only be raised if you use ordered expectations with
+    :func:`mockify.ordered` context manager.
+
+    See :ref:`recording-ordered-expectations` for more details.
 
     .. versionadded:: 1.0
 
@@ -143,8 +171,9 @@ class UnexpectedCallOrder(MockifyAssertion):
 class UninterestedCall(MockifyAssertion):
     """Raised when call is made to a mock that has no expectations set.
 
-    This exception can be disabled by changing unexpected call strategy. See
-    :class:`mockify.Session` for more details.
+    This exception can be disabled by changing unexpected call strategy using
+    :attr:`mockify.Session.config` attribute (however, you will have to
+    manually create and share session object to change that).
 
     :param actual_call:
         The call that was made
@@ -217,9 +246,9 @@ class OversaturatedCall(MockifyAssertion):
 class Unsatisfied(MockifyAssertion):
     """Raised when unsatisfied expectations are present.
 
-    This can only be raised by either :func:`mockify.satisfied` or
-    :meth:`mockify.Session.done`. You'll not get this exception when mock is
-    called.
+    This can only be raised by either :func:`mockify.satisfied`
+    :func:`mockify.assert_satisfied` or :meth:`mockify.Session.done`. You'll
+    not get this exception when mock is called.
 
     :param unsatisfied_expectations:
         List of all unsatisfied expectations found
