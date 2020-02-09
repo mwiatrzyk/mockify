@@ -5,5 +5,6 @@ __pycache___
 .pytest_cache
 .idea
 .vscode
+mockify/_version.py
 docs/build
 Pipfile.lock

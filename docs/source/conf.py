@@ -34,12 +34,13 @@ project = 'Mockify'
 copyright = f"2018 - {current_year}, Maciej Wiatrzyk"
 author = 'Maciej Wiatrzyk'
 
-# The short X.Y version
-version = '.'.join(str(x) for x in __version__[:-1])
-
 # The full version, including alpha/beta/rc tags
-release = '.'.join(str(x) for x in version)
+release = __version__
 
+# The short X.Y version
+version = release.rsplit('.', 3)[0]
+print(release)
+print(version)
 
 # -- General configuration ---------------------------------------------------
 
