@@ -30,42 +30,73 @@ class Matcher(abc.ABC):
 
     @abc.abstractmethod
     def __eq__(self, other):
-        """Check if *other* matches this matcher."""
+        """Check if *other* can be accepted by this matcher."""
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __or__(self, other):
-        return Alt(self, other)
+        return AnyOf(self, other)
+
+    def __and__(self, other):
+        return AllOf(self, other)
 
 
-class Alt(Matcher):
-    """A matcher that can match against set of other matchers.
+class AnyOf(Matcher):
+    """Matches any value from given list of *values*.
 
-    If a value matches to at least one matcher, then match is found.
+    You can also use matchers in *values*.
 
     .. versionadded:: 1.0
     """
 
-    def __init__(self, *matchers):
-        self._matchers = matchers
+    def __init__(self, *values):
+        self._values = values
 
     def __repr__(self):
-        return '|'.join(repr(x) for x in self._matchers)
+        return '|'.join(repr(x) for x in self._values)
 
     def __eq__(self, other):
-        for matcher in self._matchers:
-            if matcher == other:
+        for value in self._values:
+            if value == other:
                 return True
         else:
             return False
 
 
+class AllOf(Matcher):
+    """Matches if and only if received value is equal to all given
+    *values*.
+
+    You can also use matchers in *values*.
+
+    .. versionadded:: 1.0
+    """
+
+    def __init__(self, *values):
+        self._values = values
+
+    def __repr__(self):
+        return ' & '.join(repr(x) for x in self._values)
+
+    def __eq__(self, other):
+        for value in self._values:
+            if value != other:
+                return False
+        else:
+            return True
+
+
 class Any(Matcher):
-    """Matcher that matches any value.
+    """Matches any value.
 
     This can be used as a wildcard, when you care about number of arguments
-    in your expectation, not their values or types.
+    in your expectation, not their values or types. This can also be imported
+    as underscore:
+
+    .. testcode::
+
+        from mockify.matchers import _
     """
 
     def __repr__(self):
@@ -76,11 +107,10 @@ class Any(Matcher):
 
 
 class Type(Matcher):
-    """A matcher that checks if given object is instance of one of given
-    types.
+    """Matches any value that is instance of one of given *types*.
 
     This is useful to record expectations where we do not care about expected
-    value, but we care about expected value type.
+    value, but we do care about expected value type.
 
     .. versionadded:: 1.0
     """
@@ -97,33 +127,15 @@ class Type(Matcher):
                 raise TypeError(f"__init__() requires type instances, got {type_!r}")
 
     def __repr__(self):
-        return f"Type({', '.join(x.__name__ for x in self._types)})"
+        return f"{self.__class__.__name__}({', '.join(x.__name__ for x in self._types)})"
 
     def __eq__(self, other):
         return isinstance(other, *self._types)
 
 
-class Value(Matcher):
-    """A matcher that can match any of given fixed values.
-
-    .. versionadded:: 1.0
-    """
-
-    def __init__(self, *values):
-        if not values:
-            raise TypeError('__init__() requires at least 1 positional argument, got 0')
-        self._values = values
-
-    def __repr__(self):
-        return f"Value({', '.join(repr(x) for x in self._values)})"
-
-    def __eq__(self, other):
-        return other in self._values
-
-
 class Regex(Matcher):
-    """A matcher that will match string values that match given regular
-    expression pattern.
+    """Matches value if it is a string that matches given regular expression
+    *pattern*.
 
     .. versionadded:: 1.0
     """
@@ -132,11 +144,30 @@ class Regex(Matcher):
         self._pattern = re.compile(pattern)
 
     def __repr__(self):
-        return f"Regex({self._pattern.pattern!r})"
+        return f"{self.__class__.__name__}({self._pattern.pattern!r})"
 
     def __eq__(self, other):
         return isinstance(other, str) and\
             self._pattern.match(other) is not None
+
+
+class Func(Matcher):
+    """Matches value if *func* returns ``True`` for that value.
+
+    This is the most generic matcher as you can use your own match function
+    if needed.
+
+    .. versionadded:: 1.0
+    """
+
+    def __init__(self, func):
+        self._func = func
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._func!r})"
+
+    def __eq__(self, other):
+        return self._func(other)
 
 
 _ = Any()

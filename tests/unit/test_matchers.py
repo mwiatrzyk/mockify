@@ -13,7 +13,7 @@ import pytest
 
 from mockify import exc, satisfied, Call
 from mockify.mock import Mock
-from mockify.matchers import _, Type, Value, Regex
+from mockify.matchers import _, Type, Regex, AnyOf, Func
 
 
 class TestAny:
@@ -85,40 +85,6 @@ class TestType:
         assert str(excinfo.value) == "__init__() requires type instances, got 'spam'"
 
 
-class TestValue:
-
-    @pytest.mark.parametrize('values, expected_repr', [
-        ((1, ), "mock(Value(1))"),
-        (('foo', 'bar'), "mock(Value('foo', 'bar'))"),
-    ])
-    def test_expected_call_formatting(self, values, expected_repr):
-        mock = Mock('mock')
-        expectation = mock.expect_call(Value(*values))
-        assert str(expectation.expected_call) == expected_repr
-
-    def test_successful_match(self):
-        mock = Mock('mock')
-        mock.expect_call(Value('spam'))
-        with satisfied(mock):
-            mock('spam')
-
-    def test_when_match_is_not_found__then_raise_unexpected_call_error(self):
-        mock = Mock('mock')
-        mock.expect_call(Value('spam'))
-        with pytest.raises(exc.UnexpectedCall) as excinfo:
-            with satisfied(mock):
-                mock('more spam')
-        value = excinfo.value
-        assert value.actual_call == Call('mock', 'more spam')
-        assert len(value.expected_calls) == 1
-        assert str(value.expected_calls[0]) == "mock(Value('spam'))"
-
-    def test_when_matcher_is_created_without_args__then_fail_with_type_error(self):
-        with pytest.raises(TypeError) as excinfo:
-            Value()
-        assert str(excinfo.value) == "__init__() requires at least 1 positional argument, got 0"
-
-
 class TestRegex:
 
     def test_expected_call_formatting(self):
@@ -144,23 +110,23 @@ class TestRegex:
         assert str(value.expected_calls[0]) == "mock(Regex('[0-9]+'))"
 
 
-class TestAlt:
+class TestAnyOf:
 
     def test_expected_call_formatting(self):
         mock = Mock('mock')
-        expectation = mock.expect_call(Type(int, float) | Value('spam'))
-        assert str(expectation.expected_call) == "mock(Type(int, float)|Value('spam'))"
+        expectation = mock.expect_call(Type(int, float) | 'spam')
+        assert str(expectation.expected_call) == "mock(Type(int, float)|'spam')"
 
     def test_successful_match(self):
         mock = Mock('mock')
-        mock.expect_call(Type(int) | Value('spam')).times(2)
+        mock.expect_call(Type(int) | 'spam').times(2)
         with satisfied(mock):
             mock(123)
             mock('spam')
 
     def test_successful_match_against_triple_alternative(self):
         mock = Mock('mock')
-        mock.expect_call(Type(int)|Type(float)|Value('spam')).times(3)
+        mock.expect_call(Type(int)|Type(float)|'spam').times(3)
         with satisfied(mock):
             mock(123)
             mock(3.14)
@@ -168,11 +134,35 @@ class TestAlt:
 
     def test_when_match_is_not_found__then_raise_unexpected_call_error(self):
         mock = Mock('mock')
-        mock.expect_call(Type(int)|Value('spam'))
+        mock.expect_call(Type(int)|'spam')
         with pytest.raises(exc.UnexpectedCall) as excinfo:
             with satisfied(mock):
                 mock(3.14)
         value = excinfo.value
         assert value.actual_call == Call('mock', 3.14)
         assert len(value.expected_calls) == 1
-        assert str(value.expected_calls[0]) == "mock(Type(int)|Value('spam'))"
+        assert str(value.expected_calls[0]) == "mock(Type(int)|'spam')"
+
+
+class TestAllOf:
+
+    def test_expected_call_formatting(self):
+        mock = Mock('mock')
+        expectation = mock.expect_call(Type(int) & 123)
+        assert str(expectation.expected_call) == "mock(Type(int) & 123)"
+
+    def test_successful_match(self):
+        mock = Mock('mock')
+        mock.expect_call(Type(int) & AnyOf(123, 456)).times(2)
+        with satisfied(mock):
+            mock(123)
+            mock(456)
+
+    def test_successful_match_against_triple_conjunction(self):
+        mock = Mock('mock')
+        mock.expect_call(
+            Type(int) & Func(lambda x: x > 0) & Func(lambda x: x < 10)
+        ).times(2)
+        with satisfied(mock):
+            mock(1)
+            mock(9)

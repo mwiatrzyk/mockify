@@ -93,7 +93,7 @@ class _ChildMock:
     def _expectations(self):
         return filter(
             lambda x: x.expected_call.name == self._fullname,
-            self._session.expectations)
+            self._session.expectations())
 
 
 class _GetAttrMock(_ChildMock):
@@ -144,7 +144,7 @@ class _ExpectCallMock(_ChildMock):
         super().__init__('expect_call', session, parent)
 
     def __call__(self, *args, **kwargs):
-        query = _utils.IterableQuery(self._session.expectations)
+        query = _utils.IterableQuery(self._session.expectations())
         if query.exists(lambda x: x.expected_call.name == self._fullname):
             return self._call(*args, **kwargs)
         else:

@@ -12,11 +12,11 @@ import warnings
 import itertools
 import collections
 
-from .. import exc
+from .. import exc, _config
 from .expectation import Expectation
 
 
-class Config:
+class _Config:
 
     def __init__(self):
         self._config = {
@@ -38,24 +38,63 @@ class Config:
 
 
 class Session:
-    """Used to create repositories for :class:`mockify.Expectation`
-    instances."""
+    """A class providing core logic of connecting mock calls with recorded
+    expectations.
+
+    Sessions are created for each mock automatically, or can be created
+    explicitly and then shared across multiple mocks. While mock classes can
+    be seen as som kind of frontends that mimic behavior of various Python
+    constructs, session instances are some kind of backends that receive
+    :class:`mockify.Call` instances created by mocks during either mock call,
+    or expectation recording.
+
+    .. versionchanged:: 1.0
+        Previously this was named **Registry**.
+    """
 
     def __init__(self):
         self._unordered_expectations = []
         self._ordered_expectations = collections.deque()
         self._ordered_expectations_enabled_for = set()
-        self._config = Config()
+        self._config = _config.Config({
+            'uninterested_call_strategy':
+                _config.Enum(['fail', 'warn', 'ignore'], default='fail'),
+            'expectation_class':
+                _config.Type(Expectation, default=Expectation),
+        })
 
     @property
     def config(self):
-        """Set or get configuration options for this session.
+        """A dictionary-like object for configuring sessions.
 
-        This property returns a configuration object providing following
-        methods:
+        Following options are currently available:
 
-        * **get(key)** for getting option matching *key*,
-        * and **set(key, value)** for setting option *key* to given *value*.
+        ``'expectation_class'``
+            Can be used to override expectation class used when expectations
+            are recorded.
+
+            By default, this is :class:`mockify.Expectation`, and there is a
+            requirement that custom class must inherit from original one.
+
+        ``'uninterested_call_strategy'``
+            Used to set a way of processing so called **unexpected calls**,
+            i.e. calls to mocks that has no expectations recorded. Following
+            values are supported:
+
+            ``'fail'``
+                This is default option.
+
+                When mock is called unexpectedly,
+                :exc:`mockify.exc.UninterestedCall` exception is raised and
+                test is terminated.
+
+            ``'warn'``
+                Instead of raising exception,
+                :exc:`mockify.exc.UninterestedCallWarning` warning is issued,
+                and test continues.
+
+            ``'ignore'``
+                Unexpected calls are silently ignored.
         """
         return self._config
 
@@ -63,9 +102,12 @@ class Session:
         """Trigger expectation matching *actual_call* received from mock
         being called.
 
-        This method compares given *actual_call* with
-        :attr:`mockify.Expectation.expected_call` attribute of each
-        expectation to find a one that matches the call.
+        This method is called on every mock call and basically all actual
+        call processing takes place here. Values returned or exceptions
+        raised by this method are also returned or raised by mock.
+
+        :param actual_call:
+            Instance of :class:`mockify.Call` class created by calling mock.
         """
         if self._is_ordered(actual_call):
             return self.__call_ordered(actual_call)
@@ -84,7 +126,7 @@ class Session:
             raise exc.UnexpectedCallOrder(actual_call, head.expected_call)
 
     def __call_unordered(self, actual_call):
-        found_by_call = [x for x in self.expectations if x.expected_call == actual_call]
+        found_by_call = [x for x in self.expectations() if x.expected_call == actual_call]
         if not found_by_call:
             return self.__handle_uninterested_call(actual_call)
         for expectation in found_by_call:
@@ -103,29 +145,57 @@ class Session:
             warnings.warn(str(actual_call), exc.UninterestedCallWarning)
 
     def __handle_uninterested_call_using_fail_strategy(self, actual_call):
-        found_by_name = [x.expected_call for x in self.expectations if x.expected_call.name == actual_call.name]
+        found_by_name = [x.expected_call for x in self.expectations() if x.expected_call.name == actual_call.name]
         if not found_by_name:
             raise exc.UninterestedCall(actual_call)
         else:
             raise exc.UnexpectedCall(actual_call, found_by_name)
 
-    @property
     def expectations(self):
+        """An iterator over all expectations recorded in this session.
+
+        Yields :class:`mockify.Expectation` instances.
+        """
         return itertools.chain(
             self._unordered_expectations,
             self._ordered_expectations)
 
     def expect_call(self, expected_call):
-        expectation = Expectation(expected_call)
+        """Called by mock when expectation is recorded on it.
+
+        This method creates expectation object, adds it to the list of
+        expectations, and returns.
+
+        :rtype: mockify.Expectation
+
+        :param expected_call:
+            Instance of :class:`mockify.Call` created by mock when
+            **expect_call()** was called on it.
+
+            Represents parameters the mock is expected to be called with.
+        """
+        expectation_class = self.config['expectation_class']
+        expectation = expectation_class(expected_call)
         self._unordered_expectations.append(expectation)
         return expectation
 
-    def done(self):
-        unsatisfied_expectations = [x for x in self.expectations if not x.is_satisfied()]
+    def assert_satisfied(self):
+        """Check if all registered expectations are satisfied.
+
+        This works exactly the same as :func:`mockify.assert_satisfied`, but
+        for given session only. Can be used as a replacement for any other
+        checks if one global session object is used.
+        """
+        unsatisfied_expectations = [x for x in self.expectations() if not x.is_satisfied()]
         if unsatisfied_expectations:
             raise exc.Unsatisfied(unsatisfied_expectations)
 
     def enable_ordered(self, names):
+        """Mark expectations matching given mock *names* as **ordered**, so
+        they will have to be resolved in their declaration order.
+
+        This is used internally by :func:`mockify.ordered`.
+        """
         self._ordered_expectations_enabled_for = set(names)
         unordered_expectations = list(self._unordered_expectations)
         self._unordered_expectations = []
@@ -137,6 +207,12 @@ class Session:
                 self._unordered_expectations.append(expectation)
 
     def disable_ordered(self):
+        """Called by :func:`mockify.ordered` when processing of ordered
+        expectations is done.
+
+        Moves any remaining expectations back to the **unordered** storage,
+        so they will be later displayed as unsatisfied.
+        """
         if self._ordered_expectations:
             self._unordered_expectations.extend(self._ordered_expectations)
         self._ordered_expectations = []

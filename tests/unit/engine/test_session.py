@@ -22,19 +22,19 @@ class TestContext:
         self.uut = Session()
 
     def test_newly_created_session_does_not_throw_unsatisfied_when_done_is_called(self):
-        self.uut.done()
+        self.uut.assert_satisfied()
 
     def test_if_expectation_is_recorded_and_consumed__then_session_is_satisfied(self):
         expected_call = Call('foo')
         self.uut.expect_call(expected_call).will_once(Return(123))
         assert self.uut(expected_call) == 123
-        self.uut.done()
+        self.uut.assert_satisfied()
 
     def test_if_expectation_is_recorded_but_not_consumed__then_session_is_not_satisfied(self, assert_that):
         expected_call = Call('foo')
         self.uut.expect_call(expected_call)
         with pytest.raises(exc.Unsatisfied) as excinfo:
-            self.uut.done()
+            self.uut.assert_satisfied()
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert_that.object_attr_match(expectations[0],
@@ -66,7 +66,7 @@ class TestContext:
         assert self.uut(expected_call) == 123
         assert self.uut(expected_call) == 123
         with pytest.raises(exc.Unsatisfied) as excinfo:
-            self.uut.done()
+            self.uut.assert_satisfied()
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert_that.object_attr_match(expectations[0],
@@ -81,7 +81,7 @@ class TestContext:
         self.uut.expect_call(second_expected_call).will_once(Return(2))
         assert self.uut(first_expected_call) == 1
         assert self.uut(second_expected_call) == 2
-        self.uut.done()
+        self.uut.assert_satisfied()
 
     def test_if_expectation_recorded_twice_but_called_once__then_context_is_not_satisfied(self, assert_that):
         expected_call = Call('foo')
@@ -89,7 +89,7 @@ class TestContext:
         self.uut.expect_call(expected_call).will_once(Return(2))
         assert self.uut(expected_call) == 1
         with pytest.raises(exc.Unsatisfied) as excinfo:
-            self.uut.done()
+            self.uut.assert_satisfied()
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert_that.object_attr_match(expectations[0],
@@ -104,21 +104,23 @@ class TestContext:
         self.uut.expect_call(expected_call).will_once(Return(2))
         assert self.uut(expected_call) == 1
         assert self.uut(expected_call) == 2
-        self.uut.done()
+        self.uut.assert_satisfied()
 
     def test_if_uninterested_call_strategy_set_to_ignore__then_do_nothing_on_uninterested_calls(self):
-        self.uut.config.set('uninterested_call_strategy', 'ignore')
+        self.uut.config['uninterested_call_strategy'] = 'ignore'
         assert self.uut(Call('foo')) is None
 
     def test_if_uninterested_call_strategy_set_to_warn__then_issue_warning_on_uninterested_calls(self):
-        self.uut.config.set('uninterested_call_strategy', 'warn')
+        self.uut.config['uninterested_call_strategy'] = 'warn'
         with pytest.warns(exc.UninterestedCallWarning, match='foo()'):
             assert self.uut(Call('foo')) is None
 
     def test_if_uninterested_call_strategy_set_to_an_invalid_value__then_issue_value_error(self):
         with pytest.raises(ValueError) as excinfo:
-            self.uut.config.set('uninterested_call_strategy', 'dummy')
-        assert str(excinfo.value) == "Invalid value for 'uninterested_call_strategy' config option given: 'dummy'"
+            self.uut.config['uninterested_call_strategy'] = 'dummy'
+        assert str(excinfo.value) ==\
+            "Invalid value for 'uninterested_call_strategy' config option given: "\
+            "expected any of ('fail', 'warn', 'ignore'), got 'dummy'"
 
     def test_when_ordered_mocks_are_called_in_invalid_order__then_fail_with_unexpected_call_order_error(self):
         first = Call('first')
@@ -138,6 +140,6 @@ class TestContext:
         self.uut.enable_ordered([first.name])
         self.uut.disable_ordered()
         with pytest.raises(exc.Unsatisfied) as excinfo:
-            self.uut.done()
+            self.uut.assert_satisfied()
         assert len(excinfo.value.unsatisfied_expectations) == 1
         assert excinfo.value.unsatisfied_expectations[0] == first_expectation
