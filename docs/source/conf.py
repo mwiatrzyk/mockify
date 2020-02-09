@@ -36,11 +36,11 @@ author = 'Maciej Wiatrzyk'
 
 # The full version, including alpha/beta/rc tags
 release = __version__
+print('Release: ', release)
 
 # The short X.Y version
-version = release.rsplit('.', 3)[0]
-print(release)
-print(version)
+version = '.'.join(release.split('.', 2))
+print('Version: ', version)
 
 # -- General configuration ---------------------------------------------------
 

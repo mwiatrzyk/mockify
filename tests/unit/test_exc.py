@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/unit/_test_exc.py
+# tests/unit/test_exc.py
 #
 # Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 #
