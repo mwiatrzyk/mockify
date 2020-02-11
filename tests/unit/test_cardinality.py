@@ -93,8 +93,8 @@ class TestExactly:
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].next_action == Return(2)
-        assert expectations[0].actual_call_count == 1
-        assert expectations[0].expected_call_count == Exactly(2)
+        assert expectations[0].actual_call_count == 2
+        assert expectations[0].expected_call_count == Exactly(3)
 
     def test_when_repeated_action_expected_to_be_called_twice_and_was_called_three_times__then_mock_is_not_satisfied(self):
         mock = Mock('mock')
@@ -107,8 +107,8 @@ class TestExactly:
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
         assert expectations[0].next_action == Return(2)
-        assert expectations[0].actual_call_count == 3
-        assert expectations[0].expected_call_count == Exactly(2)
+        assert expectations[0].actual_call_count == 4
+        assert expectations[0].expected_call_count == Exactly(3)
 
     def test_when_repeated_action_expected_to_be_called_twice_and_was_called_twice__then_mock_is_satisfied(self):
         mock = Mock('mock')

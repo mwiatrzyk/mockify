@@ -149,7 +149,7 @@ def test_when_mock_has_two_single_actions_defined_and_is_never_called__then_unsa
     assert_attr_match(expectations[0],
         expected_call=Call('mock'),
         actual_call_count=0,
-        expected_call_count=Exactly(1),
+        expected_call_count=Exactly(2),
         next_action=Return(1))
 
 
@@ -162,8 +162,8 @@ def test_when_mock_has_two_single_actions_defined_and_is_called_once__then_first
     assert len(expectations) == 1
     assert_attr_match(expectations[0],
         expected_call=Call('mock'),
-        actual_call_count=0,
-        expected_call_count=Exactly(1),
+        actual_call_count=1,
+        expected_call_count=Exactly(2),
         next_action=Return(2))
 
 
@@ -176,7 +176,7 @@ def test_when_mock_has_one_action_but_is_called_twice__then_oversaturated_call_i
     assert value.actual_call == Call('mock')
     assert_attr_match(value.oversaturated_expectation,
         expected_call=Call('mock'),
-        actual_call_count=1,
+        actual_call_count=2,
         expected_call_count=Exactly(1))
 
 

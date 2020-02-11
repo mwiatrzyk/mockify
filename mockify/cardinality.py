@@ -56,6 +56,10 @@ class ActualCallCount:
         self._value += other
         return self
 
+    @property
+    def value(self):
+        return self._value
+
 
 class ExpectedCallCount(abc.ABC):
     """Abstract base class for classes used to set expected call count on
@@ -85,6 +89,11 @@ class ExpectedCallCount(abc.ABC):
     @abc.abstractmethod
     def match(self, actual_call_count):
         """Check if *actual_call_count* matches expected call count."""
+
+    @abc.abstractmethod
+    def adjust_minimal(self, minimal):
+        """Make a new cardinality object based on its current state and given
+        *minimal*."""
 
     @abc.abstractmethod
     def format_params(self, *args, **kwargs):
@@ -122,6 +131,9 @@ class Exactly(ExpectedCallCount):
     def match(self, actual_call_count):
         return self.expected == actual_call_count
 
+    def adjust_minimal(self, minimal):
+        return Exactly(self.expected + minimal)
+
     def format_params(self):
         return super().format_params(self.expected)
 
@@ -146,6 +158,9 @@ class AtLeast(ExpectedCallCount):
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal
+
+    def adjust_minimal(self, minimal):
+        return AtLeast(self.minimal + minimal)
 
     def format_params(self):
         return super().format_params(self.minimal)
@@ -174,6 +189,9 @@ class AtMost(ExpectedCallCount):
 
     def match(self, actual_call_count):
         return actual_call_count <= self.maximal
+
+    def adjust_minimal(self, minimal):
+        return Between(minimal, self.maximal + minimal)
 
     def format_params(self):
         return super().format_params(self.maximal)
@@ -209,6 +227,9 @@ class Between(ExpectedCallCount):
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal and\
             actual_call_count <= self.maximal
+
+    def adjust_minimal(self, minimal):
+        return Between(self.minimal + minimal, self.maximal + maximal)
 
     def format_params(self):
         return super().format_params(self.minimal, self.maximal)
