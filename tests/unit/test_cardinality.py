@@ -92,7 +92,7 @@ class TestExactly:
                 assert mock() == 2
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
-        assert expectations[0].next_action == Return(2)
+        assert expectations[0].action == Return(2)
         assert expectations[0].actual_call_count == 2
         assert expectations[0].expected_call_count == Exactly(3)
 
@@ -106,7 +106,7 @@ class TestExactly:
                     assert mock() == 2
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
-        assert expectations[0].next_action == Return(2)
+        assert expectations[0].action == Return(2)
         assert expectations[0].actual_call_count == 4
         assert expectations[0].expected_call_count == Exactly(3)
 
@@ -171,7 +171,7 @@ class TestAtLeast:
                 pass
         expectations = excinfo.value.unsatisfied_expectations
         assert len(expectations) == 1
-        assert expectations[0].next_action == Return(1)
+        assert expectations[0].action == Return(1)
         assert expectations[0].actual_call_count == 0
         assert expectations[0].expected_call_count == AtLeast(1)
 

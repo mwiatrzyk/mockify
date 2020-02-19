@@ -136,7 +136,7 @@ def test_when_mock_has_action_defined_to_be_called_once_and_is_never_called__the
         expected_call=Call('mock'),
         actual_call_count=0,
         expected_call_count=Exactly(1),
-        next_action=Return(1))
+        action=Return(1))
 
 
 def test_when_mock_has_two_single_actions_defined_and_is_never_called__then_unsatisfied_is_raised(mock):
@@ -150,7 +150,7 @@ def test_when_mock_has_two_single_actions_defined_and_is_never_called__then_unsa
         expected_call=Call('mock'),
         actual_call_count=0,
         expected_call_count=Exactly(2),
-        next_action=Return(1))
+        action=Return(1))
 
 
 def test_when_mock_has_two_single_actions_defined_and_is_called_once__then_first_action_is_consumed_and_unsatisfied_is_raised(mock):
@@ -164,7 +164,7 @@ def test_when_mock_has_two_single_actions_defined_and_is_called_once__then_first
         expected_call=Call('mock'),
         actual_call_count=1,
         expected_call_count=Exactly(2),
-        next_action=Return(2))
+        action=Return(2))
 
 
 def test_when_mock_has_one_action_but_is_called_twice__then_oversaturated_call_is_raised(mock):
@@ -176,7 +176,7 @@ def test_when_mock_has_one_action_but_is_called_twice__then_oversaturated_call_i
     assert value.actual_call == Call('mock')
     assert_attr_match(value.oversaturated_expectation,
         expected_call=Call('mock'),
-        actual_call_count=2,
+        actual_call_count=1,
         expected_call_count=Exactly(1))
 
 
@@ -190,7 +190,7 @@ def test_if_mock_has_same_action_recorded_twice_using_will_once_and_is_not_calle
         expected_call=Call('mock'),
         actual_call_count=0,
         expected_call_count=Exactly(2),
-        next_action=Return(1))
+        action=Return(1))
 
 
 def test_if_mock_has_same_action_recorded_twice_using_will_once_and_is_called_once__then_expected_call_count_is_two(mock):
@@ -203,7 +203,7 @@ def test_if_mock_has_same_action_recorded_twice_using_will_once_and_is_called_on
         expected_call=Call('mock'),
         actual_call_count=1,
         expected_call_count=Exactly(2),
-        next_action=Return(1))
+        action=Return(1))
 
 
 def test_if_mock_has_same_action_recorded_twice_using_will_once_and_again_using_will_repeatedly__then_expected_call_count_is_at_least_twice(mock):
@@ -216,4 +216,4 @@ def test_if_mock_has_same_action_recorded_twice_using_will_once_and_again_using_
         expected_call=Call('mock'),
         actual_call_count=0,
         expected_call_count=AtLeast(2),
-        next_action=Return(1))
+        action=Return(1))

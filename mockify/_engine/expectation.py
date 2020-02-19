@@ -8,13 +8,23 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
 import weakref
 import warnings
 import collections
 
+from enum import Enum
+
 from .. import exc, _utils
 from .call import Call
+from ..actions import Return
 from ..cardinality import ActualCallCount, ExpectedCallCount, Exactly, AtLeast
+
+
+class _ActionType(Enum):
+    DEFAULT = 'default'
+    SINGLE = 'single'
+    REPEATED = 'repeated'
 
 
 class Expectation:
@@ -38,7 +48,9 @@ class Expectation:
 
     def __init__(self, expected_call):
         self._expected_call = expected_call
-        self._state = self._InitialState(self)
+        self._action_store = self._ActionStore()
+        self._action_store.add(
+            self._ActionProxy(_ActionType.DEFAULT, Return(None), Exactly(1)))
 
     def __repr__(self):
         return "<mockify.{}: {}>".format(self.__class__.__name__, self._expected_call)
@@ -58,7 +70,7 @@ class Expectation:
             * if there are no actions recorded, just ``None`` is returned
         """
         assert self.expected_call == actual_call
-        return self._state(actual_call)
+        return self._action_store(actual_call, self)
 
     def is_satisfied(self):
         """Check if this expectation is satisfied.
@@ -70,7 +82,7 @@ class Expectation:
 
         :rtype: bool
         """
-        return self._state._is_satisfied()
+        return self.expected_call_count.match(self.actual_call_count)
 
     def times(self, cardinality):
         """Set expected number or range of call counts.
@@ -84,8 +96,7 @@ class Expectation:
         See :ref:`setting-expected-call-count` tutorial section for more
         details.
         """
-        self._state = tmp = self._TimedState(self, cardinality)
-        return tmp
+        return self._Times(self, cardinality)
 
     def will_once(self, action):
         """Append next action to be executed when this expectation object
@@ -104,8 +115,9 @@ class Expectation:
         This method can be called with any action object from
         :mod:`mockify.actions` as an argument.
         """
-        self._state = tmp = self._ActionState(self, action)
-        return tmp
+        if self._action_store[0].type_ == _ActionType.DEFAULT:
+            self._action_store.pop()
+        return self._WillOnce(self, action)
 
     def will_repeatedly(self, action):
         """Attach so called **repeated action** to be executed when this
@@ -123,8 +135,9 @@ class Expectation:
 
         This method accepts actions defined in :mod:`mockify.actions` module.
         """
-        self._state = tmp = self._RepeatedActionState(self, action)
-        return tmp
+        if self._action_store[0].type_ == _ActionType.DEFAULT:
+            self._action_store.pop()
+        return self._WillRepeatedly(self, action)
 
     @property
     def expected_call(self):
@@ -151,7 +164,7 @@ class Expectation:
 
         .. versionadded:: 1.0
         """
-        return self._state._actual_call_count
+        return self._action_store.actual_call_count
 
     @property
     def expected_call_count(self):
@@ -162,138 +175,134 @@ class Expectation:
 
         :rtype: mockify.cardinality.ExpectedCallCount
         """
-        return self._state._expected_call_count
+        return self._action_store.expected_call_count
 
     @property
-    def next_action(self):
+    def action(self):
         """Return action to be executed when this expectation receives
         another call or ``None`` if there are no (more) actions.
 
         :rtype: mockify.actions.Action
         """
-        return self._state._action
+        return self._action_store.action
 
-    class _State:
-        _action = None
+    class _ActionProxy:
 
-        def __repr__(self):
-            return repr(self._expectation)
+        def __init__(self, type_, action, cardinality):
+            self._type = type_
+            self._action = action
+            self._expected_call_count = self._wrap_cardinality(cardinality)
+            self._call_count = 0
 
-        @property
-        def _expectation(self):
-            return self.__expectation()
-
-        @_expectation.setter
-        def _expectation(self, value):
-            self.__expectation = weakref.ref(value)
+        def __call__(self, actual_call):
+            self._call_count += 1
+            return self._action(actual_call)
 
         def _wrap_cardinality(self, cardinality):
-            if not isinstance(cardinality, ExpectedCallCount):
+            if isinstance(cardinality, int):
                 return Exactly(cardinality)
             else:
                 return cardinality
 
-    class _InitialState(_State):
+        @property
+        def type_(self):
+            return self._type
 
-        def __init__(self, expectation):
-            self._expectation = expectation
-            self._expected_call_count = Exactly(1)
-            self._actual_call_count = ActualCallCount(0)
+        @property
+        def action(self):
+            return self._action
 
-        def __call__(self, actual_call):
-            self._actual_call_count += 1
+        @property
+        def expected_call_count(self):
+            return self._expected_call_count
 
-        def _is_satisfied(self):
-            return self._expected_call_count.match(self._actual_call_count)
+        def times(self, cardinality):
+            self._expected_call_count = self._wrap_cardinality(cardinality)
 
-    class _TimedState(_State):
+        def is_satisfied(self):
+            return self._expected_call_count.match(self._call_count)
+
+    class _ActionStore:
+
+        def __init__(self):
+            self._actions = collections.deque()
+
+        def __call__(self, actual_call, expectation):
+            for action in self._actions:
+                if not action.is_satisfied():
+                    return action(actual_call)
+            else:
+                if self._actions[-1].type_ != _ActionType.SINGLE:
+                    return self._actions[-1](actual_call)
+                else:
+                    raise exc.OversaturatedCall(actual_call, expectation)
+
+        def __getitem__(self, index):
+            return self._actions[index]
+
+        def add(self, action_proxy):
+            self._actions.append(action_proxy)
+
+        def pop(self):
+            self._actions.popleft()
+
+        @property
+        def actual_call_count(self):
+            return ActualCallCount(sum((x._call_count for x in self._actions)))
+
+        @property
+        def expected_call_count(self):
+            if self._actions[0].type_ == _ActionType.DEFAULT:
+                return self._actions[0]._expected_call_count
+            else:
+                minimal = sum(map(lambda x: x.type_ == _ActionType.SINGLE, self._actions))
+                if self._actions[-1].type_ != _ActionType.REPEATED:
+                    return Exactly(minimal)
+                else:
+                    return self._actions[-1].expected_call_count.adjust_minimal(minimal)
+
+        @property
+        def action(self):
+            for action_proxy in self._actions:
+                if not action_proxy.is_satisfied() and\
+                   action_proxy.type_ != _ActionType.DEFAULT:
+                    return action_proxy.action
+
+    class _Mutation:
+
+        def __repr__(self):
+            return repr(self._expectation)
+
+    class _Times(_Mutation):
 
         def __init__(self, expectation, cardinality):
             self._expectation = expectation
-            self._expected_call_count = self._wrap_cardinality(cardinality)
-            self._actual_call_count = ActualCallCount(0)
+            expectation._action_store[0].times(cardinality)
 
-        def __call__(self, actual_call):
-            self._actual_call_count += 1
-
-        def _is_satisfied(self):
-            return self._expected_call_count.match(self._actual_call_count)
-
-    class _ActionState(_State):
+    class _WillOnce(_Mutation):
 
         def __init__(self, expectation, action):
             self._expectation = expectation
-            self._actions = [action]
-            self._action_index = 0
-            self._next_state = None
-
-        def __call__(self, actual_call):
-            action = self.__get_action()
-            self._action_index += 1
-            if action is None:
-                if self._next_state is None:
-                    raise exc.OversaturatedCall(actual_call, self._expectation)
-                else:
-                    return self._next_state(actual_call)
-            else:
-                return action(actual_call)
-
-        def __get_action(self):
-            try:
-                return self._actions[self._action_index]
-            except IndexError:
-                pass
-
-        @property
-        def _action(self):
-            try:
-                return self._actions[self._action_index]
-            except IndexError:
-                if self._next_state is not None:
-                    return self._next_state._action
-
-        @property
-        def _actual_call_count(self):
-            return ActualCallCount(self._action_index)
-
-        @property
-        def _expected_call_count(self):
-            if self._next_state is None:
-                return Exactly(len(self._actions))
-            else:
-                return self._next_state._expected_call_count
-
-        def _is_satisfied(self):
-            return self._expected_call_count.match(self._action_index)
+            action_store = expectation._action_store
+            action_store.add(
+                expectation._ActionProxy(_ActionType.SINGLE, action, Exactly(1)))
 
         def will_once(self, action):
-            self._actions.append(action)
-            return self
+            return self.__class__(self._expectation, action)
 
         def will_repeatedly(self, action):
-            self._next_state = tmp =\
-                Expectation._RepeatedActionState(
-                    self._expectation, action, self._actual_call_count.value, len(self._actions))
-            return tmp
+            return self._expectation._WillRepeatedly(self._expectation, action)
 
-    class _RepeatedActionState(_State):
+    class _WillRepeatedly(_Mutation):
 
-        def __init__(self, expectation, action, actual_count=0, expected_count=0):
+        def __init__(self, expectation, action):
             self._expectation = expectation
-            self._action = action
-            self._actual_call_count = ActualCallCount(actual_count)
-            self._expected_call_count = AtLeast(expected_count)
+            self._action_proxy = expectation._ActionProxy(_ActionType.REPEATED, action, AtLeast(0))
+            self._action_store.add(self._action_proxy)
 
-        def __call__(self, actual_call):
-            try:
-                return self._action(actual_call)
-            finally:
-                self._actual_call_count += 1
-
-        def _is_satisfied(self):
-            return self._expected_call_count.match(self._actual_call_count.value)
+        @property
+        def _action_store(self):
+            return self._expectation._action_store
 
         def times(self, cardinality):
-            self._expected_call_count =\
-                self._wrap_cardinality(cardinality).\
-                adjust_minimal(self._expected_call_count.minimal)
+            self._action_proxy.times(cardinality)

@@ -96,7 +96,7 @@ class TestContext:
             expected_call=expected_call,
             actual_call_count=0,
             expected_call_count=Exactly(1),
-            next_action=Return(2))
+            action=Return(2))
 
     def test_if_expectation_recorded_twice_and_called_twice__then_context_is_satisfied(self):
         expected_call = Call('foo')
