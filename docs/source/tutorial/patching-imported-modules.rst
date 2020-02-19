@@ -3,6 +3,8 @@
 Patching imported modules
 =========================
 
+.. versionadded:: 0.6
+
 With Mockify you can easily substitute imported module with a mocked version.
 Consider following code:
 

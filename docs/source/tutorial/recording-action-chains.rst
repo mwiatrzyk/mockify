@@ -324,3 +324,79 @@ repeated action:
     >>> foo()
     3
     >>> assert_satisfied(foo)
+
+Using chained and repeated actions with cardinality
+---------------------------------------------------
+
+You can also record expectations like this one:
+
+.. testcode::
+
+    from mockify.mock import Mock
+    from mockify.actions import Return
+
+    foo = Mock('foo')
+    foo.expect_call().\
+        will_once(Return(1)).\
+        will_once(Return(2)).\
+        will_repeatedly(Return(3)).\
+        times(2)  # (1)
+
+Basically, this is a constrained version of previous example in which
+repeated action is expected to be called only twice. But total expected call
+count is 4, as we have two single actions recorded:
+
+.. doctest::
+
+    >>> assert_satisfied(foo)
+    Traceback (most recent call last):
+        ...
+    mockify.exc.Unsatisfied: Following expectation is not satisfied:
+    <BLANKLINE>
+    at <doctest default[0]>:5
+    -------------------------
+    Pattern:
+      foo()
+    Action:
+      Return(1)
+    Expected:
+      to be called 4 times
+    Actual:
+      never called
+
+Now let's satisfy the expectation by calling a mock:
+
+.. doctest::
+
+    >>> [foo() for _ in range(4)]
+    [1, 2, 3, 3]
+    >>> assert_satisfied(foo)
+
+Since last of your actions is a repeated action, you can keep calling the
+mock more times:
+
+.. doctest::
+
+    >>> foo()
+    3
+
+But the mock will no longer be satisfied, as we've recorded at (1) that
+repeated action will be called exactly twice:
+
+.. doctest::
+
+    >>> assert_satisfied(foo)
+    Traceback (most recent call last):
+        ...
+    mockify.exc.Unsatisfied: Following expectation is not satisfied:
+    <BLANKLINE>
+    at <doctest default[0]>:5
+    -------------------------
+    Pattern:
+      foo()
+    Action:
+      Return(3)
+    Expected:
+      to be called 4 times
+    Actual:
+      called 5 times

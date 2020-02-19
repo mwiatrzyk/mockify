@@ -138,8 +138,8 @@ unsatisfied:
 
 And that's the whole trick.
 
-Setting **minimal** expected call count
----------------------------------------
+Setting expected call count using **cardinality objects**
+---------------------------------------------------------
 
 Previously presented :meth:`mockify.Expectation.times` can also be used in
 conjunction with so called **cardinality objects** available via
@@ -193,100 +193,7 @@ called afterwards:
     ...     foo()
     >>> assert_satisfied(foo)
 
-Setting **maximal** expected call count
----------------------------------------
+Using the same approach you can also set:
 
-Now we'll use :class:`mockify.cardinality.AtMost` to set **maximal** expected
-call count:
-
-.. testcode::
-
-    from mockify.mock import Mock
-    from mockify.cardinality import AtMost
-
-    foo = Mock('foo')
-    foo.expect_call().times(AtMost(1))  # (1)
-
-In the example above, we've recorded expectation that ``foo()`` will be
-called **at most** once (1). That means it can be never called, so the mock
-is already satisfied:
-
-.. doctest::
-
-    >>> from mockify import assert_satisfied
-    >>> assert_satisfied(foo)
-
-And also can be called once to still be satisfied:
-
-.. doctest::
-
-    >>> foo()
-    >>> assert_satisfied(foo)
-
-But if you call it again, it will no longer be satisfied and you'll see
-following error:
-
-.. doctest::
-
-    >>> foo()
-    >>> assert_satisfied(foo)
-    Traceback (most recent call last):
-        ...
-    mockify.exc.Unsatisfied: Following expectation is not satisfied:
-    <BLANKLINE>
-    at <doctest default[0]>:5
-    -------------------------
-    Pattern:
-      foo()
-    Expected:
-      to be called at most once
-    Actual:
-      called twice
-
-Setting **range** of expected call count
-----------------------------------------
-
-You can also set **range** of expected call count using
-:class:`mockify.cardinality.Between`:
-
-.. testcode::
-
-    from mockify.mock import Mock
-    from mockify.cardinality import Between
-
-    foo = Mock('foo')
-    foo.expect_call().times(Between(1, 3))  # (1)
-
-In the example above we've recorded expectation that ``foo()`` will be called
-from 1 to 3 times. This cardinality object is a mix of two previous. Right
-now it is not satisfied, but if you call it once, twice or three times it
-will be satisfied:
-
-.. doctest::
-
-    >>> from mockify import assert_satisfied
-    >>> foo()
-    >>> assert_satisfied(foo)
-    >>> foo()
-    >>> assert_satisfied(foo)
-    >>> foo()
-    >>> assert_satisfied()
-
-And it will no longer be if you call it again:
-
-.. doctest::
-
-    >>> foo()
-    >>> assert_satisfied(foo)
-    Traceback (most recent call last):
-        ...
-    mockify.exc.Unsatisfied: Following expectation is not satisfied:
-    <BLANKLINE>
-    at <doctest default[0]>:5
-    -------------------------
-    Pattern:
-      foo()
-    Expected:
-      to be called from 1 to 3 times
-    Actual:
-      called 4 times
+* **maximal** call count (:class:`mockify.cardinality.AtMost`),
+* or **ranged** call count (:class:`mockify.cardinality.Between`).

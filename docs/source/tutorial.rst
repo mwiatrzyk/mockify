@@ -20,12 +20,9 @@ Tutorial
   tutorial/mock-behavior
   tutorial/setting-expected-call-count
   tutorial/recording-action-chains
+  tutorial/managing-multiple-mocks
   tutorial/patching-imported-modules
-
-.. _using-sessions:
-
-Using sessions
---------------
+  tutorial/recording-ordered-expectations
 
 .. _recording-and-validating-expectations:
 
@@ -33,13 +30,3 @@ Using sessions
 
 Mocking functions with output parameters
 ----------------------------------------
-
-.. _managing-multiple-mocks:
-
-Managing multiple mocks
------------------------
-
-.. _recording-ordered-expectations:
-
-Recording ordered expectations
-------------------------------

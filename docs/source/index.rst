@@ -61,11 +61,12 @@ User's Guide
 ------------
 
 .. toctree::
-  :maxdepth: 3
+    :maxdepth: 3
 
-  installation
-  quickstart
-  tutorial
-  api
-  changelog
-  license
+    installation
+    quickstart
+    tutorial
+    tips-and-tricks
+    api
+    changelog
+    license
