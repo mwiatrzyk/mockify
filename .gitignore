@@ -5,6 +5,10 @@ __pycache___
 .pytest_cache
 .idea
 .vscode
+.coverage
+.eggs/
+.python-version
+htmlcov/
 mockify/_version.py
 docs/build
 Pipfile.lock
