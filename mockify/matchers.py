@@ -11,6 +11,9 @@
 
 import re
 import abc
+import itertools
+
+from mockify import _utils
 
 
 class Matcher(abc.ABC):
@@ -21,16 +24,22 @@ class Matcher(abc.ABC):
     """
 
     @abc.abstractmethod
-    def __repr__(self):
+    def __eq__(self, other):
+        """Check if *other* can be accepted by this matcher."""
+
+    @abc.abstractmethod
+    def format_repr(self, *args, **kwargs):
         """Return matcher's textual representation.
 
         Pay attention to this, as it is later used to render string
         representation of expected call parameters.
         """
+        formatted = _utils.format_args_kwargs(args, kwargs,
+            sort=False, skip_kwarg_if=lambda value: value is None)
+        return f"{self.__class__.__name__}({formatted})"
 
-    @abc.abstractmethod
-    def __eq__(self, other):
-        """Check if *other* can be accepted by this matcher."""
+    def __repr__(self):
+        return self.format_repr()
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -53,15 +62,15 @@ class AnyOf(Matcher):
     def __init__(self, *values):
         self._values = values
 
-    def __repr__(self):
-        return '|'.join(repr(x) for x in self._values)
-
     def __eq__(self, other):
         for value in self._values:
             if value == other:
                 return True
         else:
             return False
+
+    def format_repr(self):
+        return ' | '.join(repr(x) for x in self._values)
 
 
 class AllOf(Matcher):
@@ -76,15 +85,15 @@ class AllOf(Matcher):
     def __init__(self, *values):
         self._values = values
 
-    def __repr__(self):
-        return ' & '.join(repr(x) for x in self._values)
-
     def __eq__(self, other):
         for value in self._values:
             if value != other:
                 return False
         else:
             return True
+
+    def format_repr(self):
+        return ' & '.join(repr(x) for x in self._values)
 
 
 class Any(Matcher):
@@ -99,11 +108,11 @@ class Any(Matcher):
         from mockify.matchers import _
     """
 
-    def __repr__(self):
-        return "_"
-
     def __eq__(self, other):
         return True
+
+    def format_repr(self):
+        return '_'
 
 
 class Type(Matcher):
@@ -126,29 +135,92 @@ class Type(Matcher):
             if not isinstance(type_, type):
                 raise TypeError(f"__init__() requires type instances, got {type_!r}")
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}({', '.join(x.__name__ for x in self._types)})"
-
     def __eq__(self, other):
         return isinstance(other, *self._types)
+
+    def format_repr(self):
+        return f"{self.__class__.__name__}({', '.join(x.__name__ for x in self._types)})"
 
 
 class Regex(Matcher):
     """Matches value if it is a string that matches given regular expression
     *pattern*.
 
+    :param pattern:
+        Regular expression pattern
+
+    :param name:
+        Optional name for given pattern.
+
+        If given, then name will be used in text representation of this
+        matcher. This can be very handy, especially when regular expression
+        is complex and hard to read. Example:
+
+        .. doctest::
+
+            >>> r = Regex(r'^[a-z]+$', 'LOWER_ASCII')
+            >>> repr(r)
+            'Regex(LOWER_ASCII)'
+
     .. versionadded:: 1.0
     """
 
-    def __init__(self, pattern):
+    def __init__(self, pattern, name=None):
         self._pattern = re.compile(pattern)
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self._pattern.pattern!r})"
+        self._name = name
 
     def __eq__(self, other):
         return isinstance(other, str) and\
             self._pattern.match(other) is not None
+
+    def format_repr(self):
+        if self._name is None:
+            return f"{self.__class__.__name__}({self._pattern.pattern!r})"
+        else:
+            return f"{self.__class__.__name__}({self._name})"
+
+
+class List(Matcher):
+    """Matches value if it is a list of values matching *matcher*.
+
+    :param matcher:
+        A matcher that every value in the list is expected to match.
+
+        Use :class:`Any` matcher if you want to match list containing any
+        values.
+
+    :param min_length:
+        Minimal accepted list length
+
+    :param max_length:
+        Maximal accepted list length
+
+    .. versionadded:: 0.6
+    """
+
+    def __init__(self, matcher, min_length=None, max_length=None):
+        self._matcher = matcher
+        self._min_length = min_length
+        self._max_length = max_length
+
+    def __eq__(self, other):
+        if not isinstance(other, list):
+            return False
+        elif self._max_length is not None and len(other) > self._max_length:
+            return False
+        elif self._min_length is not None and len(other) < self._min_length:
+            return False
+        else:
+            for item in other:
+                if self._matcher != item:
+                    return False
+            else:
+                return True
+
+    def format_repr(self):
+        return super().format_repr(
+            self._matcher, min_length=self._min_length,
+            max_length=self._max_length)
 
 
 class Func(Matcher):
@@ -157,17 +229,36 @@ class Func(Matcher):
     This is the most generic matcher as you can use your own match function
     if needed.
 
+    :param func:
+        Function to be used to calculate match.
+
+    :param name:
+        Optional name for this matcher.
+
+        This can be used to set a name used to format matcher's text
+        representation for assertion errors. Here's a simple example:
+
+        .. doctest::
+
+            >>> f = Func(lambda x: x > 0, 'POSITIVE_ONLY')
+            >>> repr(f)
+            'Func(POSITIVE_ONLY)'
+
     .. versionadded:: 1.0
     """
 
-    def __init__(self, func):
+    def __init__(self, func, name=None):
         self._func = func
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self._func!r})"
+        self._name = name
 
     def __eq__(self, other):
         return self._func(other)
+
+    def format_repr(self):
+        if self._name is None:
+            return f"{self.__class__.__name__}({self._func.__name__})"
+        else:
+            return f"{self.__class__.__name__}({self._name})"
 
 
 _ = Any()

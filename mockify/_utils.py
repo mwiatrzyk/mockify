@@ -23,9 +23,12 @@ def format_call_count(count):
         return "{} times".format(count)
 
 
-def format_args_kwargs(*args, **kwargs):
-    args_gen = (repr(x) for x in args)
-    kwargs_gen = ("{}={!r}".format(k, v) for k, v in sorted(kwargs.items()))
+def format_args_kwargs(args, kwargs, formatter=repr, sort=True, skip_kwarg_if=None):
+    args_gen = map(formatter, args)
+    kwargs_gen = sorted(kwargs.items()) if sort else kwargs.items()
+    if skip_kwarg_if is not None:
+        kwargs_gen = filter(lambda x: not skip_kwarg_if(x[1]), kwargs_gen)
+    kwargs_gen = map(lambda x: "{}={}".format(x[0], formatter(x[1])), kwargs_gen)
     all_gen = itertools.chain(args_gen, kwargs_gen)
     return ', '.join(all_gen)
 

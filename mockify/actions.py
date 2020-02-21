@@ -58,7 +58,7 @@ class Action(abc.ABC):
         and then call **super().format_params(...)** with args and kwargs
         you want to be included in **str()** and **repr()** methods.
         """
-        return _utils.format_args_kwargs(*args, **kwargs)
+        return _utils.format_args_kwargs(args, kwargs)
 
 
 class Return(Action):

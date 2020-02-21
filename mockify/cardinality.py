@@ -103,7 +103,7 @@ class ExpectedCallCount(abc.ABC):
         **super().format_params(...)** with args and kwargs you want to
         include in **repr()**.
         """
-        return _utils.format_args_kwargs(*args, **kwargs)
+        return _utils.format_args_kwargs(args, kwargs)
 
 
 class Exactly(ExpectedCallCount):

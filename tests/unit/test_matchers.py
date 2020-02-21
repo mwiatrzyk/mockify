@@ -13,7 +13,7 @@ import pytest
 
 from mockify import exc, satisfied, Call
 from mockify.mock import Mock
-from mockify.matchers import _, Type, Regex, AnyOf, Func
+from mockify.matchers import _, Type, Regex, AnyOf, Func, List
 
 
 class TestAny:
@@ -115,7 +115,7 @@ class TestAnyOf:
     def test_expected_call_formatting(self):
         mock = Mock('mock')
         expectation = mock.expect_call(Type(int, float) | 'spam')
-        assert str(expectation.expected_call) == "mock(Type(int, float)|'spam')"
+        assert str(expectation.expected_call) == "mock(Type(int, float) | 'spam')"
 
     def test_successful_match(self):
         mock = Mock('mock')
@@ -141,7 +141,7 @@ class TestAnyOf:
         value = excinfo.value
         assert value.actual_call == Call('mock', 3.14)
         assert len(value.expected_calls) == 1
-        assert str(value.expected_calls[0]) == "mock(Type(int)|'spam')"
+        assert str(value.expected_calls[0]) == "mock(Type(int) | 'spam')"
 
 
 class TestAllOf:
@@ -166,3 +166,42 @@ class TestAllOf:
         with satisfied(mock):
             mock(1)
             mock(9)
+
+
+class TestList:
+
+    @pytest.mark.parametrize('args, kwargs, expected_repr', [
+        ((Type(str),), {}, "List(Type(str))"),
+        ((Type(str),), {'min_length': 2}, "List(Type(str), min_length=2)"),
+        ((Type(str),), {'max_length': 4}, "List(Type(str), max_length=4)"),
+        ((Type(str),), {'min_length': 2, 'max_length': 4}, "List(Type(str), min_length=2, max_length=4)"),
+    ])
+    def test_repr(self, args, kwargs, expected_repr):
+        assert repr(List(*args, **kwargs)) == expected_repr
+
+    @pytest.mark.parametrize('non_matching', [123, 'abc'])
+    def test_there_is_no_match_if_value_is_not_a_list(self, non_matching):
+        assert List(_) != non_matching
+
+    @pytest.mark.parametrize('non_matching', [
+        [1, 2, 3],
+        [1, 2, '3'],
+    ])
+    def test_there_is_no_match_if_list_containing_one_or_more_values_that_does_not_match_given_matcher(self, non_matching):
+        assert List(Type(str)) != non_matching
+
+    def test_there_is_no_match_if_number_of_items_is_greater_than_expected_maximum(self):
+        assert List(Type(str), max_length=1) != ['1', '2']
+
+    def test_there_is_no_match_if_number_of_items_is_less_than_expected_minimum(self):
+        assert List(Type(str), min_length=3) != ['1', '2']
+
+    def test_there_is_no_match_if_number_of_items_is_less_than_expected_minimum_or_greater_than_expected_maximum(self):
+        uut = List(Type(str), min_length=1, max_length=2)
+        assert uut != []
+        assert uut == ['1']
+        assert uut == ['1', '2']
+        assert uut != ['1', '2', '3']
+
+    def test_there_is_a_match_if_value_is_a_list_containing_all_elements_matching_given_matcher(self):
+        assert List(Type(str)) == ['1', '2', '3']

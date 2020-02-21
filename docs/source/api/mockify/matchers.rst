@@ -13,6 +13,10 @@
 **mockify.matchers** - Classes for wildcarding expected arguments
 =================================================================
 
+.. testsetup::
+
+    from mockify.matchers import Func, Regex
+
 .. automodule:: mockify.matchers
     :members:
     :special-members: __repr__, __eq__

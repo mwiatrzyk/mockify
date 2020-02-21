@@ -21,12 +21,8 @@ Tutorial
   tutorial/setting-expected-call-count
   tutorial/recording-action-chains
   tutorial/managing-multiple-mocks
+  tutorial/using-matchers
   tutorial/patching-imported-modules
   tutorial/recording-ordered-expectations
 
 .. _recording-and-validating-expectations:
-
-.. _func-with-out-params:
-
-Mocking functions with output parameters
-----------------------------------------

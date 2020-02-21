@@ -1,9 +1,6 @@
 A list of ideas
 ===============
 
-Pending:
---------
-
 * Remove unsatisfied_call_strategy and implement mock-level default actions
   instead. Once mock has a default action, it should not fail on unexpected
   or uninterested calls but rather invoke action specified.
@@ -15,27 +12,6 @@ Pending:
 * Add pretty printing to exceptions (if mocks receive large args, like dicts
   or JSON objects, then exceptions are very hard to read)
 
-* Use setuptools-scm to get version from Git tag instead of hardcoding it in
-  the code. Thanks to this versioning will be completely handled by Git.
+* Add support for Python2.7
 
-Done:
------
-
-* Make MockFactory for easier creation of mocks that share same context
-  (and, probably, some common settings).
-
-* Make matchers ORable using | operator. For example::
-
-    foo.expect_call(Type(int, float) | Value('spam'))
-
-  The above will mean that we are expecting foo to be called with any int,
-  any float or 'spam' as single argument.
-
-* Make UnexpectedCall exception and check if there are expectations for
-  given mock name. Currently, even if mock name is the one we expect but
-  args are different, UninterestedCall is raised, and that may be confusing.
-
-Obsolete:
----------
-
-* Use deployed Mockify to test the one being developed.
+* Add CI job for testing against multiple Python versions

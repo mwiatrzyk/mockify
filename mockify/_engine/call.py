@@ -110,7 +110,7 @@ class Call:
         return not self.__eq__(other)
 
     def _format_params(self, *args, **kwargs):
-        return _utils.format_args_kwargs(*args, **kwargs)
+        return _utils.format_args_kwargs(args, kwargs)
 
     @property
     def name(self):
