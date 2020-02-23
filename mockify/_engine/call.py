@@ -21,7 +21,7 @@ class LocationInfo:
     Used by :class:`Call` objects to get their location in the code. That
     information is later used in assertion messages.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
 
     :param filename:
         Name of the file
@@ -134,7 +134,7 @@ class Call:
         """Information of place in test or tested code where this call object
         was created.
 
-        .. versionadded:: 1.0
+        .. versionadded:: 0.6
 
         :rtype: LocationInfo
         """

@@ -162,7 +162,7 @@ class Expectation:
         or :meth:`will_repeatedly`, then this counter will return total
         number of calls.
 
-        .. versionadded:: 1.0
+        .. versionadded:: 0.6
         """
         return self._action_store.actual_call_count
 

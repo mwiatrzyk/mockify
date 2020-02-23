@@ -31,7 +31,7 @@ class ActualCallCount:
         >>> str(ActualCallCount(1))
         'called once'
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, initial_value):
@@ -65,7 +65,7 @@ class ExpectedCallCount(abc.ABC):
     """Abstract base class for classes used to set expected call count on
     mock objects.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __repr__(self):

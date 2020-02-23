@@ -32,7 +32,7 @@ step-by-step mode, recording expectations one-by-one.
 Unexpected mock calls
 ---------------------
 
-This new behavior was introduced in version 1.0.
+This new behavior was introduced in version 0.6.
 
 It is meant to differentiate mocks that has **no** expectations from mocks
 that have **at least one**, but not matching **actual** call. This is

@@ -21,7 +21,7 @@ class Action(abc.ABC):
     This is common base class for all actions defined in this module. Custom
     actions should also inherit from this one.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __repr__(self):
@@ -103,7 +103,7 @@ class Iterate(Action):
         >>> next(mock())
         'f'
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, iterable):
@@ -167,7 +167,7 @@ class Invoke(Action):
         >>> mock([1, 2, 3])
         6
 
-    .. versionchanged:: 1.0
+    .. versionchanged:: 0.6
         Now this action allows binding args to function being called.
 
     :param func:

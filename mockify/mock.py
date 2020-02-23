@@ -237,7 +237,7 @@ class MockFactory:
 
     See :ref:`managing-multiple-mocks` for more details.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
 
     :param name:
         This is optional.
@@ -357,7 +357,7 @@ class Mock(_ChildMock):
 
     See :ref:`creating-mocks` for more details.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, name, session=None):

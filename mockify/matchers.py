@@ -19,7 +19,7 @@ from mockify import _utils
 class Matcher(abc.ABC):
     """Abstract base class for matchers.
 
-    .. versionchanged:: 1.0
+    .. versionchanged:: 0.6
         Now this inherits from :class:`abc.ABC`
     """
 
@@ -56,7 +56,7 @@ class AnyOf(Matcher):
 
     You can also use matchers in *values*.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, *values):
@@ -79,7 +79,7 @@ class AllOf(Matcher):
 
     You can also use matchers in *values*.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, *values):
@@ -121,7 +121,7 @@ class Type(Matcher):
     This is useful to record expectations where we do not care about expected
     value, but we do care about expected value type.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, *types):
@@ -162,7 +162,7 @@ class Regex(Matcher):
             >>> repr(r)
             'Regex(LOWER_ASCII)'
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, pattern, name=None):
@@ -244,7 +244,7 @@ class Func(Matcher):
             >>> repr(f)
             'Func(POSITIVE_ONLY)'
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, func, name=None):

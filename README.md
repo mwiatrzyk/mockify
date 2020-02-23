@@ -27,7 +27,7 @@ greet = Mock('greet')
 greet.expect_call().will_once(Return('Hello, world!'))
 
 with satisfied(greet):
-  assert greet() == 'Hello, world!'
+    assert greet() == 'Hello, world!'
 ```
 
 Mockify allows you to:

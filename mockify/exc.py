@@ -19,7 +19,7 @@ logger = logging.getLogger('mockify')
 class MockifyWarning(Warning):
     """Common base class for Mockify warnings.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
 
@@ -29,14 +29,14 @@ class UninterestedCallWarning(MockifyWarning):
     It is only used when uninterested call strategy is changed in mocking
     session. See :class:`mockify.Session` for more details.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
 
 class MockifyError(Exception):
     """Common base class for all Mockify exceptions.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
     def __init__(self, **kwargs):
@@ -50,7 +50,7 @@ class MockifyAssertion(MockifyError, AssertionError):
     With this exception it will be easy to re-raise Mockify-specific
     assertion exceptions for example during debugging.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
     """
 
 
@@ -88,7 +88,7 @@ class UnexpectedCall(MockifyAssertion):
         Expected (any of):
           mock(1, 2)
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
 
     :param actual_call:
         Instance of :class:`mockify.Call` representing parameters of call
@@ -134,7 +134,7 @@ class UnexpectedCallOrder(MockifyAssertion):
 
     See :ref:`recording-ordered-expectations` for more details.
 
-    .. versionadded:: 1.0
+    .. versionadded:: 0.6
 
     :param actual_call:
         The call that was made
@@ -292,7 +292,7 @@ class Unsatisfied(MockifyAssertion):
     def unsatisfied_expectations(self):
         """List of unsatisfied expectations.
 
-        .. versionadded:: 1.0
+        .. versionadded:: 0.6
             Previously it was called ``expectations``.
         """
         return self._unsatisfied_expectations

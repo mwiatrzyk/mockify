@@ -6,7 +6,7 @@ Creating mocks and recording expectations
 Introduction
 ------------
 
-Since version 1.0 Mockify provides single :class:`mockify.mock.Mock` class
+Since version 0.6 Mockify provides single :class:`mockify.mock.Mock` class
 for mocking things. With that class you will be able to mock:
 
 * functions,

@@ -48,7 +48,7 @@ class Session:
     :class:`mockify.Call` instances created by mocks during either mock call,
     or expectation recording.
 
-    .. versionchanged:: 1.0
+    .. versionchanged:: 0.6
         Previously this was named **Registry**.
     """
 
