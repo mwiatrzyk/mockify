@@ -18,8 +18,17 @@ setuptools.setup(
     url="https://mockify.readthedocs.io/",
     packages=setuptools.find_packages(exclude=["docs", "tests*"]),
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Development Status :: 4-Beta",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.4",
         "Operating System :: OS Independent",
+        "Topic :: Software Development :: Libraries",
     ],
 )

@@ -19,6 +19,10 @@ build:
   script:
     - pipenv run invoke test
 
+test Py3.8:
+  image: python:3.8-slim
+  extends: .test
+
 test Py3.7:
   image: python:3.7-slim
   extends: .test
@@ -29,6 +33,10 @@ test Py3.6:
 
 test Py3.5:
   image: python:3.5-slim
+  extends: .test
+
+test Py3.4:
+  image: python:3.4-slim
   extends: .test
 
 deploy_to_test_pypi:
