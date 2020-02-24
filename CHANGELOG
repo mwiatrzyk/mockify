@@ -15,12 +15,9 @@
 * Better reporting of expectation location in assertion messages
 * Can now define ordered expectations with :func:`mockify.ordered` context manager
 * Can now patch imports using :func:`mockify.patched` context manager
+* CI workflow updated + added testing against various Python versions (3.x for
+  now)
 * Many other improvements in the code and the tests
-
-.. note::
-    This version was meant to be a first 1.0 release, but I've decided to go
-    with another minor release for now, as it does not yet has all features
-    and API is still a bit unstable.
 
 0.5.0
 -----

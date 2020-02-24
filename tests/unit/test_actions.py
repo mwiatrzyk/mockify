@@ -92,8 +92,17 @@ class TestIterate:
 
 
 class TestRaise:
+
+    class Error(Exception):
+
+        def __init__(self, message):
+            self.message = message
+
+        def __repr__(self):
+            return f"Error({self.message!r})"
+
     _str_test_data = [
-        (ValueError('an error'), "Raise(ValueError('an error'))"),
+        (Error('an error'), "Raise(Error('an error'))"),
     ]
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
