@@ -37,7 +37,8 @@ deploy_to_test_pypi:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
   script:
-    - apt install git
+    - apt-get update
+    - apt-get install -y git
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy test
   only:
@@ -49,7 +50,8 @@ deploy_to_pypi:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
   script:
-    - apt install git
+    - apt-get update
+    - apt-get install -y git
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy prod
   only:
