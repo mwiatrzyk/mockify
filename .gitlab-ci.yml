@@ -1,27 +1,38 @@
-image: python:3.6-slim
+image: python:3.7-slim
 
 stages:
   - build
   - test
-  - stage
   - deploy
 
 before_script:
   - pip install pipenv
   - pipenv install --dev
 
-build_docs:
+build:
   stage: build
   script:
     - pipenv run invoke build-docs
 
-test:
+.test:
   stage: test
   script:
     - pipenv run invoke test
 
+test Py3.8:
+  image: python:3.8-slim
+  extends: .test
+
+test Py3.7:
+  image: python:3.7-slim
+  extends: .test
+
+test Py3.6:
+  image: python:3.6-slim
+  extends: .test
+
 deploy_to_test_pypi:
-  stage: stage
+  stage: deploy
   variables:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
@@ -29,14 +40,10 @@ deploy_to_test_pypi:
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy test
   only:
-    - tags
-  except:
-    - master
-    - branches
+    - develop
 
 deploy_to_pypi:
   stage: deploy
-  when: manual
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
@@ -44,7 +51,4 @@ deploy_to_pypi:
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy prod
   only:
-    - tags
-  except:
-    - development
-    - branches
+    - master

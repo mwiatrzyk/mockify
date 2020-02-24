@@ -1,0 +1,17 @@
+A list of ideas
+===============
+
+* Remove unsatisfied_call_strategy and implement mock-level default actions
+  instead. Once mock has a default action, it should not fail on unexpected
+  or uninterested calls but rather invoke action specified.
+
+* Make pytest plugin. Suggested name is `mockify_factory`. Such fixture
+  would expose factory method for creating and verifying mocks and also will
+  be automatically checked by pytest.
+
+* Add pretty printing to exceptions (if mocks receive large args, like dicts
+  or JSON objects, then exceptions are very hard to read)
+
+* Add support for Python2.7
+
+* Add CI job for testing against multiple Python versions

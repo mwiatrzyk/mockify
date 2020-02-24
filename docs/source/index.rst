@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/index.rst
 ..
-.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -17,37 +17,56 @@
 Welcome to Mockify!
 ===================
 
-Welcome to Mockify library documentation!
+About Mockify
+-------------
 
-Mockify is a mocking toolkit for Python inspired by GMock (Google Mock) C++
-framework. I was using GMock a lot during my 5 years of work as a C++ developer
-and really liked it for its expressive API. During that days I was still
-writing some Python code (mostly in Python 2.x) and for testing it I was using
-hand-written stubs when needed. When I used :mod:`unittest.mock` for the first
-time I noticed that it uses a very different approach than GMock I got used to,
-so I decided to start writing my own toolkit.
+Mockify is a highly customizable and expressive mocking library for Python
+inspired by Google Mock C++ framework, but adopted to Python world.
 
-Currently, Mockify is supplied with following features:
+Unlike tools like :mod:`unittest.mock`, Mockify is based on **expectations**
+that you record on your mocks **before** they are injected to code being
+under test. Each expectation represents arguments the mock is expected to be
+called with and provides sequence of **actions** the mock will do when called
+with that arguments. Actions allow to set a value to be returned, exception
+to be raised or just function to be called. Alternatively, if no actions
+should take place, you can just say how many times the mock is expected to be
+called. And all of these is provided by simple, expressive and easy to use
+API.
 
-    * Creating mocks of standalone functions and Python objects
-    * Recording call expectations with fixed arguments and using **matchers**
-    * Checking if expectations are satisfied using one single
-      ``assert_satisfied`` assertion method
-    * Configuring recorded expectations:
-        - setting expected call count
-        - recording single and repeated actions (a.k.a. side effects)
-        - chaining actions
+Here's a simple example:
 
-I hope you will find this library useful :-)
+.. testcode::
+
+    from mockify import satisfied
+    from mockify.mock import Mock
+    from mockify.actions import Return
+
+    def invoke(func):
+        return func()
+
+    def test_invoke_calls_func_returning_hello_world():
+        func = Mock('func')
+        func.expect_call().will_once(Return('Hello, world!'))
+
+        with satisfied(func):
+            assert invoke(func) == 'Hello, world!'
+
+.. testcleanup::
+
+    test_invoke_calls_func_returning_hello_world()
+
+I hope you'll find this library useful.
 
 User's Guide
 ------------
 
 .. toctree::
-   :maxdepth: 3
+    :maxdepth: 3
 
-   changelog
-   installation
-   tutorial
-   api
-   license
+    installation
+    quickstart
+    tutorial
+    tips-and-tricks
+    api
+    changelog
+    license

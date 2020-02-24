@@ -1,3 +1,24 @@
+0.6.0
+-----
+
+* Deprecated code was removed
+* Improved documentation
+* Documentation is now tested by Sphinx
+* Class **Registry** was renamed to :class:`mockify.Session`
+* All classes for making mocks were replaced by single generic
+  :class:`mockify.mock.Mock` class, supported by
+  :class:`mockify.mock.MockFactory` class
+* New actions introduced (see :mod:`mockify.actions`)
+* New matchers introduced (see :mod:`mockify.matchers`)
+* New assertion errors introduced and improved exception hierarchy (see
+  :mod:`mockify.exc`)
+* Better reporting of expectation location in assertion messages
+* Can now define ordered expectations with :func:`mockify.ordered` context manager
+* Can now patch imports using :func:`mockify.patched` context manager
+* CI workflow updated + added testing against various Python versions (3.x for
+  now)
+* Many other improvements in the code and the tests
+
 0.5.0
 -----
 

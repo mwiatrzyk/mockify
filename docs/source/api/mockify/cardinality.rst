@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/api/mockify/cardinality.rst
 ..
-.. Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -15,5 +15,5 @@
 
 .. automodule:: mockify.cardinality
     :members:
-    :special-members: __eq__
+    :special-members: __str__
     :show-inheritance:

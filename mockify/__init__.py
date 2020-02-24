@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/__init__.py
 #
-# Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -11,8 +11,18 @@
 
 """Library core module."""
 
-from ._engine import assert_satisfied, Call, Expectation, Registry
+from pkg_resources import get_distribution, DistributionNotFound
 
-__all__ = ['Call', 'Expectation', 'Registry', 'assert_satisfied']
+from ._engine import Call, LocationInfo, Session, Expectation
+from ._assert import assert_satisfied
+from ._contextmanagers import ordered, satisfied, patched
 
-version = (0, 5, 0)
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    __version__ = '0.6.0'  # Fallback; keep this up to date with most recent tag
+
+__all__ = [
+    'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',
+    'ordered', 'satisfied', 'patched'
+]
