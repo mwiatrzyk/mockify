@@ -1,33 +1,35 @@
 image: python:3.7-slim
 
 stages:
+  - build
+  - test
   - deploy
 
 before_script:
   - pip install pipenv
   - pipenv install --dev
 
-# build:
-#   stage: build
-#   script:
-#     - pipenv run invoke build-docs
+build:
+  stage: build
+  script:
+    - pipenv run invoke build-docs
 
-# .test:
-#   stage: test
-#   script:
-#     - pipenv run invoke test
+.test:
+  stage: test
+  script:
+    - pipenv run invoke test
 
-# test Py3.8:
-#   image: python:3.8-slim
-#   extends: .test
+test Py3.8:
+  image: python:3.8-slim
+  extends: .test
 
-# test Py3.7:
-#   image: python:3.7-slim
-#   extends: .test
+test Py3.7:
+  image: python:3.7-slim
+  extends: .test
 
-# test Py3.6:
-#   image: python:3.6-slim
-#   extends: .test
+test Py3.6:
+  image: python:3.6-slim
+  extends: .test
 
 deploy_to_test_pypi:
   stage: deploy
@@ -39,6 +41,8 @@ deploy_to_test_pypi:
     - apt-get install -y git
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy test
+  only:
+    - develop
 
 deploy_to_pypi:
   stage: deploy
@@ -46,7 +50,8 @@ deploy_to_pypi:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
   script:
-    - apt install git
+    - apt-get update
+    - apt-get install -y git
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy prod
   only:
