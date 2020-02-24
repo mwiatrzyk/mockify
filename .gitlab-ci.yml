@@ -31,10 +31,6 @@ test Py3.6:
   image: python:3.6-slim
   extends: .test
 
-test Py3.5:
-  image: python:3.5-slim
-  extends: .test
-
 deploy_to_test_pypi:
   stage: deploy
   variables:
