@@ -41,7 +41,7 @@ than just one mock. Let's now take a look at following Python code:
         def invoke(self, email, password):
             session = self._database.session()
             if session.users.exists(email):
-                raise AlreadyRegistered(f"E-mail {email!r} is already registered")
+                raise AlreadyRegistered("E-mail {!r} is already registered".format(email))
             password = self._crypto.hash_password(password)
             session.users.add(email, password)
             self._mailer.send_confirm_registration_to(email)
