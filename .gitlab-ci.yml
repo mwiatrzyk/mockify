@@ -1,8 +1,8 @@
 image: python:3.7-slim
 
 stages:
-  - build
-  - test
+#  - build
+#  - test
   - deploy
 
 before_script:
@@ -37,11 +37,12 @@ deploy_to_test_pypi:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
   script:
-    - apt install git
+    - apt-get update
+    - apt-get install -y git
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy test
-  only:
-    - develop
+#  only:
+#    - develop
 
 deploy_to_pypi:
   stage: deploy
