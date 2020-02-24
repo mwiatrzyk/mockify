@@ -7,27 +7,27 @@ before_script:
   - pip install pipenv
   - pipenv install --dev
 
-build:
-  stage: build
-  script:
-    - pipenv run invoke build-docs
+# build:
+#   stage: build
+#   script:
+#     - pipenv run invoke build-docs
 
-.test:
-  stage: test
-  script:
-    - pipenv run invoke test
+# .test:
+#   stage: test
+#   script:
+#     - pipenv run invoke test
 
-test Py3.8:
-  image: python:3.8-slim
-  extends: .test
+# test Py3.8:
+#   image: python:3.8-slim
+#   extends: .test
 
-test Py3.7:
-  image: python:3.7-slim
-  extends: .test
+# test Py3.7:
+#   image: python:3.7-slim
+#   extends: .test
 
-test Py3.6:
-  image: python:3.6-slim
-  extends: .test
+# test Py3.6:
+#   image: python:3.6-slim
+#   extends: .test
 
 deploy_to_test_pypi:
   stage: deploy
