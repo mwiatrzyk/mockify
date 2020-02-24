@@ -26,7 +26,7 @@ setuptools.setup(
     url="https://mockify.readthedocs.io/",
     packages=setuptools.find_packages(exclude=["docs", "tests*"]),
     classifiers=[
-        "Development Status :: 4-Beta",
+        "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
