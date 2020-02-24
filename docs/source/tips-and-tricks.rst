@@ -38,7 +38,7 @@ This kind of problem exists in following simple class:
 
         def read(self, name):
             buffer = io.BytesIO()  # (1)
-            self._bucket.download('bucket-name', f"uploads/{name}", buffer)  # (2)
+            self._bucket.download('bucket-name', "uploads/{}".format(name), buffer)  # (2)
             return buffer.getvalue()
 
 That class is kind of a facade on top of some cloud service for accessing

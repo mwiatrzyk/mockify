@@ -43,7 +43,7 @@ class LocationInfo:
         return not self.__eq__(other)
 
     def __str__(self):
-        return f"{self._filename}:{self._lineno}"
+        return "{}:{}".format(self._filename, self._lineno)
 
     @property
     def filename(self):
@@ -96,10 +96,10 @@ class Call:
         _utils.validate_mock_name(self._name)
 
     def __str__(self):
-        return f"{self._name}({self._format_params(*self._args, **self._kwargs)})"
+        return "{}({})".format(self._name, self._format_params(*self._args, **self._kwargs))
 
     def __repr__(self):
-        return f"<mockify.{self.__class__.__name__}({self._format_params(self._name, *self._args, **self._kwargs)})>"
+        return "<mockify.{}({})>".format(self.__class__.__name__, self._format_params(self._name, *self._args, **self._kwargs))
 
     def __eq__(self, other):
         return self._name == other._name and\

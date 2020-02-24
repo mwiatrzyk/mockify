@@ -85,7 +85,7 @@ class TestCall:
     def test_name_must_be_a_valid_python_identifier(self, invalid_name):
         with pytest.raises(TypeError) as excinfo:
             call = Call(invalid_name)
-        assert str(excinfo.value) == f"Mock name must be a valid Python identifier, got {invalid_name!r} instead"
+        assert str(excinfo.value) == "Mock name must be a valid Python identifier, got {!r} instead".format(invalid_name)
 
     @pytest.mark.parametrize('namespaced_name', [
         'foo.bar',

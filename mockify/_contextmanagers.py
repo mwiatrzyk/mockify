@@ -40,8 +40,8 @@ def ordered(*mocks):  # TODO: add more tests
             if session is not second._session:
                 first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
                 raise TypeError(
-                    f"Mocks {first.name!r} and {second.name!r} have to use same "
-                    f"session object")
+                    "Mocks {!r} and {!r} have to use same "
+                    "session object".format(first.name, second.name))
         else:
             return session
 

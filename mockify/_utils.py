@@ -38,7 +38,7 @@ def validate_mock_name(name):
     parts = name.split('.') if isinstance(name, str) else [name]
     for part in parts:
         if not is_identifier(part):
-            raise TypeError(f"Mock name must be a valid Python identifier, got {name!r} instead")
+            raise TypeError("Mock name must be a valid Python identifier, got {!r} instead".format(name))
 
 
 def is_identifier(name):
@@ -85,7 +85,7 @@ class ErrorMessageBuilder:
 
     def append_location(self, location):
         self._lines.extend([
-            f"at {location}",
+            "at {}".format(location),
             "-" * (len(str(location)) + 3)
         ])
 

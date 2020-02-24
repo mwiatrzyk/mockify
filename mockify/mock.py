@@ -30,7 +30,7 @@ class _ChildMock:
         self._parent = parent
 
     def __repr__(self):
-        return f"<{self.__module__}.{self.__class__.__name__}({self._fullname!r})>"
+        return "<{}.{}({!r})>".format(self.__module__, self.__class__.__name__, self._fullname)
 
     def __setattr__(self, name, value):
         if '__setattr__' in self.__dict__:
@@ -83,7 +83,7 @@ class _ChildMock:
         if parent is None:
             return self._name
         else:
-            return f"{parent._fullname}.{self._name}"
+            return "{}.{}".format(parent._fullname, self._name)
 
     def _children(self):
         for obj in self.__dict__.values():
@@ -108,11 +108,11 @@ class _GetAttrMock(_ChildMock):
 
     def expect_call(self, name):
         if not _utils.is_identifier(name):
-            raise TypeError(f"__getattr__.expect_call() must be called with valid Python property name, got {name!r}")
+            raise TypeError("__getattr__.expect_call() must be called with valid Python property name, got {!r}".format(name))
         if name in self._parent.__dict__:
             raise TypeError(
-                f"__getattr__.expect_call() must be called with a non existing property name, "
-                f"got {name!r} which already exists")
+                "__getattr__.expect_call() must be called with a non existing property name, "
+                "got {!r} which already exists".format(name))
         expected_call = Call(self._fullname, name)
         return self._session.expect_call(expected_call)
 
@@ -129,11 +129,11 @@ class _SetAttrMock(_ChildMock):
 
     def expect_call(self, name, value):
         if not _utils.is_identifier(name):
-            raise TypeError(f"__setattr__.expect_call() must be called with valid Python property name, got {name!r}")
+            raise TypeError("__setattr__.expect_call() must be called with valid Python property name, got {!r}".format(name))
         if name in self._parent.__dict__:
             raise TypeError(
-                f"__setattr__.expect_call() must be called with a non existing property name, "
-                f"got {name!r} which already exists")
+                "__setattr__.expect_call() must be called with a non existing property name, "
+                "got {!r} which already exists".format(name))
         expected_call = Call(self._fullname, name, value)
         return self._session.expect_call(expected_call)
 
@@ -174,7 +174,7 @@ class MockInfo:
         self._mock = mock
 
     def __repr__(self):
-        return f"<{self.__module__}.{self.__class__.__name__}({self._mock!r})>"
+        return "<{}.{}({!r})>".format(self.__module__, self.__class__.__name__, self._mock)
 
     @property
     def mock(self):
@@ -295,13 +295,13 @@ class MockFactory:
 
     def _validate_name(self, name):
         if name in self._mocks or name in self._factories:
-            raise TypeError(f"Name {name!r} is already in use")
+            raise TypeError("Name {!r} is already in use".format(name))
 
     def _format_name(self, name):
         if self._name is None:
             return name
         else:
-            return f"{self._name}.{name}"
+            return "{}.{}".format(self._name, name)
 
     def _children(self):
         yield from self._mocks.values()

@@ -22,7 +22,7 @@ class Option(abc.ABC):
         return value
 
     def fail(self, key, message):
-        raise ValueError(f"Invalid value for {key!r} config option given: {message}")
+        raise ValueError("Invalid value for {!r} config option given: {}".format(key, message))
 
 
 class Enum(Option):
@@ -33,7 +33,7 @@ class Enum(Option):
 
     def parse(self, key, value):
         if value not in self.values:
-            self.fail(key, f"expected any of {self.values!r}, got {value!r}")
+            self.fail(key, "expected any of {!r}, got {!r}".format(self.values, value))
         return value
 
 
@@ -45,7 +45,7 @@ class Type(Option):
 
     def parse(self, key, value):
         if not isinstance(value, self.type_):
-            self.fail(key, f"expected instance of {self.type_!r}, got {value!r}")
+            self.fail(key, "expected instance of {!r}, got {!r}".format(self.type_, value))
         return value
 
 
@@ -63,7 +63,7 @@ class Config(collections.abc.MutableMapping):
 
     def __setitem__(self, key, value):
         if key not in self._available_options:
-            raise TypeError(f"No such option: {key}")
+            raise TypeError("No such option: {}".format(key))
         else:
             self._options[key] = self._available_options[key].parse(key, value)
 

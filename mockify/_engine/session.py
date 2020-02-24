@@ -27,14 +27,14 @@ class _Config:
         return self._config.get(key)
 
     def set(self, key, value):
-        validate = getattr(self, f"_validate_{key}", None)
+        validate = getattr(self, "_validate_{}".format(key), None)
         if validate is not None:
             validate(key, value)
         self._config[key] = value
 
     def _validate_uninterested_call_strategy(self, key, value):
         if value not in ('fail', 'warn', 'ignore'):
-            raise ValueError(f"Invalid value for {key!r} config option given: {value!r}")
+            raise ValueError("Invalid value for {!r} config option given: {!r}".format(key, value))
 
 
 class Session:

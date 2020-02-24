@@ -591,7 +591,7 @@ exception raising when invalid magic bytes are received:
             magic_bytes = self._stream_reader.readline()
             magic_bytes = magic_bytes.rstrip()
             if magic_bytes != b'XYZ':
-                raise XYZError(f"Invalid magic bytes: {magic_bytes!r}")
+                raise XYZError("Invalid magic bytes: {!r}".format(magic_bytes))
             self._stream_reader.readline()
             payload_size = self._stream_reader.readline()
             payload_size = payload_size.rstrip()
@@ -677,11 +677,11 @@ Here's **XYZReader** class with code that verifies version:
             magic_bytes = self._stream_reader.readline()
             magic_bytes = magic_bytes.rstrip()
             if magic_bytes != b'XYZ':
-                raise XYZError(f"Invalid magic bytes: {magic_bytes!r}")
+                raise XYZError("Invalid magic bytes: {!r}".format(magic_bytes))
             version = self._stream_reader.readline()
             version = version.rstrip()
             if version != b'1.0':
-                raise XYZError(f"Unsupported version: {version!r}")
+                raise XYZError("Unsupported version: {!r}".format(version))
             payload_size = self._stream_reader.readline()
             payload_size = payload_size.rstrip()
             payload_size = int(payload_size)
@@ -832,11 +832,11 @@ Here's once again complete **XYZReader** class:
             magic_bytes = self._stream_reader.readline()
             magic_bytes = magic_bytes.rstrip()
             if magic_bytes != b'XYZ':
-                raise XYZError(f"Invalid magic bytes: {magic_bytes!r}")
+                raise XYZError("Invalid magic bytes: {!r}".format(magic_bytes))
             version = self._stream_reader.readline()
             version = version.rstrip()
             if version != b'1.0':
-                raise XYZError(f"Unsupported version: {version!r}")
+                raise XYZError("Unsupported version: {!r}".format(version))
             payload_size = self._stream_reader.readline()
             payload_size = payload_size.rstrip()
             payload_size = int(payload_size)

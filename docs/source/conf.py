@@ -31,7 +31,7 @@ from mockify import __version__
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = f"2018 - {current_year}, Maciej Wiatrzyk"
+copyright = "2018 - {}, Maciej Wiatrzyk".format(current_year)
 author = 'Maciej Wiatrzyk'
 
 # The full version, including alpha/beta/rc tags

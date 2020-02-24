@@ -55,7 +55,7 @@ def update_copyright(c, verbosity=0):
     def format_template(lines, path):
         return '\n'.join(lines).format(
             filename=path,
-            year=f"{year_started} - {year_current}",
+            year="{} - {}".format(year_started, year_current),
             holder=copyright_holder)
 
     def update_files(pattern, ignore=None):
@@ -77,7 +77,7 @@ def update_copyright(c, verbosity=0):
                         dst.write(line)
                         line = src.readline()
             shutil.move(dst_path, src_path)
-            logger.debug(f"%s - OK", src_path)
+            logger.debug("%s - OK", src_path)
         logger.info('Done.')
 
     def update_license():
@@ -85,7 +85,7 @@ def update_copyright(c, verbosity=0):
         with open(os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')) as src:
             with open(os.path.join(_root_dir, 'LICENSE'), 'w') as dst:
                 dst.write(src.read().format(
-                    year=f"{year_started} - {year_current}",
+                    year="{} - {}".format(year_started, year_current),
                     holder=copyright_holder
                 ))
         logger.info('Done.')
@@ -125,7 +125,7 @@ def test_cov(c, html=False):
     opts = ''
     if html:
         opts += ' --cov-report=html'
-    c.run(f"pytest tests/ --cov=src/_mockify{opts}")
+    c.run("pytest tests/ --cov=src/_mockify{}".format(opts))
 
 
 @invoke.task
@@ -147,7 +147,7 @@ def deploy(c, env):
     elif env == 'prod':
         c.run('twine upload dist/*')
     else:
-        raise RuntimeError(f"invalid env: {env}")
+        raise RuntimeError("invalid env: {}".format(env))
 
 
 @invoke.task

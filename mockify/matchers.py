@@ -36,7 +36,7 @@ class Matcher(abc.ABC):
         """
         formatted = _utils.format_args_kwargs(args, kwargs,
             sort=False, skip_kwarg_if=lambda value: value is None)
-        return f"{self.__class__.__name__}({formatted})"
+        return "{}({})".format(self.__class__.__name__, formatted)
 
     def __repr__(self):
         return self.format_repr()
@@ -133,13 +133,13 @@ class Type(Matcher):
     def __validate_types(self, types):
         for type_ in types:
             if not isinstance(type_, type):
-                raise TypeError(f"__init__() requires type instances, got {type_!r}")
+                raise TypeError("__init__() requires type instances, got {!r}".format(type_))
 
     def __eq__(self, other):
         return isinstance(other, *self._types)
 
     def format_repr(self):
-        return f"{self.__class__.__name__}({', '.join(x.__name__ for x in self._types)})"
+        return "{}({})".format(self.__class__.__name__, ', '.join(x.__name__ for x in self._types))
 
 
 class Regex(Matcher):
@@ -175,9 +175,9 @@ class Regex(Matcher):
 
     def format_repr(self):
         if self._name is None:
-            return f"{self.__class__.__name__}({self._pattern.pattern!r})"
+            return "{}({!r})".format(self.__class__.__name__, self._pattern.pattern)
         else:
-            return f"{self.__class__.__name__}({self._name})"
+            return "{}({})".format(self.__class__.__name__, self._name)
 
 
 class List(Matcher):
@@ -256,9 +256,9 @@ class Func(Matcher):
 
     def format_repr(self):
         if self._name is None:
-            return f"{self.__class__.__name__}({self._func.__name__})"
+            return "{}({})".format(self.__class__.__name__, self._func.__name__)
         else:
-            return f"{self.__class__.__name__}({self._name})"
+            return "{}({})".format(self.__class__.__name__, self._name)
 
 
 _ = Any()

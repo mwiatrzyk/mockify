@@ -30,7 +30,7 @@ class ErrorMessageBuilder:
 
     def append_location(self, location):
         self._lines.extend([
-            f"at {location}",
+            "at {}".format(location),
             "-" * (len(str(location)) + 3)
         ])
 

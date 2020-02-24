@@ -27,7 +27,7 @@ class TestReturn:
 
     @pytest.mark.parametrize('value, expected_repr', _str_test_data)
     def test_repr(self, value, expected_repr):
-        assert repr(Return(value)) == f"<mockify.actions.{expected_repr}>"
+        assert repr(Return(value)) == "<mockify.actions.{}>".format(expected_repr)
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_str(self, value, expected_str):
@@ -63,7 +63,7 @@ class TestIterate:
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_repr(self, value, expected_str):
-        assert repr(Iterate(value)) == f"<mockify.actions.{expected_str}>"
+        assert repr(Iterate(value)) == "<mockify.actions.{}>".format(expected_str)
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_str(self, value, expected_str):
@@ -99,7 +99,7 @@ class TestRaise:
             self.message = message
 
         def __repr__(self):
-            return f"Error({self.message!r})"
+            return "Error({!r})".format(self.message)
 
     _str_test_data = [
         (Error('an error'), "Raise(Error('an error'))"),
@@ -107,7 +107,7 @@ class TestRaise:
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_repr(self, value, expected_str):
-        assert repr(Raise(value)) == f"<mockify.actions.{expected_str}>"
+        assert repr(Raise(value)) == "<mockify.actions.{}>".format(expected_str)
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_str(self, value, expected_str):

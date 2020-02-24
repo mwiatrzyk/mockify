@@ -169,7 +169,7 @@ class TestMock:
         with pytest.raises(TypeError) as excinfo:
             self.uut.__getattr__.expect_call(invalid_name)
         assert str(excinfo.value) ==\
-            f"__getattr__.expect_call() must be called with valid Python property name, got {invalid_name!r}"
+            "__getattr__.expect_call() must be called with valid Python property name, got {!r}".format(invalid_name)
 
     def test_when_property_is_expected_to_be_get_and_is_never_get__then_raise_unsatisfied_error(self):
         expectation = self.uut.__getattr__.expect_call('spam')
@@ -216,7 +216,7 @@ class TestMock:
         with pytest.raises(TypeError) as excinfo:
             self.uut.__setattr__.expect_call(invalid_name, 123)
         assert str(excinfo.value) ==\
-            f"__setattr__.expect_call() must be called with valid Python property name, got {invalid_name!r}"
+            "__setattr__.expect_call() must be called with valid Python property name, got {!r}".format(invalid_name)
 
     def test_when_property_is_expected_to_be_set_and_is_never_set__then_raise_unsatisfied_error(self):
         expectation = self.uut.__setattr__.expect_call('spam', 123)

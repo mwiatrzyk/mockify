@@ -44,7 +44,7 @@ class ActualCallCount:
         if self._value == 0:
             return 'never called'
         else:
-            return f"called {_utils.format_call_count(self._value)}"
+            return "called {}".format(_utils.format_call_count(self._value))
 
     def __eq__(self, other):
         return self._value == other
@@ -69,7 +69,7 @@ class ExpectedCallCount(abc.ABC):
     """
 
     def __repr__(self):
-        return f"<{self.__module__}.{self.__class__.__name__}({self.format_params()})>"
+        return "<{}.{}({})>".format(self.__module__, self.__class__.__name__, self.format_params())
 
     def __eq__(self, other):
         return type(self) is type(other) and\
@@ -126,7 +126,7 @@ class Exactly(ExpectedCallCount):
         if self.expected == 0:
             return 'to be never called'
         else:
-            return f"to be called {_utils.format_call_count(self.expected)}"
+            return "to be called {}".format(_utils.format_call_count(self.expected))
 
     def match(self, actual_call_count):
         return self.expected == actual_call_count
@@ -222,7 +222,7 @@ class Between(ExpectedCallCount):
         self.maximal = maximal
 
     def __str__(self):
-        return f"to be called from {self.minimal} to {self.maximal} times"
+        return "to be called from {} to {} times".format(self.minimal, self.maximal)
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal and\

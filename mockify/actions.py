@@ -25,10 +25,10 @@ class Action(abc.ABC):
     """
 
     def __repr__(self):
-        return f"<{self.__module__}.{self}>"
+        return "<{}.{}>".format(self.__module__, self)
 
     def __str__(self):
-        return f"{self.__class__.__name__}({self.format_params()})"
+        return "{}({})".format(self.__class__.__name__, self.format_params())
 
     def __eq__(self, other):
         return type(self) is type(other) and\
