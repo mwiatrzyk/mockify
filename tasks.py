@@ -59,7 +59,7 @@ def update_copyright(c, verbosity=0):
             holder=copyright_holder)
 
     def update_files(pattern, ignore=None):
-        template = load_template(os.path.join(_root_dir, 'data', 'templates', 'heading', f'{pattern[2:]}.txt'))
+        template = load_template(os.path.join(_root_dir, 'data', 'templates', 'heading', "{}.txt".format(pattern[2:])))
         marker_line = template[0]
         logger.info("Updating copyright notice in %s files...", pattern)
         for src_path in scan(pattern, ignore=ignore):
