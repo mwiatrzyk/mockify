@@ -1,17 +1,27 @@
 import setuptools
 
+
 with open("README.md", "r") as fd:
     long_description = fd.read()
 
+
 def version_scheme(version):
-    return str(version.tag)
+    if not version.distance:
+        return str(version.tag)
+    else:
+        major, minor, build = str(version.tag).split('.')
+        return "{}.{}.{}".format(major, minor, int(build)+1)
+
 
 def local_scheme(version):
-    return "rc{}".format(version.distance)
+    if not version.distance:
+        return ''
+    else:
+        return "dev{}".format(version.distance)
+
 
 setuptools.setup(
     name="mockify",
-    #version='.'.join(str(x) for x in mockify.__version__),
     use_scm_version={
         'write_to': 'mockify/_version.py',
         'version_scheme': version_scheme,
