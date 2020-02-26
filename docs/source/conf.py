@@ -15,30 +15,32 @@
 
 import os
 import sys
+import doctest
 
 from datetime import datetime
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
-root_dir = os.path.join(this_dir, '..', '..')
+src_dir = os.path.join(this_dir, '..', '..')
 current_year = datetime.now().year
 
-sys.path.insert(0, root_dir)
+sys.path.insert(0, src_dir)
 
-from mockify import version
+from mockify import __version__
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = f"2018 - {current_year}, Maciej Wiatrzyk"
+copyright = "2018 - {}, Maciej Wiatrzyk".format(current_year)
 author = 'Maciej Wiatrzyk'
 
-# The short X.Y version
-version = '.'.join(str(x) for x in version[:-1])
-
 # The full version, including alpha/beta/rc tags
-release = '.'.join(str(x) for x in version)
+release = __version__
+print('Release: ', release)
 
+# The short X.Y version
+version = '.'.join(release.split('.', 2))
+print('Version: ', version)
 
 # -- General configuration ---------------------------------------------------
 
@@ -194,3 +196,9 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# Doctest
+doctest_default_flags = doctest.ELLIPSIS | doctest.DONT_ACCEPT_TRUE_FOR_1
+
+# Autodoc
+autodoc_member_order = 'bysource'  # Order as in source files

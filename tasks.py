@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tasks.py
 #
-# Copyright (C) 2018 - 2019 Maciej Wiatrzyk
+# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -55,11 +55,11 @@ def update_copyright(c, verbosity=0):
     def format_template(lines, path):
         return '\n'.join(lines).format(
             filename=path,
-            year=f"{year_started} - {year_current}",
+            year="{} - {}".format(year_started, year_current),
             holder=copyright_holder)
 
     def update_files(pattern, ignore=None):
-        template = load_template(os.path.join(_root_dir, 'data', 'templates', 'heading', f'{pattern[2:]}.txt'))
+        template = load_template(os.path.join(_root_dir, 'data', 'templates', 'heading', "{}.txt".format(pattern[2:])))
         marker_line = template[0]
         logger.info("Updating copyright notice in %s files...", pattern)
         for src_path in scan(pattern, ignore=ignore):
@@ -77,7 +77,7 @@ def update_copyright(c, verbosity=0):
                         dst.write(line)
                         line = src.readline()
             shutil.move(dst_path, src_path)
-            logger.debug(f"%s - OK", src_path)
+            logger.debug("%s - OK", src_path)
         logger.info('Done.')
 
     def update_license():
@@ -85,7 +85,7 @@ def update_copyright(c, verbosity=0):
         with open(os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')) as src:
             with open(os.path.join(_root_dir, 'LICENSE'), 'w') as dst:
                 dst.write(src.read().format(
-                    year=f"{year_started} - {year_current}",
+                    year="{} - {}".format(year_started, year_current),
                     holder=copyright_holder
                 ))
         logger.info('Done.')
@@ -120,9 +120,18 @@ def test_unit(c):
 
 
 @invoke.task
+def test_cov(c, html=False):
+    """Run tests and check coverage."""
+    opts = ''
+    if html:
+        opts += ' --cov-report=html'
+    c.run("pytest tests/ --cov=src/_mockify{}".format(opts))
+
+
+@invoke.task
 def test_docs(c):
     """Run documentation tests."""
-    c.run('pytest --doctest-modules --doctest-glob="*.rst" docs/ mockify/')
+    c.run('sphinx-build -M doctest docs/source docs/build')
 
 
 @invoke.task(test_unit, test_docs)
@@ -138,7 +147,7 @@ def deploy(c, env):
     elif env == 'prod':
         c.run('twine upload dist/*')
     else:
-        raise RuntimeError(f"invalid env: {env}")
+        raise RuntimeError("invalid env: {}".format(env))
 
 
 @invoke.task
