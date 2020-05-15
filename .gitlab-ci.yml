@@ -43,6 +43,7 @@ deploy_to_test_pypi:
     - pipenv run invoke deploy test
   only:
     - develop
+    - tags
 
 deploy_to_pypi:
   stage: deploy
@@ -55,4 +56,4 @@ deploy_to_pypi:
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy prod
   only:
-    - master
+    - tags

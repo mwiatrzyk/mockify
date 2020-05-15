@@ -9,11 +9,13 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import collections
+
 import pytest
 
 from mockify import exc, satisfied, Call
 from mockify.mock import Mock
-from mockify.matchers import _, Type, Regex, AnyOf, Func, List
+from mockify.matchers import _, Type, Regex, AnyOf, Func, List, Object
 
 
 class TestAny:
@@ -205,3 +207,31 @@ class TestList:
 
     def test_there_is_a_match_if_value_is_a_list_containing_all_elements_matching_given_matcher(self):
         assert List(Type(str)) == ['1', '2', '3']
+
+
+class TestObject:
+    Reference = collections.namedtuple('Reference', 'x,y,z')
+
+    @pytest.mark.parametrize('kwargs, expected_repr', [
+        ({'a': 1}, "Object(a=1)"),
+        ({'a': 1, 'b': 'spam'}, "Object(a=1, b='spam')"),
+    ])
+    def test_repr(self, kwargs, expected_repr):
+        assert repr(Object(**kwargs)) == expected_repr
+
+    def test_matcher_must_have_at_least_one_keyword_arg_given(self):
+        with pytest.raises(TypeError) as excinfo:
+            Object()
+        assert str(excinfo.value) == '__init__ must be called with at least 1 named argument'
+
+    def test_matcher_is_equal__if_all_given_attrs_are_the_same(self):
+        assert self.Reference(1, 2, 3) == Object(x=1, y=2, z=3)
+
+    def test_matcher_is_equal__if_subset_of_given_attrs_is_the_same(self):
+        assert self.Reference(1, 2, 3) == Object(x=1, y=2)
+
+    def test_matcher_is_not_equal__if_not_all_given_attrs_are_the_same(self):
+        assert self.Reference(1, 2, 3) != Object(x=1, y=2, z=4)
+
+    def test_matcher_is_not_equal__if_contains_more_attrs_than_reference_object(self):
+        assert self.Reference(1, 2, 3) != Object(x=1, y=2, z=3, w=4)
