@@ -31,8 +31,12 @@ class Matcher(abc.ABC):
     def format_repr(self, *args, **kwargs):
         """Return matcher's textual representation.
 
-        Pay attention to this, as it is later used to render string
-        representation of expected call parameters.
+        Typical use case of this class is to override it in child class
+        without parameters and then call super giving it args you want to
+        include in repr. Like in this example::
+
+            def format_repr(self):
+                return super().format_repr(self._first_arg, self._second_arg, kwd=self._kwd_arg)
         """
         formatted = _utils.format_args_kwargs(args, kwargs,
             sort=False, skip_kwarg_if=lambda value: value is None)
@@ -221,6 +225,55 @@ class List(Matcher):
         return super().format_repr(
             self._matcher, min_length=self._min_length,
             max_length=self._max_length)
+
+
+class Object(Matcher):
+    """Matches value if it is an object with attributes equal to names and
+    values given via keyword args.
+
+    This matcher creates ad-hoc object using provided keyword args. These
+    args are then used to compare with value's attributes of same name. All
+    attributes must match for this matcher to accept value.
+
+    Here's an example:
+
+    .. testcode::
+
+        from collections import namedtuple
+
+        from mockify import satisfied
+        from mockify.mock import Mock
+        from mockify.matchers import Object
+
+        CallArg = namedtuple('CallArg', 'foo, bar')
+
+        mock = Mock('mock')
+        mock.expect_call(Object(foo=1, bar=2))
+
+        with satisfied(mock):
+            mock(CallArg(1, 2))
+
+    .. versionadded:: 0.6.5
+
+    :param **kwargs:
+        Arguments to compare value with
+    """
+    _undefined = object()
+
+    def __init__(self, **kwargs):
+        if not kwargs:
+            raise TypeError("__init__ must be called with at least 1 named argument")
+        self._kwargs = kwargs
+
+    def __eq__(self, other):
+        for k, v in self._kwargs.items():
+            if getattr(other, k, self._undefined) != v:
+                return False
+        else:
+            return True
+
+    def format_repr(self):
+        return super().format_repr(**self._kwargs)
 
 
 class Func(Matcher):

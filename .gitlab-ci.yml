@@ -55,4 +55,4 @@ deploy_to_pypi:
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy prod
   only:
-    - master
+    - tags
