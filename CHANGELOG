@@ -1,4 +1,9 @@
-0.6.0
+0.6.5
+-----
+
+* Added :class:`mockify.matchers.Object` matcher 
+
+0.6.4
 -----
 
 * Deprecated code was removed
