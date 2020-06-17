@@ -42,7 +42,7 @@ deploy_to_test_pypi:
     - pipenv run invoke build-pkg
     - pipenv run invoke deploy test
   only:
-    - develop
+    - master
     - tags
 
 deploy_to_pypi:

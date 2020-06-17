@@ -1,3 +1,10 @@
+0.7.1
+-----
+
+* Fix :class:`mockify.matchers.Object` matcher to be inequal to reference
+  object if reference object does not have one or more properties listed in
+  matcher
+
 0.7.0
 -----
 
@@ -7,7 +14,7 @@
 0.6.5
 -----
 
-* Added :class:`mockify.matchers.Object` matcher
+* Added :class:`mockify.matchers.Object` matcher 
 
 0.6.4
 -----
