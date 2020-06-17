@@ -235,3 +235,6 @@ class TestObject:
 
     def test_matcher_is_not_equal__if_contains_more_attrs_than_reference_object(self):
         assert self.Reference(1, 2, 3) != Object(x=1, y=2, z=3, w=4)
+
+    def test_matcher_is_not_equal__if_reference_does_not_have_given_property(self):
+        assert self.Reference(1, 2, 3) != Object(foo=_)
