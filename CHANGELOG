@@ -1,4 +1,15 @@
-0.6.0
+0.7.0
+-----
+
+* An alias to 0.6.5 to fix versioning (new feature was introduced, and wrong
+  version part was increased by mistake)
+
+0.6.5
+-----
+
+* Added :class:`mockify.matchers.Object` matcher
+
+0.6.4
 -----
 
 * Deprecated code was removed
