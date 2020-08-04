@@ -12,79 +12,9 @@ import abc
 
 import pytest
 
-from mockify import exc, satisfied
+from mockify import exc, satisfied, Session, Call
 from mockify.mock import ABCMock, Mock, MockFactory, MockInfo
 from mockify.actions import Return
-
-
-class TestMockFactory:
-
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.uut = MockFactory()
-
-    def test_mocks_created_by_factory_share_one_session_object(self):
-        first = self.uut.mock('first')
-        second = self.uut.mock('second')
-        assert MockInfo(first).session  is MockInfo(second).session
-
-    def test_created_mock_has_same_name_as_given_one(self):
-        first = self.uut.mock('first')
-        assert MockInfo(first).name == 'first'
-
-    def test_when_factory_is_created_with_name__it_is_used_as_mock_name_prefix(self):
-        self.uut = MockFactory('foo')
-        first = self.uut.mock('first')
-        assert MockInfo(first).name == 'foo.first'
-
-    def test_mock_with_same_name_as_existing_mock_cannot_be_created(self):
-        self.uut.mock('foo')
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.mock('foo')
-        assert str(excinfo.value) == "Name 'foo' is already in use"
-
-    def test_create_nested_factory(self):
-        nested = self.uut.factory('nested')
-        first = nested.mock('first')
-        assert MockInfo(first).name == 'nested.first'
-
-    def test_mock_with_same_name_as_existing_factory_cannot_be_created(self):
-        self.uut.factory('foo')
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.mock('foo')
-        assert str(excinfo.value) == "Name 'foo' is already in use"
-
-    def test_factory_with_same_name_as_existing_factory_cannot_be_created(self):
-        self.uut.factory('foo')
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.factory('foo')
-        assert str(excinfo.value) == "Name 'foo' is already in use"
-
-    def test_factory_with_same_name_as_existing_mock_cannot_be_created(self):
-        self.uut.mock('foo')
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.factory('foo')
-        assert str(excinfo.value) == "Name 'foo' is already in use"
-
-    def test_create_mock_factory_with_custom_session_and_mock_class(self):
-
-        def factory(name, session=None):
-            return name, session
-
-        self.uut = MockFactory(session='session', mock_class=factory)
-        assert self.uut.mock('foo') == ('foo', 'session')
-
-    def test_list_children(self):
-        first = self.uut.mock('first')
-        second = self.uut.factory('second')
-        third = second.mock('third')
-        assert list(x.mock for x in MockInfo(self.uut).children()) == [first, third]
-
-    def test_list_expectations(self):
-        first = self.uut.mock('first').expect_call()
-        second = self.uut.factory('second')
-        third = second.mock('third').expect_call()
-        assert list(MockInfo(self.uut).expectations()) == [first, third]
 
 
 class TestMock:
@@ -323,3 +253,32 @@ class TestABCMock:
             uut.foo.expect_call(1, 2, 3)
 
         assert str(excinfo.value) == "cannot record call expectation due to signature mismatch: uut.foo(a, b) (expected) != uut.foo(1, 2, 3) (given)"
+
+    def test_if_method_call_expectation_is_recorded_with_invalid_argument_names__then_fail_with_type_error(self):
+
+        class IFoo(abc.ABC):
+            @abc.abstractmethod
+            def foo(self, a, b):
+                pass
+
+        uut = ABCMock('uut', IFoo)
+
+        with pytest.raises(TypeError) as excinfo:
+            uut.foo.expect_call(a=1, bb=2)
+
+        assert str(excinfo.value) == "cannot record call expectation due to signature mismatch: uut.foo(a, b) (expected) != uut.foo(a=1, bb=2) (given)"
+
+    @pytest.mark.skip('to be fixed later')
+    def test_record_and_consume_abstract_method_call_expectation(self):
+
+        class IFoo(abc.ABC):
+            @abc.abstractmethod
+            def foo(self, a, b):
+                pass
+
+        uut = ABCMock('uut', IFoo)
+        uut.foo.expect_call(1, 2).will_once(Return(3))
+
+        with satisfied(uut):
+            assert uut.foo(1, 2) == 3
+

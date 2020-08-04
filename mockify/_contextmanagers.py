@@ -33,15 +33,14 @@ def ordered(*mocks):  # TODO: add more tests
     def get_session():
         num_mocks = len(mocks)
         if num_mocks == 1:
-            return mocks[0]._session
+            return MockInfo(mocks[0]).session
         for i in range(num_mocks-1):
-            first, second = mocks[i], mocks[i+1]
-            session = first._session
-            if session is not second._session:
-                first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
+            first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
+            session = first.session
+            if session is not second.session:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(first.name, second.name))
+                    "session object".format(first.fullname, second.fullname))
         else:
             return session
 
@@ -81,7 +80,7 @@ def patched(*mocks):
         if mock is None:
             yield
         else:
-            mock_name = MockInfo(mock).name
+            mock_name = MockInfo(mock).fullname
             with unittest.mock.patch(mock_name, mock):
                 yield from patch_many(mocks)
 
