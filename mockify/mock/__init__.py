@@ -8,7 +8,7 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-from ._base import MockInfo, BaseMock, IMockInfoTarget
+from ._base import MockInfo, BaseMock
 from ._mock import Mock
 from ._factory import MockFactory
 from ._abc_mock import ABCMock

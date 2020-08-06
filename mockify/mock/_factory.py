@@ -1,9 +1,11 @@
+import weakref
+
 from ._mock import Mock
-from ._base import IMockInfoTarget
+from ._base import BaseMock
 from .._engine import Session
 
 
-class MockFactory(IMockInfoTarget):
+class MockFactory(BaseMock):
     """A factory class used to create groups of related mocks.
 
     This class allows to create mocks using class given by *mock_class*
@@ -46,6 +48,7 @@ class MockFactory(IMockInfoTarget):
         self._mock_class = mock_class or Mock
         self._factories = {}
         self._mocks = {}
+        self.__m_parent__ = None
 
     @property
     def __m_name__(self):
@@ -53,20 +56,38 @@ class MockFactory(IMockInfoTarget):
 
     @property
     def __m_fullname__(self):
-        return self._name  # FIXME: should include nested factories
+        parent = self.__m_parent__
+        if parent is None or parent.__m_fullname__ is None:
+            return self.__m_name__
+        else:
+            return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
 
     @property
     def __m_session__(self):
         return self._session
 
+    @property
+    def __m_parent__(self):
+        if self.__parent is not None:
+            return self.__parent()
+
+    @__m_parent__.setter
+    def __m_parent__(self, value):
+        if value is None:
+            self.__parent = value
+        else:
+            self.__parent = weakref.ref(value)
+
     def __m_children__(self):
         yield from self._mocks.values()
-        for child_factory in self._factories.values():
-            yield from child_factory.__m_children__()
+        yield from self._factories.values()
 
     def __m_expectations__(self):
-        for mock in self.__m_children__():
+        for mock in self._mocks.values():
             yield from mock.__m_expectations__()
+
+    def __repr__(self):
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(self=self)
 
     def mock(self, name):
         """Create and return mock of given *name*.
@@ -76,8 +97,14 @@ class MockFactory(IMockInfoTarget):
         """
         self._validate_name(name)
         self._mocks[name] = tmp =\
-            self._mock_class(self._format_name(name), session=self._session)
+            self._mock_class(self.__format_name(name), session=self._session)
         return tmp
+
+    def __format_name(self, name):
+        if self.__m_fullname__ is None:
+            return name
+        else:
+            return "{}.{}".format(self.__m_fullname__, name)
 
     def factory(self, name):
         """Create and return child factory.
@@ -91,18 +118,14 @@ class MockFactory(IMockInfoTarget):
         :rtype: MockFactory
         """
         self._validate_name(name)
-        self._factories[name] = tmp = self.__class__(
-            self._format_name(name),
-            session=self._session,
-            mock_class=self._mock_class)
+        self._factories[name] = tmp =\
+            self.__class__(
+                name=name,
+                session=self._session,
+                mock_class=self._mock_class)
+        tmp.__m_parent__ = self
         return tmp
 
     def _validate_name(self, name):
         if name in self._mocks or name in self._factories:
             raise TypeError("Name {!r} is already in use".format(name))
-
-    def _format_name(self, name):
-        if self._name is None:
-            return name
-        else:
-            return "{}.{}".format(self._name, name)

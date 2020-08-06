@@ -2,75 +2,109 @@ import abc
 import weakref
 
 from .. import _utils
+from .._engine import Session
 
 
-class IMockInfoTarget(abc.ABC):
-    """An interface to be implemented by mock classes and other mocking
-    utilities (like mock factories) that can be inspected with a
-    :class:`MockInfo` class.
+class BaseMock(abc.ABC):
+    """Abstract base class for all mock classes.
+
+    In Mockify, mocks are composed in a tree-like structure. For example, to
+    mock object with a methods we compose object mock (a root) and then
+    supply it with leafs (or children), each representing single mocked
+    method of that object. This class provides methods and properties for
+    Mockify engine to walk through such defined structure.
 
     .. versionadded:: 0.8
     """
 
     @property
-    @abc.abstractmethod
-    def __m_name__(self):
-        """Mock name.
+    def __m_fullname__(self):
+        """Full name of this mock.
 
-        This must be a name of target that is being inspected, f.e. the name
-        that was set when mock object was created.
+        It is composed of parent's :attr:`__m_fullname__` and current
+        :attr:`__m_name__`. If mock has no parent, then this will be same as
+        :attr:`__m_name__`.
         """
+        parent = self.__m_parent__
+        if parent is None:
+            return self.__m_name__
+        else:
+            return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
+
+    @property
+    def __m_parent__(self):
+        """Weak reference to :class:`BaseMock` that is a parent of this
+        mock.
+
+        If mock has no parent, this should be set to ``None``.
+        """
+        if self.__parent is not None:
+            return self.__parent()
+
+    @__m_parent__.setter
+    def __m_parent__(self, value):
+        if value is None:
+            self.__parent = value
+        else:
+            self.__parent = weakref.ref(value)
+
+    def __m_walk__(self):
+        """Recursively iterate over :meth:`__m_children__` results, yielding
+        :class:`BaseMock` for each found child.
+
+        It always yields *self* as first element.
+        """
+
+        def walk(mock):
+            yield mock
+            for child in mock.__m_children__():
+                yield from walk(child)
+
+        yield from walk(self)
 
     @property
     @abc.abstractmethod
-    def __m_fullname__(self):
-        """Full mock name.
-
-        It should be composed by concatenating target's parent's
-        :attr:`__m_fullname__` with target's name using period sign. If
-        target has no parent, this should the same as :attr:`__m_name__`.
-        """
+    def __m_name__(self):
+        """Name of this mock."""
 
     @property
     @abc.abstractmethod
     def __m_session__(self):
-        """Instance of :class:`mockify.Session` used by target."""
+        """Instance of :class:`mockify.Session` used by this mock."""
 
     @abc.abstractmethod
     def __m_expectations__(self):
-        """Iterator over :class:`mockify.Expectation` objects, each
-        representing single expectation recorded on target.
+        """Iterator over :class:`mockify.Expectation` objects recorded for
+        this mock.
 
-        This should not include expectations recorded on target's children
-        (if any).
+        It should not include expectations recorded on mock's children (if
+        any).
         """
 
     @abc.abstractmethod
     def __m_children__(self):
-        """Iterator over target's direct children.
+        """Iterator over :class:`BaseMock` objects, representing direct
+        children of this mock.
 
-        We say that target has children if f.e. it is an object mock, and it
-        has methods inside. Then this iterator should iterate over object's
-        mocked methods.
-
-        This should not include target's grandchildren. If target has no
-        children, then this should yield nothing.
+        This should not include grandchildren.
         """
 
 
 class MockInfo:
-    """An object used to inspect mocks and mock factories.
+    """A class for inspecting mocks.
 
-    This class provides a sort of public interface on top of underlying
-    :class:`IMockInfoTarget` instance (that is implemented by mocks and mock
-    factories), that due to their specific nature has no methods or
-    properties publicly available.
+    This class simplifies access to mock's special properties and methods
+    defined in :class:`BaseMock`, but wraps results (when applicable) with
+    :class:`MockInfo` instances. If you need to access mock metadata in your
+    tests, then this class is a recommended way to do so.
 
     :param target:
-        Instance of :class:`IMockInfoTarget` object to be inspected
+        Instance of :class:`BaseMock` object to be inspected
     """
 
     def __init__(self, target):
+        if not isinstance(target, BaseMock):
+            raise TypeError("__init__() got an invalid value for argument 'target'")
         self._target = target
 
     def __repr__(self):
@@ -88,15 +122,21 @@ class MockInfo:
 
     @property
     def target(self):
-        """Reference to inspected target.
+        """Reference to :class:`BaseMock` being inspected.
 
         .. versionadded:: 0.8
         """
         return self._target
 
     @property
+    def parent(self):
+        """Instance of :class:`MockInfo` for target's parent or ``None`` if
+        target has no parent."""
+        return self._target.__m_parent__
+
+    @property
     def name(self):
-        """Target's name.
+        """A proxy to access :attr:`BaseMock.__m_name__` of target mock.
 
         .. versionchanged:: 0.8
             It is no longer full name; for that purpose use new :attr:`fullname`
@@ -105,7 +145,7 @@ class MockInfo:
 
     @property
     def fullname(self):
-        """Target's full name.
+        """A proxy to access :attr:`BaseMock.__m_fullname__` of target mock.
 
         .. versionadded:: 0.8
         """
@@ -113,94 +153,30 @@ class MockInfo:
 
     @property
     def session(self):
-        """Instance of :class:`mockify.Session` used by target."""
+        """A proxy to access :attr:`BaseMock.__m_session__` of target mock."""
         return self._target.__m_session__
 
     def expectations(self):
-        """Iterator over :class:`mockify.Expectation` objects, each
-        representing single expectation recorded on target.
-
-        If there are no expectations recorded for target, then this will
-        yield nothing. Note that this method does not include expectations
-        recorded on target's children. To get all expectations you need to
-        combine this method with :meth:`walk`.
-        """
-        return self._target.__m_expectations__()
+        """An iterator over results returned by :meth:`BaseMock.__m_expectations__` method."""
+        for expectation in self._target.__m_expectations__():
+            yield expectation
 
     def children(self):
-        """Iterator over target's children.
+        """An iterator over results returned by :meth:`BaseMock.__m_children__` method.
 
-        It yields :class:`MockInfo` object for each target's children.
+        .. versionchanged:: 0.8
+            Now this method yields :class:`BaseMock` instances, without
+            wrapping with :class:`MockInfo` object. That was changed to
+            provide symetry between this method and :attr:`parent` property.
         """
-        return map(lambda x: self.__class__(x), self._target.__m_children__())
+        for child in self._target.__m_children__():
+            yield self.__class__(child)
 
     def walk(self):
-        """Recursively iterate over target's children.
+        """Recursively iterates over results returned by :meth:`children`
+        method, wrapping each found item with :class:`MockInfo` object.
 
-        It always yields this mock info object as first element. If target
-        has no children, then single element (this one) will be returned.
-        This method is a handy helper used f.e. to get all expectations
-        recorded on given mock.
+        It always yields *self* as first element.
         """
-
-        def walk(mock_info):
-            yield mock_info
-            for child_info in mock_info.children():
-                yield from walk(child_info)
-
-        yield from walk(self)
-
-
-class BaseMock(IMockInfoTarget):
-    """Base class for all mocks.
-
-    :param name:
-        Name of this mock
-
-    :param session:
-        Instance of :class:`mockify.Session` to be used by this mock.
-
-    :param parent:
-        Parent for this mock.
-
-        This must be instance of :class:`BaseMock`
-
-    .. versionadded:: 0.8
-    """
-
-    def __init__(self, name, session, parent=None):
-        _utils.validate_mock_name(name)
-        self.__name = name
-        self.__session = session
-        self.__m_parent__ = parent
-
-    def __repr__(self):
-        return "<{}.{}({!r})>".format(self.__module__, self.__class__.__name__, self.__m_fullname__)
-
-    @property
-    def __m_parent__(self):
-        if self.__parent is not None:
-            return self.__parent()
-
-    @__m_parent__.setter
-    def __m_parent__(self, value):
-        if value is None:
-            self.__parent = value
-        else:
-            self.__parent = weakref.ref(value)
-
-    @property
-    def __m_name__(self):
-        return self.__name
-
-    @property
-    def __m_fullname__(self):
-        parent = self.__m_parent__
-        if parent is None:
-            return self.__m_name__
-        else:
-            return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
-
-    @property
-    def __m_session__(self):
-        return self.__session
+        for child in self._target.__m_walk__():
+            yield self.__class__(child)

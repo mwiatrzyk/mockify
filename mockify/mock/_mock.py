@@ -10,6 +10,31 @@ class _BaseMock(BaseMock):
         'expect_call': lambda: _ExpectCallMock,
     }
 
+    def __init__(self, name, session, parent=None):
+        _utils.validate_mock_name(name)
+        self.__name = name
+        self.__session = session
+        self.__m_parent__ = parent
+
+    @property
+    def __m_name__(self):
+        return self.__name
+
+    @property
+    def __m_session__(self):
+        return self.__session
+
+    def __m_children__(self):
+        for obj in self.__dict__.values():
+            if isinstance(obj, _BaseMock):
+                yield obj
+
+    def __m_expectations__(self):
+        fullname = self.__m_fullname__
+        return filter(
+            lambda x: x.expected_call.name == fullname,
+            self.__m_session__.expectations())
+
     def __setattr__(self, name, value):
         if '__setattr__' in self.__dict__:
             return self.__dict__['__setattr__'](name, value)
@@ -42,17 +67,6 @@ class _BaseMock(BaseMock):
     def expect_call(self, *args, **kwargs):
         expected_call = Call(self.__m_fullname__, *args, **kwargs)
         return self.__m_session__.expect_call(expected_call)
-
-    def __m_children__(self):
-        for obj in self.__dict__.values():
-            if isinstance(obj, _BaseMock):
-                yield obj
-
-    def __m_expectations__(self):
-        fullname = self.__m_fullname__
-        return filter(
-            lambda x: x.expected_call.name == fullname,
-            self.__m_session__.expectations())
 
 
 class _GetAttrMock(_BaseMock):
