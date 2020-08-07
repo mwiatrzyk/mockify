@@ -2,7 +2,9 @@ import abc
 
 import pytest
 
+from mockify import satisfied
 from mockify.mock import ABCMock
+from mockify.actions import Return
 
 
 class TestABCMock:
@@ -98,7 +100,6 @@ class TestABCMock:
 
         assert str(excinfo.value) == "uut.foo(a, b): missing a required argument: 'b'"
 
-    @pytest.mark.skip('to be fixed later')
     def test_record_and_consume_abstract_method_call_expectation(self):
 
         class IFoo(abc.ABC):
