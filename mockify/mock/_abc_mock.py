@@ -2,7 +2,9 @@ import abc
 import inspect
 import weakref
 
+from ._base import BaseMock
 from .. import _utils
+from .._engine import Session
 
 
 class ABCMock:
@@ -19,9 +21,8 @@ class ABCMock:
         Mock name
 
     :param abstract_base_class:
-        Abstract sase class to be implemented by this mock.
-
-        This must be subclass of :class:`abc.ABC`
+        Subclass of :class:`abc.ABC` to be used as source of abstract methods
+        that will be implemented by this mock.
 
     :param session:
         Instance of :class:`mockify.Session` to be used for this mock.
@@ -33,89 +34,101 @@ class ABCMock:
     _unset = object()
 
     def __new__(cls, name, abstract_base_class, session=None):
-        if not isinstance(abstract_base_class, type):
-            cls.__raise_invalid_abstract_base_class_error('{!r} instance', type(abstract_base_class))
-        if not issubclass(abstract_base_class, abc.ABC):
-            cls.__raise_invalid_abstract_base_class_error('{!r} class', abstract_base_class)
+        if not isinstance(abstract_base_class, type) or\
+           not issubclass(abstract_base_class, abc.ABC):
+            raise TypeError("__init__() got an invalid value for argument 'abstract_base_class'")
 
-        class Mock(abstract_base_class):
+        class Mock(BaseMock):
+            __abstract_methods__ = {}
+            __abstract_properties__ = set()
 
             class _Proxy:
 
-                def __init__(self, owner):
-                    self._owner = owner
+                def __init__(self, name, parent):
+                    self._name = name
+                    self._parent = parent
 
                 @property
-                def _owner(self):
-                    return self.__owner()
+                def _parent(self):
+                    if self.__parent is not None:
+                        return self.__parent()
 
-                @_owner.setter
-                def _owner(self, value):
-                    self.__owner = weakref.ref(value)
+                @_parent.setter
+                def _parent(self, value):
+                    if value is None:
+                        self.__parent = value
+                    else:
+                        self.__parent = weakref.ref(value)
 
             class _GetAttrProxy(_Proxy):
 
                 def expect_call(self, name):
-                    raise AttributeError(
-                        "{self._owner.__class__.__name__!r} object has no "
-                        "attribute {name!r}".format(self=self, name=name))
+                    if name not in self._parent.__abstract_properties__:
+                        raise AttributeError("{self._parent.__class__.__name__!r} object has no attribute {name!r}".format(self=self, name=name))
 
             class _SetAttrProxy(_Proxy):
 
                 def expect_call(self, name, value):
-                    raise AttributeError("cannot set attribute {!r} (it is missing in the interface)".format(name))
+                    if name not in self._parent.__abstract_properties__:
+                        raise AttributeError("can't set attribute {name!r}".format(name=name))
 
             class _MethodProxy(_Proxy):
 
-                def __init__(self, owner, method_name):
-                    super().__init__(owner)
-                    self._method_name = method_name
-
                 def expect_call(self, *args, **kwargs):
-                    expected_signature = str(self._owner._abstract_methods[self._method_name]).\
+                    expected_signature = self._parent.__abstract_methods__[self._name]
+                    expected_signature_str = str(expected_signature).\
                         replace('self, ', '').\
-                        replace('self', '')  # FIXME: this is a workaround
-                    call_signature = _utils.format_args_kwargs(args, kwargs)
-                    raise TypeError(
-                        "cannot record call expectation due to signature mismatch: "
-                        "{name}.{method}{expected_signature} (expected) != {name}.{method}({given_signature}) (given)".format(
-                            name=self._owner._name, method=self._method_name, expected_signature=expected_signature,
-                            given_signature=call_signature))
+                        replace('self', '')  # Drop self from error print
+                    try:
+                        expected_signature.bind(self, *args, **kwargs)
+                    except TypeError as e:
+                        raise TypeError("{self._parent.__m_name__}.{self._name}{sig}: {err}".format(sig=expected_signature_str, err=e, self=self))
 
-            def __init__(self, name, abstract_methods, abstract_properties, session):
-                self._name = name
-                self._abstract_methods = abstract_methods
-                self._abstract_properties = abstract_properties
-                self.__m_session__ = session
+            def __init__(self, name, session):
+                self.__name = name
+                self.__session = session
 
             def __getattribute__(self, name):
-                if name in ('_abstract_methods',):
-                    return super().__getattribute__(name)
-                elif name == '__getattr__':
-                    return self._GetAttrProxy(self)
+                if name == '__getattr__':
+                    return self.__class__._GetAttrProxy(name, self)
                 elif name == '__setattr__':
-                    return self._SetAttrProxy(self)
-                elif name in self._abstract_methods:
-                    return self._MethodProxy(self, name)
-                else:
+                    return self.__class__._SetAttrProxy(name, self)
+                elif name.startswith('_'):
                     return super().__getattribute__(name)
+                elif name not in self.__abstract_methods__:
+                    raise AttributeError("{self.__class__.__name__!r} object has no attribute {name!r}".format(self=self, name=name))
+                else:
+                    return self.__class__._MethodProxy(name, self)
 
-        abstract_methods = {}
-        abstract_properties = set()
-        for method_name in Mock.__abstractmethods__:
-            attr = getattr(abstract_base_class, method_name)
-            if isinstance(attr, property):
-                abstract_properties.add(method_name)
+            @property
+            def __m_name__(self):
+                return self.__name
+
+            @property
+            def __m_session__(self):
+                return self.__session
+
+            @property
+            def __m_children__(self):
+                return
+                yield
+
+            @property
+            def __m_expectations__(self):
+                return
+                yield
+
+        abstract_base_class.register(Mock)
+        for method_name in abstract_base_class.__abstractmethods__:
+            method = getattr(abstract_base_class, method_name)
+            if isinstance(method, property):
+                Mock.__abstract_properties__.add(method_name)
             else:
-                abstract_methods[method_name] = inspect.signature(attr)
-
-        Mock.__abstractmethods__ = frozenset()
+                Mock.__abstract_methods__[method_name] = inspect.signature(method)
         Mock.__name__ = cls.__name__
-        return Mock(name, abstract_methods, abstract_properties, session)
+        return Mock(name, session or Session())
 
     @classmethod
-    def __raise_invalid_abstract_base_class_error(cls, message, *args):
-        message = message.format(*args)
-        raise TypeError(
-            "'__init__' got an invalid value for argument 'abstract_base_class': "
-            "ABC subclass expected, got {}".format(message))
+    def _iter_abstract_methods(cls, abstract_base_class):
+        for name in abstract_base_class.__abstractmethods__:
+            yield getattr(abstract_base_class, name)

@@ -10,12 +10,12 @@ class TestABCMock:
     def test_when_creating_mock_with_abstract_base_class_not_being_a_class__type_error_is_raised(self):
         with pytest.raises(TypeError) as excinfo:
             ABCMock('uut', object())
-        assert str(excinfo.value) == "'__init__' got an invalid value for argument 'abstract_base_class': ABC subclass expected, got <class 'object'> instance"
+        assert str(excinfo.value) == "__init__() got an invalid value for argument 'abstract_base_class'"
 
     def test_when_creating_mock_with_abstract_base_class_not_being_a_subclass_of_abc__type_error_is_raised(self):
         with pytest.raises(TypeError) as excinfo:
             ABCMock('uut', object)
-        assert str(excinfo.value) == "'__init__' got an invalid value for argument 'abstract_base_class': ABC subclass expected, got <class 'object'> class"
+        assert str(excinfo.value) == "__init__() got an invalid value for argument 'abstract_base_class'"
 
     def test_created_mock_object_is_instance_of_given_abstract_base_class(self):
 
@@ -68,7 +68,7 @@ class TestABCMock:
         with pytest.raises(AttributeError) as excinfo:
             uut.__setattr__.expect_call('bar', 123)
 
-        assert str(excinfo.value) == "cannot set attribute 'bar' (it is missing in the interface)"
+        assert str(excinfo.value) == "can't set attribute 'bar'"
 
     def test_if_method_call_expectation_is_recorded_with_invalid_number_of_positional_args__then_fail_with_type_error(self):
 
@@ -82,7 +82,7 @@ class TestABCMock:
         with pytest.raises(TypeError) as excinfo:
             uut.foo.expect_call(1, 2, 3)
 
-        assert str(excinfo.value) == "cannot record call expectation due to signature mismatch: uut.foo(a, b) (expected) != uut.foo(1, 2, 3) (given)"
+        assert str(excinfo.value) == "uut.foo(a, b): too many positional arguments"
 
     def test_if_method_call_expectation_is_recorded_with_invalid_argument_names__then_fail_with_type_error(self):
 
@@ -96,7 +96,7 @@ class TestABCMock:
         with pytest.raises(TypeError) as excinfo:
             uut.foo.expect_call(a=1, bb=2)
 
-        assert str(excinfo.value) == "cannot record call expectation due to signature mismatch: uut.foo(a, b) (expected) != uut.foo(a=1, bb=2) (given)"
+        assert str(excinfo.value) == "uut.foo(a, b): missing a required argument: 'b'"
 
     @pytest.mark.skip('to be fixed later')
     def test_record_and_consume_abstract_method_call_expectation(self):
