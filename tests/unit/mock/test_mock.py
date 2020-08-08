@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/unit/test_mock.py
+# tests/unit/mock/test_mock.py
 #
 # Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 #

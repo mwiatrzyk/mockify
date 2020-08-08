@@ -1,3 +1,13 @@
+# ---------------------------------------------------------------------------
+# mockify/mock/_function.py
+#
+# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+#
+# This file is part of Mockify library and is released under the terms of the
+# MIT license: http://opensource.org/licenses/mit-license.php.
+#
+# See LICENSE for details.
+# ---------------------------------------------------------------------------
 from .. import _utils
 from ._base import BaseMock
 from .._engine import Session, Call

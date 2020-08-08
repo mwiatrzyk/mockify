@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/mock.py
+# mockify/mock/__init__.py
 #
 # Copyright (C) 2018 - 2020 Maciej Wiatrzyk
 #
