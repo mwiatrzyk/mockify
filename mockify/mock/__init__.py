@@ -10,5 +10,6 @@
 # ---------------------------------------------------------------------------
 from ._base import MockInfo, BaseMock
 from ._mock import Mock
+from ._function import FunctionMock
 from ._factory import MockFactory
 from ._abc_mock import ABCMock
