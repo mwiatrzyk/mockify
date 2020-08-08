@@ -18,6 +18,27 @@ class ABCMock:
     it also checks argument names and disallow recording calls with invalid
     arguments; everything must match the definition of the interface.
 
+    Here's an example:
+
+    .. testcode::
+
+        import abc
+
+        from mockify import satisfied
+        from mockify.mock import ABCMock
+        from mockify.actions import Return
+
+        class Interface(abc.ABC):
+
+            @abc.abstractmethod
+            def method(self, a, b):
+                pass
+
+        mock = ABCMock('mock', Interface)
+        mock.method.expect_call(1, 2).will_once(Return(123))
+        with satisfied(mock):
+            assert mock.method(1, 2) == 123
+
     :param name:
         Mock name
 

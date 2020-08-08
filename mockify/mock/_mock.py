@@ -176,6 +176,9 @@ class Mock(_BaseMock):
 
     See :ref:`creating-mocks` for more details.
 
+    .. versionchanged:: 0.8
+        Now this class inherits from :class:`mockify.mock.BaseMock`
+
     .. versionadded:: 0.6
     """
 
