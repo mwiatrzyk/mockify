@@ -4,8 +4,8 @@ import weakref
 
 from ._base import BaseMock
 from .. import _utils
-from .._engine import Session
-from ._mock import Mock
+from .._engine import Call, Session
+from ._function import FunctionMock
 
 
 class ABCMock:
@@ -48,8 +48,7 @@ class ABCMock:
                 def __init__(self, name, parent):
                     self.__name = name
                     self.__m_parent__ = parent
-                    # TODO: Replace with a FunctionMock (to be added)
-                    self._mock = Mock(self.__m_fullname__, session=parent.__m_session__)
+                    self._mock = FunctionMock(self.__m_fullname__, session=self.__m_session__)
 
                 @property
                 def __m_name__(self):
@@ -68,23 +67,40 @@ class ABCMock:
 
             class _GetAttrProxy(_Proxy):
 
+                def __call__(self, name):
+                    return self.__m_session__(Call(self.__m_fullname__, name))
+
                 def expect_call(self, name):
                     if name not in self.__m_parent__.__abstract_properties__:
                         raise AttributeError("{self.__m_parent__.__class__.__name__!r} object has no attribute {name!r}".format(self=self, name=name))
+                    return self.__m_session__.expect_call(Call(self.__m_fullname__, name))
 
             class _SetAttrProxy(_Proxy):
 
+                def __call__(self, name, value):
+                    return self.__m_session__(Call(self.__m_fullname__, name, value))
+
                 def expect_call(self, name, value):
                     if name not in self.__m_parent__.__abstract_properties__:
-                        raise AttributeError("can't set attribute {name!r}".format(name=name))
+                        raise AttributeError("can't set attribute {name!r} (not defined in the interface)".format(name=name))
+                    return self.__m_session__.expect_call(Call(self.__m_fullname__, name, value))
 
             class _MethodProxy(_Proxy):
 
+                def __init__(self, name, signature, parent):
+                    super().__init__(name, parent)
+                    self.__signature = signature
+
                 def __call__(self, *args, **kwargs):
+                    self._validate_signature(*args, **kwargs)
                     return self._mock(*args, **kwargs)
 
                 def expect_call(self, *args, **kwargs):
-                    expected_signature = self.__m_parent__.__abstract_methods__[self.__m_name__]
+                    self._validate_signature(*args, **kwargs)
+                    return self._mock.expect_call(*args, **kwargs)
+
+                def _validate_signature(self, *args, **kwargs):
+                    expected_signature = self.__signature
                     expected_signature_str = str(expected_signature).\
                         replace('self, ', '').\
                         replace('self', '')  # Drop self from error print
@@ -92,32 +108,30 @@ class ABCMock:
                         expected_signature.bind(self, *args, **kwargs)
                     except TypeError as e:
                         raise TypeError("{self.__m_parent__.__m_name__}.{self.__m_name__}{sig}: {err}".format(sig=expected_signature_str, err=e, self=self))
-                    else:
-                        return self._mock.expect_call(*args, **kwargs)
 
             def __init__(self, name, session):
                 self.__name = name
                 self.__session = session
                 self.__m_parent__ = None
+                if self.__abstract_properties__:
+                    self.__dict__['__getattr__'] = self._GetAttrProxy('__getattr__', self)
+                    self.__dict__['__setattr__'] = self._SetAttrProxy('__setattr__', self)
+                for name, signature in self.__abstract_methods__.items():
+                    self.__dict__[name] = self._MethodProxy(name, signature, self)
 
-            def __getattribute__(self, name):
-                if name == '__dict__':
-                    return super().__getattribute__(name)
-                elif name in self.__dict__:
-                    return self.__dict__[name]
-                elif name == '__getattr__':
-                    self.__dict__[name] = tmp = self.__class__._GetAttrProxy(name, self)
-                    return tmp
-                elif name == '__setattr__':
-                    self.__dict__[name] = tmp =self.__class__._SetAttrProxy(name, self)
-                    return tmp
-                elif name.startswith('_'):
-                    return super().__getattribute__(name)
-                elif name not in self.__abstract_methods__:
-                    raise AttributeError("{self.__class__.__name__!r} object has no attribute {name!r}".format(self=self, name=name))
+            def __setattr__(self, name, value):
+                if name.startswith('_'):
+                    super().__setattr__(name, value)
+                elif name in self.__abstract_properties__:
+                    self.__dict__['__setattr__'](name, value)
                 else:
-                    self.__dict__[name] = tmp = self.__class__._MethodProxy(name, self)
-                    return tmp
+                    raise AttributeError("can't set attribute {!r} (not defined in the interface)".format(name))
+
+            def __getattr__(self, name):
+                if name in self.__abstract_properties__:
+                    return self.__dict__['__getattr__'](name)
+                else:
+                    raise AttributeError("{!r} object has no attribute {!r}".format(self.__class__.__name__, name))
 
             @property
             def __m_name__(self):

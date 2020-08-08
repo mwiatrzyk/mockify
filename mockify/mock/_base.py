@@ -17,6 +17,9 @@ class BaseMock(abc.ABC):
     .. versionadded:: 0.8
     """
 
+    def __repr__(self):
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_name__!r})>".format(self=self)
+
     @property
     def __m_fullname__(self):
         """Full name of this mock.
@@ -108,7 +111,7 @@ class MockInfo:
         self._target = target
 
     def __repr__(self):
-        return "<{}.{}({!r})>".format(self.__module__, self.__class__.__name__, self._target)
+        return "<{self.__module__}.{self.__class__.__name__}: {self._target!r}>".format(self=self)
 
     @property
     def mock(self):

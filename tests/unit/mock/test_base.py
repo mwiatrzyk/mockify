@@ -33,12 +33,21 @@ class StubMock(BaseMock):
         yield from self._expectations
 
 
+class TestBaseMock:
+
+    def test_mock_repr(self):
+        assert repr(StubMock('dummy')) == "<tests.unit.mock.test_base.StubMock('dummy')>"
+
+
 class TestMockInfo:
     _dummy_session = 'session'
 
     @pytest.fixture(autouse=True)
     def setup(self):
         self.mock = StubMock('mock', session=self._dummy_session)
+
+    def test_mock_info_repr(self):
+        assert repr(MockInfo(self.mock)) == "<mockify.mock._base.MockInfo: <tests.unit.mock.test_base.StubMock('mock')>>"
 
     def test_if_invalid_object_type_given__then_fail_with_type_error(self):
         with pytest.raises(TypeError) as excinfo:
