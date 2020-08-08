@@ -1,3 +1,17 @@
+0.8.0
+-----
+
+* Added :class:`mockify.mock.BaseMock` that acts as common abstract base class
+  for all mocks.
+
+  Already existing classes :class:`mockify.mock.Mock` and
+  :class:`mockify.mock.MockFactory` now inherit from it.
+* Added :class:`mockify.mock.FunctionMock` for mocking Python functions and to
+  be used internally when implementing complex mock classes
+* Added :class:`mockify.mock.ABCMock` for implementing interfaces defined with
+  help of :mod:`abc` module
+
+
 0.7.1
 -----
 
@@ -14,7 +28,7 @@
 0.6.5
 -----
 
-* Added :class:`mockify.matchers.Object` matcher 
+* Added :class:`mockify.matchers.Object` matcher
 
 0.6.4
 -----

@@ -11,7 +11,7 @@
 import pytest
 
 from mockify import ordered, satisfied
-from mockify.mock import Mock, MockFactory, MockInfo
+from mockify.mock import Mock, MockFactory
 
 
 class TestOrdered:
