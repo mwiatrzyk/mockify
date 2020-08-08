@@ -14,6 +14,9 @@ class BaseMock(abc.ABC):
     method of that object. This class provides methods and properties for
     Mockify engine to walk through such defined structure.
 
+    If you need to declare your own mocks, make sure you implement this
+    interface.
+
     .. versionadded:: 0.8
     """
 
@@ -40,6 +43,10 @@ class BaseMock(abc.ABC):
         mock.
 
         If mock has no parent, this should be set to ``None``.
+
+        .. note::
+            Make sure this property is always set in subclass to either
+            parent object or ``None`` - otherwise you may get errors.
         """
         if self.__parent is not None:
             return self.__parent()
@@ -52,10 +59,13 @@ class BaseMock(abc.ABC):
             self.__parent = weakref.ref(value)
 
     def __m_walk__(self):
-        """Recursively iterate over :meth:`__m_children__` results, yielding
-        :class:`BaseMock` for each found child.
+        """Recursively iterate over :class:`BaseMock` object yielded by
+        :meth:`__m_children__` method.
 
         It always yields *self* as first element.
+
+        This method is used by Mockify internals to collect all expectations
+        recorded for mock and all its children.
         """
 
         def walk(mock):
@@ -73,20 +83,23 @@ class BaseMock(abc.ABC):
     @property
     @abc.abstractmethod
     def __m_session__(self):
-        """Instance of :class:`mockify.Session` used by this mock."""
+        """Instance of :class:`mockify.Session` used by this mock.
+
+        This should always be the same object for mock and all its children.
+        """
 
     @abc.abstractmethod
     def __m_expectations__(self):
         """Iterator over :class:`mockify.Expectation` objects recorded for
         this mock.
 
-        It should not include expectations recorded on mock's children (if
-        any).
+        It should not include expectations recorded on mock's children. To
+        get all expectations (including children), use :meth:`__m_walk__`.
         """
 
     @abc.abstractmethod
     def __m_children__(self):
-        """Iterator over :class:`BaseMock` objects, representing direct
+        """Iterator over :class:`BaseMock` objects representing direct
         children of this mock.
 
         This should not include grandchildren.
@@ -99,7 +112,7 @@ class MockInfo:
     This class simplifies access to mock's special properties and methods
     defined in :class:`BaseMock`, but wraps results (when applicable) with
     :class:`MockInfo` instances. If you need to access mock metadata in your
-    tests, then this class is a recommended way to do so.
+    tests, then this class is a recommended way to do this.
 
     :param target:
         Instance of :class:`BaseMock` object to be inspected
@@ -133,8 +146,13 @@ class MockInfo:
 
     @property
     def parent(self):
-        """Instance of :class:`MockInfo` for target's parent or ``None`` if
-        target has no parent."""
+        """A proxy to access :attr:`BaseMock.__m_parent__`.
+
+        Returns ``None`` if target has no parent, or parent wrapped with
+        :class:`MockInfo` object otherwise.
+
+        .. versionadded:: 0.8
+        """
         return self._target.__m_parent__
 
     @property
@@ -167,19 +185,15 @@ class MockInfo:
     def children(self):
         """An iterator over results returned by :meth:`BaseMock.__m_children__` method.
 
-        .. versionchanged:: 0.8
-            Now this method yields :class:`BaseMock` instances, without
-            wrapping with :class:`MockInfo` object. That was changed to
-            provide symetry between this method and :attr:`parent` property.
+        It wraps each found child with a :class:`MockInfo` object.
         """
         for child in self._target.__m_children__():
             yield self.__class__(child)
 
     def walk(self):
-        """Recursively iterates over results returned by :meth:`children`
-        method, wrapping each found item with :class:`MockInfo` object.
+        """An iterator over results returnend by :meth:`BaseMock.__m_walk__` method.
 
-        It always yields *self* as first element.
+        It wraps each found child with a :class:`MockInfo` object.
         """
         for child in self._target.__m_walk__():
             yield self.__class__(child)

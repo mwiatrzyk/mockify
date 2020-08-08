@@ -10,6 +10,19 @@ class FunctionMock(BaseMock):
     standalone mock, for mocking standalone functions in tests, or to build
     more complex mocks.
 
+    Here's example usage:
+
+    .. testcode::
+
+        from mockify import satisfied
+        from mockify.mock import FunctionMock
+        from mockify.actions import Return
+
+        func = FunctionMock('func')
+        func.expect_call(1, 2, 3).will_once(Return(123))
+        with satisfied(func):
+            assert func(1, 2, 3) == 123
+
     :param name:
         Name of mocked function.
 

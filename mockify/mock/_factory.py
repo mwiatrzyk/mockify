@@ -22,6 +22,10 @@ class MockFactory(BaseMock):
 
     See :ref:`managing-multiple-mocks` for more details.
 
+    .. versionchanged:: 0.8
+        Now it inherits from :class:`mockify.mock.BaseMock`, as this class is
+        more or less special kind of mock.
+
     .. versionadded:: 0.6
 
     :param name:

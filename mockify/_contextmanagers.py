@@ -15,7 +15,6 @@ import unittest.mock
 from contextlib import contextmanager
 
 from . import exc
-from .mock import MockInfo
 from ._assert import assert_satisfied
 
 
@@ -33,21 +32,21 @@ def ordered(*mocks):  # TODO: add more tests
     def get_session():
         num_mocks = len(mocks)
         if num_mocks == 1:
-            return MockInfo(mocks[0]).session
+            return mocks[0].__m_session__
         for i in range(num_mocks-1):
-            first, second = MockInfo(mocks[i]), MockInfo(mocks[i+1])
-            session = first.session
-            if session is not second.session:
+            first, second = mocks[i], mocks[i+1]
+            session = first.__m_session__
+            if session is not second.__m_session__:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(first.fullname, second.fullname))
+                    "session object".format(first.__m_fullname__, second.__m_fullname__))
         else:
             return session
 
     def iter_expected_mock_names(mocks):
         for mock in mocks:
-            for mock_info in MockInfo(mock).walk():
-                for expectation in mock_info.expectations():
+            for child in mock.__m_walk__():
+                for expectation in child.__m_expectations__():
                     yield expectation.expected_call.name
 
     session = get_session()
@@ -70,18 +69,18 @@ def patched(*mocks):
 
     def iter_mocks_with_expectations(mocks):
         for mock in mocks:
-            for mock_info in MockInfo(mock).walk():
-                next_expectation = next(mock_info.expectations(), None)
+            for child in mock.__m_walk__():
+                next_expectation = next(child.__m_expectations__(), None)
                 if next_expectation is not None:
-                    yield mock_info.mock
+                    yield child
 
     def patch_many(mocks):
         mock = next(mocks, None)
         if mock is None:
             yield
         else:
-            mock_name = MockInfo(mock).fullname
-            with unittest.mock.patch(mock_name, mock):
+            full_name = mock.__m_fullname__
+            with unittest.mock.patch(full_name, mock):
                 yield from patch_many(mocks)
 
     for _ in patch_many(iter_mocks_with_expectations(mocks)):

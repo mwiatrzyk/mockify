@@ -20,7 +20,7 @@ from ._contextmanagers import ordered, satisfied, patched
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
-    __version__ = '0.7.1'  # Fallback; keep this up to date with most recent tag
+    __version__ = '0.8.0'  # Fallback; keep this up to date with most recent tag
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',
