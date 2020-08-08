@@ -9,7 +9,7 @@
 * Added :class:`mockify.mock.FunctionMock` for mocking Python functions and to
   be used internally when implementing complex mock classes
 * Added :class:`mockify.mock.ABCMock` for implementing interfaces defined with
-  help of :class:`abc` module
+  help of :mod:`abc` module
 
 
 0.7.1
