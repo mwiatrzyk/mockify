@@ -43,7 +43,6 @@ deploy_to_test_pypi:
     - pipenv run invoke deploy test
   only:
     - master
-    - tags
 
 deploy_to_pypi:
   stage: deploy
