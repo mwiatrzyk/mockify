@@ -268,7 +268,7 @@ class Object(Matcher):
     def __eq__(self, other):
         for k, v in self._kwargs.items():
             reference_value = getattr(other, k, self._undefined)
-            if reference_value is self._undefined or reference_value != v:
+            if reference_value is self._undefined or v != reference_value:
                 return False
         else:
             return True

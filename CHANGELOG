@@ -1,3 +1,10 @@
+0.8.1
+-----
+
+* Small fix in :class:`mockify.matchers.Object` class to make it work when
+  :class:`mockify.matchers.Any` matcher is used as its argument and always
+  inequal object is used when comparing
+
 0.8.0
 -----
 

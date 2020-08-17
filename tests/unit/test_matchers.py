@@ -238,3 +238,19 @@ class TestObject:
 
     def test_matcher_is_not_equal__if_reference_does_not_have_given_property(self):
         assert self.Reference(1, 2, 3) != Object(foo=_)
+
+    def test_matcher_is_equal__when_any_matcher_is_used_as_an_argument_and_comparison_with_always_inequal_object_is_made(self):
+
+        class AlwaysInequalObject:
+
+            def __eq__(self, other):
+                return False
+
+        class Foo:
+
+            def __init__(self):
+                self.val = AlwaysInequalObject()
+
+        foo = Foo()
+
+        assert Object(val=_) == foo
