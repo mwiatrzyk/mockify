@@ -99,11 +99,11 @@ class TestMockFactory:
 
     def test_create_mock_factory_with_custom_session_and_mock_class(self):
 
-        def factory(name, session=None):
-            return name, session
+        def factory(name, parent=None):
+            return name, parent
 
         self.uut = MockFactory(session='session', mock_class=factory)
-        assert self.uut.mock('foo') == ('foo', 'session')
+        assert self.uut.mock('foo') == ('foo', self.uut)
 
     def test_newly_created_factory_has_no_children(self):
         assert set(MockInfo(self.uut).children()) == set()

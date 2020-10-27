@@ -89,11 +89,11 @@ class Call:
     """
 
     def __init__(self, _name_, *args, **kwargs):
+        _utils.validate_mock_name(_name_)
         self._name = _name_
         self._args = args
         self._kwargs = kwargs
         self._location = LocationInfo.get_external()
-        _utils.validate_mock_name(self._name)
 
     def __str__(self):
         return "{}({})".format(self._name, self._format_params(*self._args, **self._kwargs))

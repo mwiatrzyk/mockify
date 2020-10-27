@@ -56,16 +56,15 @@ class ABCMock:
         Subclass of :class:`abc.ABC` to be used as source of abstract methods
         that will be implemented by this mock.
 
-    :param session:
-        Instance of :class:`mockify.Session` to be used for this mock.
-
-        Default one will automatically be used if left empty.
+    .. versionchanged:: 0.9
+        Parameter ``session`` is removed in favour of ``**kwargs``; session
+        is now handled by :class:`BaseMock` class
 
     .. versionadded:: 0.8
     """
     _unset = object()
 
-    def __new__(cls, name, abstract_base_class, session=None):
+    def __new__(cls, name, abstract_base_class, **kwargs):
         if not isinstance(abstract_base_class, type) or\
            not issubclass(abstract_base_class, abc.ABC):
             raise TypeError("__init__() got an invalid value for argument 'abstract_base_class'")
@@ -77,21 +76,11 @@ class ABCMock:
             class _Proxy(BaseMock):
 
                 def __init__(self, name, parent):
-                    self.__name = name
-                    self.__m_parent__ = parent
-                    self._mock = FunctionMock(self.__m_fullname__, session=self.__m_session__)
-
-                @property
-                def __m_name__(self):
-                    return self.__name
-
-                @property
-                def __m_session__(self):
-                    return self.__m_parent__.__m_session__
+                    super().__init__(name=name, parent=parent)
+                    self._mock = FunctionMock(name, parent=parent)
 
                 def __m_children__(self):
-                    return
-                    yield
+                    return iter([])
 
                 def __m_expectations__(self):
                     yield from self._mock.__m_expectations__()
@@ -99,22 +88,22 @@ class ABCMock:
             class _GetAttrProxy(_Proxy):
 
                 def __call__(self, name):
-                    return self.__m_session__(Call(self.__m_fullname__, name))
+                    return self._mock(name)
 
                 def expect_call(self, name):
                     if name not in self.__m_parent__.__abstract_properties__:
                         raise AttributeError("{self.__m_parent__.__class__.__name__!r} object has no attribute {name!r}".format(self=self, name=name))
-                    return self.__m_session__.expect_call(Call(self.__m_fullname__, name))
+                    return self._mock.expect_call(name)
 
             class _SetAttrProxy(_Proxy):
 
                 def __call__(self, name, value):
-                    return self.__m_session__(Call(self.__m_fullname__, name, value))
+                    return self._mock(name, value)
 
                 def expect_call(self, name, value):
                     if name not in self.__m_parent__.__abstract_properties__:
                         raise AttributeError("can't set attribute {name!r} (not defined in the interface)".format(name=name))
-                    return self.__m_session__.expect_call(Call(self.__m_fullname__, name, value))
+                    return self._mock.expect_call(name, value)
 
             class _MethodProxy(_Proxy):
 
@@ -140,10 +129,8 @@ class ABCMock:
                     except TypeError as e:
                         raise TypeError("{self.__m_parent__.__m_name__}.{self.__m_name__}{sig}: {err}".format(sig=expected_signature_str, err=e, self=self))
 
-            def __init__(self, name, session):
-                self.__name = name
-                self.__session = session
-                self.__m_parent__ = None
+            def __init__(self, name, **kwargs):
+                super().__init__(name=name, **kwargs)
                 if self.__abstract_properties__:
                     self.__dict__['__getattr__'] = self._GetAttrProxy('__getattr__', self)
                     self.__dict__['__setattr__'] = self._SetAttrProxy('__setattr__', self)
@@ -164,22 +151,13 @@ class ABCMock:
                 else:
                     raise AttributeError("{!r} object has no attribute {!r}".format(self.__class__.__name__, name))
 
-            @property
-            def __m_name__(self):
-                return self.__name
-
-            @property
-            def __m_session__(self):
-                return self.__session
-
             def __m_children__(self):
                 for obj in self.__dict__.values():
                     if isinstance(obj, self._Proxy):
                         yield obj
 
             def __m_expectations__(self):
-                return
-                yield
+                return iter([])
 
         abstract_base_class.register(InnerMock)
         for method_name in abstract_base_class.__abstractmethods__:
@@ -189,7 +167,7 @@ class ABCMock:
             else:
                 InnerMock.__abstract_methods__[method_name] = inspect.signature(method)
         InnerMock.__name__ = cls.__name__
-        return InnerMock(name, session or Session())
+        return InnerMock(name, **kwargs)
 
     @classmethod
     def _iter_abstract_methods(cls, abstract_base_class):

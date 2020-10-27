@@ -9,7 +9,6 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 import abc
-import weakref
 
 from .. import _utils
 from .._engine import Session
@@ -27,25 +26,65 @@ class BaseMock(abc.ABC):
     If you need to declare your own mocks, make sure you implement this
     interface.
 
+    :param name:
+        Mock name.
+
+        This is used for error reporting to display which mock has failed.
+        This attribute must be set by inheriting class.
+
+    :param session:
+        Instance of :class:`mockify.Session` to be used.
+
+        If not given, parent's session will be used if parent is set.
+        Otherwise, a new session will be created.
+
+    :param parent:
+        Instance of :class:`BaseMock` representing parent for this mock.
+
+        When this parameter is given, mock implicitly uses same session as
+        given parent and uses parent's :attr:`__m_fullname__` as a prefix for
+        its fullname.
+
+    .. note::
+        Parameters ``session`` and ``parent`` are self-exclusive and cannot
+        be used simultaneously.
+
+    .. versionchanged:: 0.9
+        Added ``__init__`` method, as it is basically same for all mock
+        classes.
+
     .. versionadded:: 0.8
     """
+
+    def __init__(self, name=None, session=None, parent=None):
+        self.__name = name
+        self.__parent = _utils.make_weak(parent)
+        if name is not None:
+            _utils.validate_mock_name(name)
+        if session is not None and parent is not None:
+            raise TypeError("cannot set both 'session' and 'parent'")
+        elif session is not None:
+            self.__session = session
+        elif parent is not None:
+            self.__session = parent.__m_session__
+        else:
+            self.__session = Session()
 
     def __repr__(self):
         return "<{self.__module__}.{self.__class__.__name__}({self.__m_name__!r})>".format(self=self)
 
     @property
-    def __m_fullname__(self):
-        """Full name of this mock.
+    def __m_name__(self) -> str:
+        """Name of this mock."""
+        return self.__name
 
-        It is composed of parent's :attr:`__m_fullname__` and current
-        :attr:`__m_name__`. If mock has no parent, then this will be same as
-        :attr:`__m_name__`.
+    @property
+    def __m_session__(self) -> Session:
+        """Instance of :class:`mockify.Session` used by this mock.
+
+        This should always be the same object for mock and all its children.
         """
-        parent = self.__m_parent__
-        if parent is None:
-            return self.__m_name__
-        else:
-            return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
+        return self.__session
 
     @property
     def __m_parent__(self):
@@ -61,12 +100,19 @@ class BaseMock(abc.ABC):
         if self.__parent is not None:
             return self.__parent()
 
-    @__m_parent__.setter
-    def __m_parent__(self, value):
-        if value is None:
-            self.__parent = value
+    @property
+    def __m_fullname__(self):
+        """Full name of this mock.
+
+        It is composed of parent's :attr:`__m_fullname__` and current
+        :attr:`__m_name__`. If mock has no parent, then this will be same as
+        :attr:`__m_name__`.
+        """
+        parent = self.__m_parent__
+        if parent is None or parent.__m_fullname__ is None:
+            return self.__m_name__
         else:
-            self.__parent = weakref.ref(value)
+            return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
 
     def __m_walk__(self):
         """Recursively iterate over :class:`BaseMock` object yielded by
@@ -84,19 +130,6 @@ class BaseMock(abc.ABC):
                 yield from walk(child)
 
         yield from walk(self)
-
-    @property
-    @abc.abstractmethod
-    def __m_name__(self):
-        """Name of this mock."""
-
-    @property
-    @abc.abstractmethod
-    def __m_session__(self):
-        """Instance of :class:`mockify.Session` used by this mock.
-
-        This should always be the same object for mock and all its children.
-        """
 
     @abc.abstractmethod
     def __m_expectations__(self):

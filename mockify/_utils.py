@@ -9,6 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import weakref
 import keyword
 import functools
 import itertools
@@ -69,6 +70,13 @@ def log_unhandled_exceptions(logger):
         return proxy
 
     return decorator
+
+
+def make_weak(value):
+    if value is not None:
+        return weakref.ref(value)
+    else:
+        return value
 
 
 class ErrorMessageBuilder:

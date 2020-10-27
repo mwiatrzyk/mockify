@@ -129,6 +129,12 @@ def test_cov(c, html=False):
 
 
 @invoke.task
+def test_lint(c):
+    """Run static code analyzer."""
+    c.run('pylint mockify tests')
+
+
+@invoke.task
 def test_docs(c):
     """Run documentation tests."""
     c.run('sphinx-build -M doctest docs/source docs/build')

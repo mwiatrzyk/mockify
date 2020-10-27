@@ -17,24 +17,14 @@ from mockify.mock import MockInfo, BaseMock
 class StubMock(BaseMock):
 
     def __init__(self, name, session=None, parent=None):
-        self._name = name
-        self._session = session
+        super().__init__(name, session=session, parent=parent)
         self._children = []
         self._expectations = []
-        self.__m_parent__ = parent
         if parent is not None:
             parent._children.append(self)
 
     def set_expectations(self, *expectations):
         self._expectations.extend(expectations)
-
-    @property
-    def __m_name__(self):
-        return self._name
-
-    @property
-    def __m_session__(self):
-        return self._session
 
     def __m_children__(self):
         yield from self._children
@@ -55,6 +45,10 @@ class TestMockInfo:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.mock = StubMock('mock', session=self._dummy_session)
+
+    def test_cannot_set_both_session_and_parent(self):
+        with pytest.raises(TypeError) as excinfo:
+            StubMock('mock', session=self._dummy_session, parent=self.mock)
 
     def test_mock_info_repr(self):
         assert repr(MockInfo(self.mock)) == "<mockify.mock._base.MockInfo: <tests.unit.mock.test_base.StubMock('mock')>>"
