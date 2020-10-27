@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import exc, Call, Session
+from mockify import Call, Session, exc
 from mockify.actions import Return
 from mockify.cardinality import Exactly
 

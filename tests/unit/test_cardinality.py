@@ -11,10 +11,11 @@
 
 import pytest
 
-from mockify import satisfied, exc
-from mockify.mock import Mock
+from mockify import exc, satisfied
 from mockify.actions import Return
-from mockify.cardinality import ActualCallCount, AtLeast, AtMost, Between, Exactly
+from mockify.cardinality import (ActualCallCount, AtLeast, AtMost, Between,
+                                 Exactly)
+from mockify.mock import Mock
 
 
 class TestActualCallCount:

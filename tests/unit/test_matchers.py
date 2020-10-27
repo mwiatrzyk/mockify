@@ -13,9 +13,9 @@ import collections
 
 import pytest
 
-from mockify import exc, satisfied, Call
+from mockify import Call, exc, satisfied
+from mockify.matchers import AnyOf, Func, List, Object, Regex, Type, _
 from mockify.mock import Mock
-from mockify.matchers import _, Type, Regex, AnyOf, Func, List, Object
 
 
 class TestAny:

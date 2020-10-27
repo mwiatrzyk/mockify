@@ -9,8 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 from .. import _utils
+from .._engine import Call, Session
 from ._base import BaseMock
-from .._engine import Session, Call
 
 
 class FunctionMock(BaseMock):

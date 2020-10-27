@@ -9,5 +9,5 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 from .call import Call, LocationInfo
-from .session import Session
 from .expectation import Expectation
+from .session import Session

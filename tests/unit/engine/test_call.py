@@ -8,11 +8,11 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import pytest
-
 from inspect import currentframe, getframeinfo
 
-from mockify import exc, Call, LocationInfo
+import pytest
+
+from mockify import Call, LocationInfo, exc
 
 
 class TestLocationInfo:

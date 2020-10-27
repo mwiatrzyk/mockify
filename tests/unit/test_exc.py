@@ -13,26 +13,10 @@ import itertools
 
 import pytest
 
-from mockify import exc, Call, Expectation
+from mockify import Call, Expectation, _utils, exc
 from mockify.actions import Return
 
-
-class ErrorMessageBuilder:
-
-    def __init__(self):
-        self._lines = []
-
-    def build(self):
-        return '\n'.join(self._lines)
-
-    def append_line(self, template, *args, **kwargs):
-        self._lines.append(template.format(*args, **kwargs))
-
-    def append_location(self, location):
-        self._lines.extend([
-            "at {}".format(location),
-            "-" * (len(str(location)) + 3)
-        ])
+ErrorMessageBuilder = _utils.ErrorMessageBuilder
 
 
 class TestUnexpectedCall:

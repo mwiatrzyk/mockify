@@ -10,7 +10,6 @@
 # ---------------------------------------------------------------------------
 
 import abc
-
 from functools import total_ordering
 
 from . import _utils
@@ -61,7 +60,7 @@ class ActualCallCount:
         return self._value
 
 
-class ExpectedCallCount(abc.ABC):
+class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
     """Abstract base class for classes used to set expected call count on
     mock objects.
 
@@ -70,13 +69,6 @@ class ExpectedCallCount(abc.ABC):
 
     def __repr__(self):
         return "<{}.{}({})>".format(self.__module__, self.__class__.__name__, self.format_params())
-
-    def __eq__(self, other):
-        return type(self) is type(other) and\
-            self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     @abc.abstractmethod
     def __str__(self):

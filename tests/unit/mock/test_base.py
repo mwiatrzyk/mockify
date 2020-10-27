@@ -11,7 +11,7 @@
 import pytest
 
 from mockify import Session
-from mockify.mock import MockInfo, BaseMock
+from mockify.mock import BaseMock, MockInfo
 
 
 class StubMock(BaseMock):

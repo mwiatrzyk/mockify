@@ -112,7 +112,7 @@ class UnexpectedCall(MockifyAssertion):
         builder.append_line('Called:')
         builder.append_line('  {}', self._actual_call)
         builder.append_line('Expected (any of):')
-        for i, call in enumerate(self._expected_calls):
+        for call in self._expected_calls:
             builder.append_line('  {}', call)
         return builder.build()
 

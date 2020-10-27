@@ -13,5 +13,6 @@ sphinx-rtd-theme = "*"
 pytest-cov = "*"
 pylint = "*"
 rope = "*"
+isort = "*"
 
 [packages]

@@ -8,10 +8,11 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-from typing import Dict, Callable
-from ._base import BaseMock
-from .._engine import Session, Call
+from typing import Callable, Dict
+
 from .. import _utils
+from .._engine import Call, Session
+from ._base import BaseMock
 
 
 class Mock(BaseMock):

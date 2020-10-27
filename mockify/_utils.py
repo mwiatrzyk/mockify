@@ -9,10 +9,10 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import weakref
-import keyword
 import functools
 import itertools
+import keyword
+import weakref
 
 
 def format_call_count(count):
@@ -114,3 +114,19 @@ class IterableQuery:
     def exists(self, func):
         """Check if there is an item matching *func*."""
         return self.find_first(func) is not None
+
+
+class DictEqualityMixin:
+    """A helper class that adds ``__eq__`` and ``__ne__`` operators that
+    compare ``__dict__`` attributes of two objects.
+
+    If both objects are instances of same class and both have ``__dict__``
+    shallow equal, then these two objects are considered **equal**.
+    """
+
+    def __eq__(self, other):
+        return type(self) is type(other) and\
+            self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

@@ -13,10 +13,10 @@ situations."""
 
 import pytest
 
-from mockify import exc, satisfied, Call
-from mockify.mock import Mock
+from mockify import Call, exc, satisfied
 from mockify.actions import Return
-from mockify.cardinality import Exactly, AtLeast
+from mockify.cardinality import AtLeast, Exactly
+from mockify.mock import Mock
 
 _args_and_kwargs = [
     (tuple(), {}),

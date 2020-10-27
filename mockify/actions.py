@@ -15,7 +15,7 @@ import functools
 from . import _utils
 
 
-class Action(abc.ABC):
+class Action(abc.ABC, _utils.DictEqualityMixin):
     """Abstract base class for actions.
 
     This is common base class for all actions defined in this module. Custom
@@ -29,13 +29,6 @@ class Action(abc.ABC):
 
     def __str__(self):
         return "{}({})".format(self.__class__.__name__, self.format_params())
-
-    def __eq__(self, other):
-        return type(self) is type(other) and\
-            self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     @abc.abstractmethod
     def __call__(self, actual_call):

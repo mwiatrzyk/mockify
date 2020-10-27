@@ -9,16 +9,15 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import weakref
-import warnings
 import collections
-
+import warnings
+import weakref
 from enum import Enum
 
-from .. import exc, _utils
-from .call import Call
+from .. import _utils, exc
 from ..actions import Return
-from ..cardinality import ActualCallCount, ExpectedCallCount, Exactly, AtLeast
+from ..cardinality import ActualCallCount, AtLeast, Exactly, ExpectedCallCount
+from .call import Call
 
 
 class _ActionType(Enum):

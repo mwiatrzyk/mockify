@@ -10,9 +10,9 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import exc, Session, satisfied, assert_satisfied
-from mockify.mock import FunctionMock
+from mockify import Session, assert_satisfied, exc, satisfied
 from mockify.actions import Return
+from mockify.mock import FunctionMock
 
 
 class TestFunctionMock:

@@ -11,8 +11,8 @@
 import pytest
 
 from mockify import satisfied
-from mockify.mock import MockFactory
 from mockify.actions import Return
+from mockify.mock import MockFactory
 
 
 class ItemRepositoryFacade:

@@ -8,11 +8,11 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import warnings
-import itertools
 import collections
+import itertools
+import warnings
 
-from .. import exc, _config
+from .. import _config, exc
 from .expectation import Expectation
 
 

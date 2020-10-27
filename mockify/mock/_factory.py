@@ -10,9 +10,9 @@
 # ---------------------------------------------------------------------------
 import weakref
 
-from ._mock import Mock
-from ._base import BaseMock
 from .._engine import Session
+from ._base import BaseMock
+from ._mock import Mock
 
 
 class MockFactory(BaseMock):

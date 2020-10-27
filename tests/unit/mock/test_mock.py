@@ -11,8 +11,8 @@
 import pytest
 
 from mockify import exc, satisfied
-from mockify.mock import Mock, MockInfo
 from mockify.actions import Return
+from mockify.mock import Mock, MockInfo
 
 
 class TestMock:

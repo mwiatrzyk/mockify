@@ -12,9 +12,9 @@ import struct
 
 import pytest
 
-from mockify import satisfied, ordered
-from mockify.mock import Mock
+from mockify import ordered, satisfied
 from mockify.actions import Return
+from mockify.mock import Mock
 
 
 class ProtocolReader:

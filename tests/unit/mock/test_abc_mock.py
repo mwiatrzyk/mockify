@@ -12,9 +12,9 @@ import abc
 
 import pytest
 
-from mockify import exc, satisfied, assert_satisfied
-from mockify.mock import ABCMock
+from mockify import assert_satisfied, exc, satisfied
 from mockify.actions import Return
+from mockify.mock import ABCMock
 
 
 class IDummy(abc.ABC):

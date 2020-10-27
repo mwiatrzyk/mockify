@@ -9,11 +9,10 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import os
 import glob
-import shutil
 import logging
-
+import os
+import shutil
 from datetime import datetime
 
 import invoke
@@ -131,7 +130,7 @@ def test_cov(c, html=False):
 @invoke.task
 def test_lint(c):
     """Run static code analyzer."""
-    c.run('pylint mockify tests')
+    c.run('pylint --fail-under=9.0 mockify tests')
 
 
 @invoke.task
@@ -140,9 +139,15 @@ def test_docs(c):
     c.run('sphinx-build -M doctest docs/source docs/build')
 
 
-@invoke.task(test_unit, test_docs)
+@invoke.task(test_unit, test_lint, test_docs)
 def test(c):
     """Run all tests."""
+
+
+@invoke.task
+def adjust_code(c):
+    """Run code adjusting tools."""
+    c.run('isort --atomic mockify tests tasks.py')
 
 
 @invoke.task()

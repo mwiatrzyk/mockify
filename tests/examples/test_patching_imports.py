@@ -10,10 +10,10 @@
 # ---------------------------------------------------------------------------
 import os
 
-from mockify import satisfied, patched
-from mockify.mock import Mock
-from mockify.actions import Return, Iterate
+from mockify import patched, satisfied
+from mockify.actions import Iterate, Return
 from mockify.matchers import Regex
+from mockify.mock import Mock
 
 
 def list_files(path):

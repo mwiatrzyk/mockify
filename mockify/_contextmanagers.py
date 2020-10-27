@@ -11,7 +11,6 @@
 
 import itertools
 import unittest.mock
-
 from contextlib import contextmanager
 
 from . import exc
