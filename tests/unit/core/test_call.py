@@ -12,7 +12,7 @@ from inspect import currentframe, getframeinfo
 
 import pytest
 
-from mockify import Call, LocationInfo, exc
+from mockify import Call, LocationInfo
 
 
 class TestLocationInfo:
@@ -84,7 +84,7 @@ class TestCall:
     ])
     def test_name_must_be_a_valid_python_identifier(self, invalid_name):
         with pytest.raises(TypeError) as excinfo:
-            call = Call(invalid_name)
+            Call(invalid_name)
         assert str(excinfo.value) == "Mock name must be a valid Python identifier, got {!r} instead".format(invalid_name)
 
     @pytest.mark.parametrize('namespaced_name', [

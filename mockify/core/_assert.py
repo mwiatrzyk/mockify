@@ -8,7 +8,7 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-from . import exc
+from .. import exc
 
 
 def assert_satisfied(*mocks):

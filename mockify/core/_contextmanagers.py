@@ -9,11 +9,9 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import itertools
 import unittest.mock
 from contextlib import contextmanager
 
-from . import exc
 from ._assert import assert_satisfied
 
 

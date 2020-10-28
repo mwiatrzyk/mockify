@@ -70,7 +70,7 @@ class TestFunctionMock:
     def test_when_expectation_is_not_consumed__then_unsatisfied_error_is_raised(self):
         mock = FunctionMock('foo')
         one = mock.expect_call()
-        two = mock.expect_call(1, 2)
+        mock.expect_call(1, 2)
         mock(1, 2)
         with pytest.raises(exc.Unsatisfied) as excinfo:
             assert_satisfied(mock)

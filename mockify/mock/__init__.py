@@ -9,7 +9,6 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 from ._abc_mock import ABCMock
-from ._base import BaseMock, MockInfo
 from ._factory import MockFactory
 from ._function import FunctionMock
 from ._mock import Mock

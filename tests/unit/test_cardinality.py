@@ -38,7 +38,7 @@ class TestExactly:
 
     def test_do_not_allow_exact_count_less_than_zero(self):
         with pytest.raises(TypeError) as excinfo:
-            uut = Exactly(-1)
+            Exactly(-1)
         assert str(excinfo.value) == "value of 'expected' must be >= 0"
 
     @pytest.mark.parametrize('value, message', [
@@ -124,7 +124,7 @@ class TestAtLeast:
 
     def test_do_not_allow_minimal_count_less_than_zero(self):
         with pytest.raises(TypeError) as excinfo:
-            uut = AtLeast(-1)
+            AtLeast(-1)
         assert str(excinfo.value) == "value of 'minimal' must be >= 0"
 
     @pytest.mark.parametrize('value, message', [
@@ -187,7 +187,7 @@ class TestAtMost:
 
     def test_do_not_allow_maximal_count_less_than_zero(self):
         with pytest.raises(TypeError) as excinfo:
-            uut = AtMost(-1)
+            AtMost(-1)
         assert str(excinfo.value) == "value of 'maximal' must be >= 0"
 
     def test_if_called_with_zero__then_exactly_with_zero_equivalent_is_created(self):
@@ -235,12 +235,12 @@ class TestBetween:
 
     def test_minimal_must_not_be_greater_than_maximal(self):
         with pytest.raises(TypeError) as excinfo:
-            uut = Between(1, 0)
+            Between(1, 0)
         assert str(excinfo.value) == "value of 'minimal' must not be greater than 'maximal'"
 
     def test_do_not_allow_minimal_count_less_than_zero(self):
         with pytest.raises(TypeError) as excinfo:
-            uut = Between(-1, 0)
+            Between(-1, 0)
         assert str(excinfo.value) == "value of 'minimal' must be >= 0"
 
     def test_when_minimal_is_same_as_maximal__then_instance_of_exactly_object_is_created_instead(self):

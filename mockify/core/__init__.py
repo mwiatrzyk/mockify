@@ -8,6 +8,15 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-from .call import Call, LocationInfo
-from .expectation import Expectation
-from .session import Session
+
+from ._assert import assert_satisfied
+from ._base_mock import BaseMock, MockInfo
+from ._call import Call, LocationInfo
+from ._contextmanagers import ordered, patched, satisfied
+from ._expectation import Expectation
+from ._session import Session
+
+__all__ = [
+    'assert_satisfied', 'Call', 'LocationInfo', 'satisfied', 'ordered',
+    'patched', 'Expectation', 'Session', 'BaseMock', 'MockInfo'
+]

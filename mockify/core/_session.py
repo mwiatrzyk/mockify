@@ -12,8 +12,9 @@ import collections
 import itertools
 import warnings
 
-from .. import _config, exc
-from .expectation import Expectation
+from .. import exc
+from . import _config
+from ._expectation import Expectation
 
 
 class _Config:

@@ -11,7 +11,7 @@
 import abc
 
 from .. import _utils
-from .._engine import Session
+from ._session import Session
 
 
 class BaseMock(abc.ABC):

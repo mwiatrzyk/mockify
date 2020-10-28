@@ -9,7 +9,6 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import itertools
 
 import pytest
 

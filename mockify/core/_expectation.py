@@ -10,14 +10,11 @@
 # ---------------------------------------------------------------------------
 
 import collections
-import warnings
-import weakref
 from enum import Enum
 
-from .. import _utils, exc
+from .. import exc
 from ..actions import Return
-from ..cardinality import ActualCallCount, AtLeast, Exactly, ExpectedCallCount
-from .call import Call
+from ..cardinality import ActualCallCount, AtLeast, Exactly
 
 
 class _ActionType(Enum):

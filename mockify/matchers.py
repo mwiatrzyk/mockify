@@ -10,7 +10,6 @@
 # ---------------------------------------------------------------------------
 
 import abc
-import itertools
 import re
 
 from mockify import _utils

@@ -10,11 +10,8 @@
 # ---------------------------------------------------------------------------
 import abc
 import inspect
-import weakref
 
-from .. import _utils
-from .._engine import Call, Session
-from ._base import BaseMock
+from ..core import BaseMock
 from ._function import FunctionMock
 
 

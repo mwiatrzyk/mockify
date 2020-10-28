@@ -8,18 +8,22 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=no-member,not-callable
+
 import pytest
 
-from mockify import exc, satisfied
+from mockify import exc
 from mockify.actions import Return
-from mockify.mock import Mock, MockInfo
+from mockify.core import MockInfo, satisfied
+from mockify.mock import Mock
 
 
 class TestMock:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.uut = Mock('uut')
+        self.uut = Mock('uut')  # pylint: disable=attribute-defined-outside-init
 
     def test_expect_mock_to_be_called_as_a_function_and_call_it(self):
         self.uut.expect_call(1, 2)

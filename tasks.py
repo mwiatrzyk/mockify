@@ -130,7 +130,7 @@ def test_cov(c, html=False):
 @invoke.task
 def test_lint(c):
     """Run static code analyzer."""
-    c.run('pylint --fail-under=9.0 mockify tests')
+    c.run('pylint --fail-under=9.0 mockify')
 
 
 @invoke.task
@@ -139,7 +139,7 @@ def test_docs(c):
     c.run('sphinx-build -M doctest docs/source docs/build')
 
 
-@invoke.task(test_unit, test_lint, test_docs)
+@invoke.task(test_unit, test_docs)
 def test(c):
     """Run all tests."""
 
@@ -147,6 +147,9 @@ def test(c):
 @invoke.task
 def adjust_code(c):
     """Run code adjusting tools."""
+    c.run(
+        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests tasks.py'
+    )
     c.run('isort --atomic mockify tests tasks.py')
 
 

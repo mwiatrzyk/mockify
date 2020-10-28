@@ -8,10 +8,8 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import weakref
 
-from .._engine import Session
-from ._base import BaseMock
+from ..core import BaseMock
 from ._mock import Mock
 
 

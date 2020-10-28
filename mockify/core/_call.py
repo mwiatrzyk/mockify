@@ -8,11 +8,9 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import keyword
-import os
 import traceback
 
-from .. import _globals, _utils, exc
+from .. import _globals, _utils
 
 
 class LocationInfo:

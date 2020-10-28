@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import pytest
 
 from mockify import satisfied
 from mockify.actions import Return

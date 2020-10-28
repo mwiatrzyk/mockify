@@ -95,7 +95,7 @@ class TestABCMock:
 
     def test_when_no_getattr_expectation_set_on_property__getting_it_raises_uninterested_call(self):
         with pytest.raises(exc.UninterestedCall) as excinfo:
-            foo = self.uut.foo
+            self.uut.foo
         assert str(excinfo.value.actual_call) == "uut.__getattr__('foo')"
 
     def test_when_no_setattr_expectation_set_on_property__setting_it_raises_uninterested_call(self):
@@ -175,7 +175,7 @@ class TestABCMock:
     def test_list_expectations_of_a_method(self):
         one = self.uut.spam.expect_call(1, 2)
         two = self.uut.spam.expect_call(3, 4)
-        three = self.uut.__getattr__.expect_call('foo')
+        self.uut.__getattr__.expect_call('foo')
         assert set(self.uut.spam.__m_expectations__()) == set([one, two])
 
     def test_expect_getattr_and_consume_expectation(self):

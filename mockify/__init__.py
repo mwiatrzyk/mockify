@@ -13,9 +13,8 @@
 
 from pkg_resources import DistributionNotFound, get_distribution
 
-from ._assert import assert_satisfied
-from ._contextmanagers import ordered, patched, satisfied
-from ._engine import Call, Expectation, LocationInfo, Session
+from .core import (Call, Expectation, LocationInfo, Session, assert_satisfied,
+                   ordered, patched, satisfied)
 
 try:
     __version__ = get_distribution(__name__).version

@@ -10,7 +10,8 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify.mock import MockFactory, MockInfo
+from mockify.core import MockInfo
+from mockify.mock import MockFactory
 
 
 class TestMockFactory:
@@ -120,7 +121,7 @@ class TestMockFactory:
     def test_factory_with_one_mock_and_one_nested_factory_containing_another_mock_has_two_children(self):
         first = self.uut.mock('first')
         second = self.uut.factory('second')
-        third = second.mock('third')
+        second.mock('third')
         assert set(x.target for x in MockInfo(self.uut).children()) == {first, second}
 
     def test_factory_with_no_expectations_has_empty_list_of_expectations(self):
@@ -138,7 +139,7 @@ class TestMockFactory:
     def test_listing_expectations_does_not_include_nested_factories(self):
         first = self.uut.mock('foo').expect_call()
         second = self.uut.mock('bar').expect_call()
-        third = self.uut.factory('baz').mock('spam').expect_call()
+        self.uut.factory('baz').mock('spam').expect_call()
         assert set(MockInfo(self.uut).expectations()) == set([first, second])
 
     def test_recursive_walk_over_children_does_include_all_expectations(self):
