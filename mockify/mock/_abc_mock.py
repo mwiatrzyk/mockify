@@ -123,16 +123,18 @@ class ABCMock:
                         replace('self', '')  # Drop self from error print
                     try:
                         expected_signature.bind(self, *args, **kwargs)
-                    except TypeError as e:
-                        raise TypeError("{self.__m_parent__.__m_name__}.{self.__m_name__}{sig}: {err}".format(sig=expected_signature_str, err=e, self=self))
+                    except TypeError as err:
+                        raise TypeError(
+                            "{self.__m_parent__.__m_name__}.{self.__m_name__}{sig}: {err}".
+                            format(sig=expected_signature_str, err=err, self=self)) from None
 
             def __init__(self, name, **kwargs):
                 super().__init__(name=name, **kwargs)
                 if self.__abstract_properties__:
                     self.__dict__['__getattr__'] = self._GetAttrProxy('__getattr__', self)
                     self.__dict__['__setattr__'] = self._SetAttrProxy('__setattr__', self)
-                for name, signature in self.__abstract_methods__.items():
-                    self.__dict__[name] = self._MethodProxy(name, signature, self)
+                for key, signature in self.__abstract_methods__.items():
+                    self.__dict__[key] = self._MethodProxy(key, signature, self)
 
             def __setattr__(self, name, value):
                 if name.startswith('_'):
@@ -145,8 +147,7 @@ class ABCMock:
             def __getattr__(self, name):
                 if name in self.__abstract_properties__:
                     return self.__dict__['__getattr__'](name)
-                else:
-                    raise AttributeError("{!r} object has no attribute {!r}".format(self.__class__.__name__, name))
+                raise AttributeError("{!r} object has no attribute {!r}".format(self.__class__.__name__, name))
 
             def __m_children__(self):
                 for obj in self.__dict__.values():

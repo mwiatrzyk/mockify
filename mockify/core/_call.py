@@ -67,8 +67,9 @@ class LocationInfo:
         stack = traceback.extract_stack()
         for frame in reversed(stack):
             if not frame.filename.startswith(_globals.ROOT_DIR) and\
-               not frame.filename.startswith('/usr/lib'):  # FIXME: make this better
+               not frame.filename.startswith('/usr/lib'):  # TODO: implement some kind of global hook for configuring this
                 return cls(frame.filename, frame.lineno)
+        return cls('unknown', -1)
 
 
 class Call:

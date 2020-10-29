@@ -14,7 +14,7 @@ from .. import _utils
 from ._session import Session
 
 
-class BaseMock(abc.ABC):
+class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
     """Abstract base class for all mock classes.
 
     In Mockify, mocks are composed in a tree-like structure. For example, to
@@ -63,7 +63,7 @@ class BaseMock(abc.ABC):
             _utils.validate_mock_name(name)
         if session is not None and parent is not None:
             raise TypeError("cannot set both 'session' and 'parent'")
-        elif session is not None:
+        if session is not None:
             self.__session = session
         elif parent is not None:
             self.__session = parent.__m_session__
@@ -99,6 +99,7 @@ class BaseMock(abc.ABC):
         """
         if self.__parent is not None:
             return self.__parent()
+        return None
 
     @property
     def __m_fullname__(self):
@@ -111,8 +112,7 @@ class BaseMock(abc.ABC):
         parent = self.__m_parent__
         if parent is None or parent.__m_fullname__ is None:
             return self.__m_name__
-        else:
-            return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
+        return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
 
     def __m_walk__(self):
         """Recursively iterate over :class:`BaseMock` object yielded by

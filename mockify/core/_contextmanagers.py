@@ -37,8 +37,7 @@ def ordered(*mocks):  # TODO: add more tests
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
                     "session object".format(first.__m_fullname__, second.__m_fullname__))
-        else:
-            return session
+        return session
 
     def iter_expected_mock_names(mocks):
         for mock in mocks:

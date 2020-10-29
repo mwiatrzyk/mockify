@@ -197,8 +197,7 @@ class Expectation:
         def _wrap_cardinality(self, cardinality):
             if isinstance(cardinality, int):
                 return Exactly(cardinality)
-            else:
-                return cardinality
+            return cardinality
 
         @property
         def type_(self):
@@ -227,11 +226,9 @@ class Expectation:
             for action in self._actions:
                 if not action.is_satisfied():
                     return action(actual_call)
-            else:
-                if self._actions[-1].type_ != _ActionType.SINGLE:
-                    return self._actions[-1](actual_call)
-                else:
-                    raise exc.OversaturatedCall(actual_call, expectation)
+            if self._actions[-1].type_ != _ActionType.SINGLE:
+                return self._actions[-1](actual_call)
+            raise exc.OversaturatedCall(actual_call, expectation)
 
         def __getitem__(self, index):
             return self._actions[index]
@@ -250,12 +247,10 @@ class Expectation:
         def expected_call_count(self):
             if self._actions[0].type_ == _ActionType.DEFAULT:
                 return self._actions[0]._expected_call_count
-            else:
-                minimal = sum(map(lambda x: x.type_ == _ActionType.SINGLE, self._actions))
-                if self._actions[-1].type_ != _ActionType.REPEATED:
-                    return Exactly(minimal)
-                else:
-                    return self._actions[-1].expected_call_count.adjust_minimal(minimal)
+            minimal = sum(map(lambda x: x.type_ == _ActionType.SINGLE, self._actions))
+            if self._actions[-1].type_ != _ActionType.REPEATED:
+                return Exactly(minimal)
+            return self._actions[-1].expected_call_count.adjust_minimal(minimal)
 
         @property
         def action(self):
@@ -263,8 +258,10 @@ class Expectation:
                 if not action_proxy.is_satisfied() and\
                    action_proxy.type_ != _ActionType.DEFAULT:
                     return action_proxy.action
+            return None
 
     class _Mutation:
+        _expectation = None
 
         def __repr__(self):
             return repr(self._expectation)

@@ -17,27 +17,6 @@ from . import _config
 from ._expectation import Expectation
 
 
-class _Config:
-
-    def __init__(self):
-        self._config = {
-            'uninterested_call_strategy': 'fail'
-        }
-
-    def get(self, key):
-        return self._config.get(key)
-
-    def set(self, key, value):
-        validate = getattr(self, "_validate_{}".format(key), None)
-        if validate is not None:
-            validate(key, value)
-        self._config[key] = value
-
-    def _validate_uninterested_call_strategy(self, key, value):
-        if value not in ('fail', 'warn', 'ignore'):
-            raise ValueError("Invalid value for {!r} config option given: {!r}".format(key, value))
-
-
 class Session:
     """A class providing core logic of connecting mock calls with recorded
     expectations.
@@ -112,19 +91,17 @@ class Session:
         """
         if self._is_ordered(actual_call):
             return self.__call_ordered(actual_call)
-        else:
-            return self.__call_unordered(actual_call)
+        return self.__call_unordered(actual_call)
 
     def __call_ordered(self, actual_call):
         head = self._ordered_expectations[0]
-        if head.expected_call == actual_call:
-            try:
-                return head(actual_call)
-            finally:
-                if head.is_satisfied():
-                    self._ordered_expectations.popleft()
-        else:
+        if head.expected_call != actual_call:
             raise exc.UnexpectedCallOrder(actual_call, head.expected_call)
+        try:
+            return head(actual_call)
+        finally:
+            if head.is_satisfied():
+                self._ordered_expectations.popleft()
 
     def __call_unordered(self, actual_call):
         found_by_call = [x for x in self.expectations() if x.expected_call == actual_call]
@@ -133,8 +110,7 @@ class Session:
         for expectation in found_by_call:
             if not expectation.is_satisfied():
                 return expectation(actual_call)
-        else:
-            return found_by_call[-1](actual_call)  # Oversaturate last found if all are satisfied
+        return found_by_call[-1](actual_call)  # Oversaturate last found if all are satisfied
 
     def __handle_uninterested_call(self, actual_call):
         uninterested_call_strategy = self._config.get('uninterested_call_strategy')
@@ -149,8 +125,7 @@ class Session:
         found_by_name = [x.expected_call for x in self.expectations() if x.expected_call.name == actual_call.name]
         if not found_by_name:
             raise exc.UninterestedCall(actual_call)
-        else:
-            raise exc.UnexpectedCall(actual_call, found_by_name)
+        raise exc.UnexpectedCall(actual_call, found_by_name)
 
     def expectations(self):
         """An iterator over all expectations recorded in this session.

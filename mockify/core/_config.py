@@ -18,8 +18,8 @@ class Option(abc.ABC):
         self.default = default
 
     @abc.abstractmethod
-    def parse(self, value):
-        return value
+    def parse(self, key, value):
+        pass
 
     def fail(self, key, message):
         raise ValueError("Invalid value for {!r} config option given: {}".format(key, message))
@@ -64,16 +64,14 @@ class Config(collections.abc.MutableMapping):
     def __setitem__(self, key, value):
         if key not in self._available_options:
             raise TypeError("No such option: {}".format(key))
-        else:
-            self._options[key] = self._available_options[key].parse(key, value)
+        self._options[key] = self._available_options[key].parse(key, value)
 
     def __getitem__(self, key):
         if key in self._options:
             return self._options[key]
-        elif key in self._available_options:
+        if key in self._available_options:
             return self._available_options[key].default
-        else:
-            raise KeyError(key)
+        raise KeyError(key)
 
     def __delitem__(self, key):
         del self._options[key]  # Will restore default

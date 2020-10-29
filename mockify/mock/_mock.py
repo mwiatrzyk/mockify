@@ -86,27 +86,24 @@ class Mock(BaseMock):
     def __setattr__(self, name, value):
         if '__setattr__' in self.__dict__:
             return self.__dict__['__setattr__'](name, value)
-        else:
-            return super().__setattr__(name, value)
+        return super().__setattr__(name, value)
 
     def __getattr__(self, name):
         if '__getattr__' in self.__dict__ :
             return self.__dict__['__getattr__'](name)
-        else:
-            self.__dict__[name] = tmp = Mock(name, parent=self)
-            return tmp
+        self.__dict__[name] = tmp = Mock(name, parent=self)
+        return tmp
 
     def __getattribute__(self, name):
         if name == '_mocked_properties':
             return super().__getattribute__(name)
-        elif name not in self._mocked_properties:
+        if name not in self._mocked_properties:
             return super().__getattribute__(name)
-        elif name in self.__dict__:
+        if name in self.__dict__:
             return self.__dict__[name]
-        else:
-            mock_class = self._mocked_properties[name]()
-            self.__dict__[name] = tmp = mock_class(self)
-            return tmp
+        mock_class = self._mocked_properties[name]()
+        self.__dict__[name] = tmp = mock_class(self)
+        return tmp
 
     def __call__(self, *args, **kwargs):
         actual_call = Call(self.__m_fullname__, *args, **kwargs)
@@ -168,8 +165,7 @@ class _ExpectCallMock(Mock):
         query = _utils.IterableQuery(self.__m_session__.expectations())
         if query.exists(lambda x: x.expected_call.name == self.__m_fullname__):
             return self._call(*args, **kwargs)
-        else:
-            return self._expect_call(*args, **kwargs)
+        return self._expect_call(*args, **kwargs)
 
     def _call(self, *args, **kwargs):
         actual_call = Call(self.__m_fullname__, *args, **kwargs)

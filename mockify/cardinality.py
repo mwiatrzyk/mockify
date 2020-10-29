@@ -42,8 +42,7 @@ class ActualCallCount:
     def __str__(self):
         if self._value == 0:
             return 'never called'
-        else:
-            return "called {}".format(_utils.format_call_count(self._value))
+        return "called {}".format(_utils.format_call_count(self._value))
 
     def __eq__(self, other):
         return self._value == other
@@ -117,8 +116,7 @@ class Exactly(ExpectedCallCount):
     def __str__(self):
         if self.expected == 0:
             return 'to be never called'
-        else:
-            return "to be called {}".format(_utils.format_call_count(self.expected))
+        return "to be called {}".format(_utils.format_call_count(self.expected))
 
     def match(self, actual_call_count):
         return self.expected == actual_call_count
@@ -126,7 +124,7 @@ class Exactly(ExpectedCallCount):
     def adjust_minimal(self, minimal):
         return Exactly(self.expected + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.expected)
 
 
@@ -145,8 +143,7 @@ class AtLeast(ExpectedCallCount):
     def __str__(self):
         if self.minimal == 0:
             return "to be called any number of times"
-        else:
-            return "to be called at least {}".format(_utils.format_call_count(self.minimal))
+        return "to be called at least {}".format(_utils.format_call_count(self.minimal))
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal
@@ -154,7 +151,7 @@ class AtLeast(ExpectedCallCount):
     def adjust_minimal(self, minimal):
         return AtLeast(self.minimal + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.minimal)
 
 
@@ -168,10 +165,9 @@ class AtMost(ExpectedCallCount):
     def __new__(cls, maximal):
         if maximal < 0:
             raise TypeError("value of 'maximal' must be >= 0")
-        elif maximal == 0:
+        if maximal == 0:
             return Exactly(maximal)
-        else:
-            return super().__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, maximal):
         self.maximal = maximal
@@ -185,7 +181,7 @@ class AtMost(ExpectedCallCount):
     def adjust_minimal(self, minimal):
         return Between(minimal, self.maximal + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.maximal)
 
 
@@ -200,14 +196,13 @@ class Between(ExpectedCallCount):
     def __new__(cls, minimal, maximal):
         if minimal > maximal:
             raise TypeError("value of 'minimal' must not be greater than 'maximal'")
-        elif minimal < 0:
+        if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
-        elif minimal == maximal:
+        if minimal == maximal:
             return Exactly(maximal)
-        elif minimal == 0:
+        if minimal == 0:
             return AtMost(maximal)
-        else:
-            return super().__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, minimal, maximal):
         self.minimal = minimal
@@ -217,11 +212,10 @@ class Between(ExpectedCallCount):
         return "to be called from {} to {} times".format(self.minimal, self.maximal)
 
     def match(self, actual_call_count):
-        return actual_call_count >= self.minimal and\
-            actual_call_count <= self.maximal
+        return self.minimal <= actual_call_count <= self.maximal
 
     def adjust_minimal(self, minimal):
-        return Between(self.minimal + minimal, self.maximal + maximal)
+        return Between(self.minimal + minimal, self.maximal + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.minimal, self.maximal)

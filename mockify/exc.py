@@ -39,10 +39,6 @@ class MockifyError(Exception):
     .. versionadded:: 0.6
     """
 
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
 
 class MockifyAssertion(MockifyError, AssertionError):
     """Common base class for all Mockify assertion errors.
@@ -100,6 +96,7 @@ class UnexpectedCall(MockifyAssertion):
     """
 
     def __init__(self, actual_call, expected_calls):
+        super().__init__()
         self._actual_call = actual_call
         self._expected_calls = expected_calls
 
@@ -144,6 +141,7 @@ class UnexpectedCallOrder(MockifyAssertion):
     """
 
     def __init__(self, actual_call, expected_call):
+        super().__init__()
         self._actual_call = actual_call
         self._expected_call = expected_call
 
@@ -180,6 +178,7 @@ class UninterestedCall(MockifyAssertion):
     """
 
     def __init__(self, actual_call):
+        super().__init__()
         self._actual_call = actual_call
 
     @_utils.log_unhandled_exceptions(logger)
@@ -217,6 +216,7 @@ class OversaturatedCall(MockifyAssertion):
     """
 
     def __init__(self, actual_call, oversaturated_expectation):
+        super().__init__()
         self._actual_call = actual_call
         self._oversaturated_expectation = oversaturated_expectation
 
@@ -255,6 +255,7 @@ class Unsatisfied(MockifyAssertion):
     """
 
     def __init__(self, unsatisfied_expectations):
+        super().__init__()
         self._unsatisfied_expectations = unsatisfied_expectations
 
     @_utils.log_unhandled_exceptions(logger)

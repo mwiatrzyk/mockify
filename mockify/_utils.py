@@ -18,10 +18,9 @@ import weakref
 def format_call_count(count):
     if count == 1:
         return "once"
-    elif count == 2:
+    if count == 2:
         return "twice"
-    else:
-        return "{} times".format(count)
+    return "{} times".format(count)
 
 
 def format_args_kwargs(args, kwargs, formatter=repr, sort=True, skip_kwarg_if=None):
@@ -75,8 +74,7 @@ def log_unhandled_exceptions(logger):
 def make_weak(value):
     if value is not None:
         return weakref.ref(value)
-    else:
-        return value
+    return value
 
 
 class ErrorMessageBuilder:

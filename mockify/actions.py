@@ -76,7 +76,7 @@ class Return(Action):
     def __call__(self, actual_call):
         return self.value
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.value)
 
 
@@ -105,7 +105,7 @@ class Iterate(Action):
     def __call__(self, actual_call):
         return iter(self.iterable)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.iterable)
 
 
@@ -133,7 +133,7 @@ class Raise(Action):
     def __call__(self, actual_call):
         raise self.exc
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.exc)
 
 
@@ -182,5 +182,5 @@ class Invoke(Action):
         partial_func = functools.partial(self.func, *self.args, **self.kwargs)
         return partial_func(*actual_call.args, **actual_call.kwargs)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.func, *self.args, **self.kwargs)

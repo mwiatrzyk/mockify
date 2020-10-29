@@ -34,14 +34,14 @@ def _configure_logger(verbosity):
 
 
 @invoke.task(incrementable=['verbosity'])
-def update_copyright(c, verbosity=0):
+def update_copyright(_, verbosity=0):
     """Update copyright notice in license, source code and documentation
     files."""
     year_started = 2018
     year_current = datetime.now().year
     copyright_holder = 'Maciej Wiatrzyk'
 
-    def scan(pattern, ignore=None, nonempty=True):
+    def scan(pattern, ignore=None):
         for item in glob.iglob(os.path.join('**', pattern), recursive=True):
             if ignore is None or not ignore(item):
                 stats = os.stat(item)
@@ -96,84 +96,84 @@ def update_copyright(c, verbosity=0):
 
 
 @invoke.task
-def build_docs(c):
+def build_docs(ctx):
     """Build Sphinx documentation."""
-    c.run('sphinx-build -M html docs/source docs/build')
+    ctx.run('sphinx-build -M html docs/source docs/build')
 
 
 @invoke.task
-def build_pkg(c):
+def build_pkg(ctx):
     """Build distribution package."""
-    c.run('python setup.py sdist bdist_wheel')
+    ctx.run('python setup.py sdist bdist_wheel')
 
 
 @invoke.task(build_docs, build_pkg)
-def build(c):
+def build(_):
     """A shortcut for building everything."""
 
 
 @invoke.task
-def test_unit(c):
+def test_unit(ctx):
     """Run unit tests."""
-    c.run('pytest tests/')
+    ctx.run('pytest tests/')
 
 
 @invoke.task
-def test_cov(c, html=False):
+def test_cov(ctx, html=False):
     """Run tests and check coverage."""
     opts = ''
     if html:
         opts += ' --cov-report=html'
-    c.run("pytest tests/ --cov=src/_mockify{}".format(opts))
+    ctx.run("pytest tests/ --cov=src/_mockify{}".format(opts))
 
 
 @invoke.task
-def test_lint(c):
+def lint(ctx):
     """Run static code analyzer."""
-    c.run('pylint --fail-under=9.0 mockify')
+    ctx.run('pylint --fail-under=9.0 mockify')
 
 
 @invoke.task
-def test_docs(c):
+def test_docs(ctx):
     """Run documentation tests."""
-    c.run('sphinx-build -M doctest docs/source docs/build')
+    ctx.run('sphinx-build -M doctest docs/source docs/build')
 
 
 @invoke.task(test_unit, test_docs)
-def test(c):
+def test(_):
     """Run all tests."""
 
 
 @invoke.task
-def adjust_code(c):
+def adjust_code(ctx):
     """Run code adjusting tools."""
-    c.run(
+    ctx.run(
         'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests tasks.py'
     )
-    c.run('isort --atomic mockify tests tasks.py')
+    ctx.run('isort --atomic mockify tests tasks.py')
 
 
 @invoke.task()
-def deploy(c, env):
+def deploy(ctx, env):
     """Deploy library to given environment."""
     if env == 'test':
-        c.run('twine upload --repository-url https://test.pypi.org/legacy/ dist/*')
+        ctx.run('twine upload --repository-url https://test.pypi.org/legacy/ dist/*')
     elif env == 'prod':
-        c.run('twine upload dist/*')
+        ctx.run('twine upload dist/*')
     else:
         raise RuntimeError("invalid env: {}".format(env))
 
 
 @invoke.task
-def clean(c):
+def clean(ctx):
     """Clean working directory."""
-    c.run('find . -name "*.pyc" -delete')
-    c.run('find . -type d -name "__pycache__" -empty -delete')
-    c.run('rm -rf docs/build')
-    c.run('rm -rf build dist')
-    c.run('rm -rf *.egg-info')
+    ctx.run('find . -name "*.pyc" -delete')
+    ctx.run('find . -type d -name "__pycache__" -empty -delete')
+    ctx.run('rm -rf docs/build')
+    ctx.run('rm -rf build dist')
+    ctx.run('rm -rf *.egg-info')
 
 
 @invoke.task(build_docs, build_pkg, test)
-def regression(c):
+def regression(_):
     """Run regression tests."""
