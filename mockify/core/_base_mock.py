@@ -71,7 +71,9 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
             self.__session = Session()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self.__m_name__!r})>".format(self=self)
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_name__!r})>".format(
+            self=self
+        )
 
     @property
     def __m_name__(self) -> str:
@@ -163,11 +165,15 @@ class MockInfo:
 
     def __init__(self, target):
         if not isinstance(target, BaseMock):
-            raise TypeError("__init__() got an invalid value for argument 'target'")
+            raise TypeError(
+                "__init__() got an invalid value for argument 'target'"
+            )
         self._target = target
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}: {self._target!r}>".format(self=self)
+        return "<{self.__module__}.{self.__class__.__name__}: {self._target!r}>".format(
+            self=self
+        )
 
     @property
     def mock(self):

@@ -225,13 +225,22 @@ class OversaturatedCall(MockifyAssertion):
         builder = _utils.ErrorMessageBuilder()
         builder.append_line('Following expectation was oversaturated:')
         builder.append_line('')
-        builder.append_location(self._oversaturated_expectation.expected_call.location)
+        builder.append_location(
+            self._oversaturated_expectation.expected_call.location
+        )
         builder.append_line('Pattern:')
-        builder.append_line('  {}', self._oversaturated_expectation.expected_call)
+        builder.append_line(
+            '  {}', self._oversaturated_expectation.expected_call
+        )
         builder.append_line('Expected:')
-        builder.append_line('  {}', self._oversaturated_expectation.expected_call_count)
+        builder.append_line(
+            '  {}', self._oversaturated_expectation.expected_call_count
+        )
         builder.append_line('Actual:')
-        builder.append_line('  oversaturated by {} at {} (no more actions)', self._actual_call, self._actual_call.location)
+        builder.append_line(
+            '  oversaturated by {} at {} (no more actions)', self._actual_call,
+            self._actual_call.location
+        )
         return builder.build()
 
     @property
@@ -268,7 +277,10 @@ class Unsatisfied(MockifyAssertion):
 
     def __append_title(self, builder):
         if len(self._unsatisfied_expectations) > 1:
-            builder.append_line('Following {} expectations are not satisfied:', len(self._unsatisfied_expectations))
+            builder.append_line(
+                'Following {} expectations are not satisfied:',
+                len(self._unsatisfied_expectations)
+            )
         else:
             builder.append_line('Following expectation is not satisfied:')
 
@@ -284,7 +296,9 @@ class Unsatisfied(MockifyAssertion):
         builder.append_line('  {}', expectation.actual_call_count)
 
     def __append_action(self, builder, expectation):
-        action = str(expectation.action) if expectation.action is not None else None
+        action = str(
+            expectation.action
+        ) if expectation.action is not None else None
         if action is not None:
             builder.append_line('Action:')
             builder.append_line('  {}', action)

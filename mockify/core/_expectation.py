@@ -46,10 +46,13 @@ class Expectation:
         self._expected_call = expected_call
         self._action_store = self._ActionStore()
         self._action_store.add(
-            self._ActionProxy(_ActionType.DEFAULT, Return(None), Exactly(1)))
+            self._ActionProxy(_ActionType.DEFAULT, Return(None), Exactly(1))
+        )
 
     def __repr__(self):
-        return "<mockify.{}: {}>".format(self.__class__.__name__, self._expected_call)
+        return "<mockify.{}: {}>".format(
+            self.__class__.__name__, self._expected_call
+        )
 
     def __call__(self, actual_call):
         """Call this expectation object.
@@ -247,7 +250,9 @@ class Expectation:
         def expected_call_count(self):
             if self._actions[0].type_ == _ActionType.DEFAULT:
                 return self._actions[0]._expected_call_count
-            minimal = sum(map(lambda x: x.type_ == _ActionType.SINGLE, self._actions))
+            minimal = sum(
+                map(lambda x: x.type_ == _ActionType.SINGLE, self._actions)
+            )
             if self._actions[-1].type_ != _ActionType.REPEATED:
                 return Exactly(minimal)
             return self._actions[-1].expected_call_count.adjust_minimal(minimal)
@@ -278,7 +283,10 @@ class Expectation:
             self._expectation = expectation
             action_store = expectation._action_store
             action_store.add(
-                expectation._ActionProxy(_ActionType.SINGLE, action, Exactly(1)))
+                expectation._ActionProxy(
+                    _ActionType.SINGLE, action, Exactly(1)
+                )
+            )
 
         def will_once(self, action):
             return self.__class__(self._expectation, action)
@@ -290,7 +298,9 @@ class Expectation:
 
         def __init__(self, expectation, action):
             self._expectation = expectation
-            self._action_proxy = expectation._ActionProxy(_ActionType.REPEATED, action, AtLeast(0))
+            self._action_proxy = expectation._ActionProxy(
+                _ActionType.REPEATED, action, AtLeast(0)
+            )
             self._action_store.add(self._action_proxy)
 
         @property

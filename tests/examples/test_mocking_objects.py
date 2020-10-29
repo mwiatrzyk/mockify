@@ -52,7 +52,9 @@ class TestProtocolReader:
 
     def test_read_message_from_connection(self):
         self.connection.read.expect_call(3).will_once(Return(b'XYZ'))
-        self.connection.read.expect_call(2).will_once(Return(struct.pack('!H', 13)))
+        self.connection.read.expect_call(2).will_once(
+            Return(struct.pack('!H', 13))
+        )
         self.connection.read.expect_call(13).will_once(Return(b'Hello, world!'))
 
         with satisfied(self.connection):

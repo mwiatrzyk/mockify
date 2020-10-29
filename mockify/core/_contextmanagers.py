@@ -30,13 +30,16 @@ def ordered(*mocks):  # TODO: add more tests
         num_mocks = len(mocks)
         if num_mocks == 1:
             return mocks[0].__m_session__
-        for i in range(num_mocks-1):
-            first, second = mocks[i], mocks[i+1]
+        for i in range(num_mocks - 1):
+            first, second = mocks[i], mocks[i + 1]
             session = first.__m_session__
             if session is not second.__m_session__:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(first.__m_fullname__, second.__m_fullname__))
+                    "session object".format(
+                        first.__m_fullname__, second.__m_fullname__
+                    )
+                )
         return session
 
     def iter_expected_mock_names(mocks):

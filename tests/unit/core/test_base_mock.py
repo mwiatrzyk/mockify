@@ -35,7 +35,9 @@ class StubMock(BaseMock):
 class TestBaseMock:
 
     def test_mock_repr(self):
-        assert repr(StubMock('dummy')) == "<tests.unit.core.test_base_mock.StubMock('dummy')>"
+        assert repr(
+            StubMock('dummy')
+        ) == "<tests.unit.core.test_base_mock.StubMock('dummy')>"
 
 
 class TestMockInfo:
@@ -50,12 +52,16 @@ class TestMockInfo:
             StubMock('mock', session=self._dummy_session, parent=self.mock)
 
     def test_mock_info_repr(self):
-        assert repr(MockInfo(self.mock)) == "<mockify.core._base_mock.MockInfo: <tests.unit.core.test_base_mock.StubMock('mock')>>"
+        assert repr(
+            MockInfo(self.mock)
+        ) == "<mockify.core._base_mock.MockInfo: <tests.unit.core.test_base_mock.StubMock('mock')>>"
 
     def test_if_invalid_object_type_given__then_fail_with_type_error(self):
         with pytest.raises(TypeError) as excinfo:
             MockInfo(123)
-        assert str(excinfo.value) == "__init__() got an invalid value for argument 'target'"
+        assert str(
+            excinfo.value
+        ) == "__init__() got an invalid value for argument 'target'"
 
     def test_target_is_the_same_as_given_mock(self):
         assert MockInfo(self.mock).target is self.mock
@@ -75,15 +81,18 @@ class TestMockInfo:
 
     def test_obtain_expectations_from_target_mock(self):
         self.mock.set_expectations('one', 'two', 'three')
-        assert list(MockInfo(self.mock).expectations()) == ['one', 'two', 'three']
+        assert list(MockInfo(self.mock).expectations()
+                    ) == ['one', 'two', 'three']
 
     def test_obtain_direct_children_of_target_mock(self):
         first = StubMock('first', parent=self.mock)
         second = StubMock('second', parent=self.mock)
-        assert [x.target for x in MockInfo(self.mock).children()] == [first, second]
+        assert [x.target
+                for x in MockInfo(self.mock).children()] == [first, second]
 
     def test_walk_generates_all_mock_children(self):
         child = StubMock('child', parent=self.mock)
         grandchild = StubMock('grandchild', parent=child)
         grandgrandchild = StubMock('grandgrandchild', parent=grandchild)
-        assert [x.target for x in MockInfo(self.mock).walk()] == [self.mock, child, grandchild, grandgrandchild]
+        assert [x.target for x in MockInfo(self.mock).walk()
+                ] == [self.mock, child, grandchild, grandgrandchild]

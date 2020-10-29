@@ -22,7 +22,11 @@ class Option(abc.ABC):
         pass
 
     def fail(self, key, message):
-        raise ValueError("Invalid value for {!r} config option given: {}".format(key, message))
+        raise ValueError(
+            "Invalid value for {!r} config option given: {}".format(
+                key, message
+            )
+        )
 
 
 class Enum(Option):
@@ -33,7 +37,10 @@ class Enum(Option):
 
     def parse(self, key, value):
         if value not in self.values:
-            self.fail(key, "expected any of {!r}, got {!r}".format(self.values, value))
+            self.fail(
+                key,
+                "expected any of {!r}, got {!r}".format(self.values, value)
+            )
         return value
 
 
@@ -45,7 +52,10 @@ class Type(Option):
 
     def parse(self, key, value):
         if not isinstance(value, self.type_):
-            self.fail(key, "expected instance of {!r}, got {!r}".format(self.type_, value))
+            self.fail(
+                key,
+                "expected instance of {!r}, got {!r}".format(self.type_, value)
+            )
         return value
 
 

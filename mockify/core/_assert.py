@@ -26,7 +26,10 @@ def assert_satisfied(*mocks):
     def iter_unsatisfied_expectations(mocks):
         for mock in mocks:
             for child in mock.__m_walk__():
-                yield from (x for x in child.__m_expectations__() if not x.is_satisfied())
+                yield from (
+                    x for x in child.__m_expectations__()
+                    if not x.is_satisfied()
+                )
 
     unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))
     if unsatisfied_expectations:

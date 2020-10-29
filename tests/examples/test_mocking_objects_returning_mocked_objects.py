@@ -35,4 +35,5 @@ class TestItemRepositoryFacade:
         response.json.expect_call().will_once(Return(expected_result))
 
         with satisfied(factory):
-            assert ItemRepositoryFacade(connection).get_items() == expected_result
+            assert ItemRepositoryFacade(connection
+                                        ).get_items() == expected_result

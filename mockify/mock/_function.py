@@ -54,10 +54,13 @@ class FunctionMock(BaseMock):
     def __m_expectations__(self):
         return filter(
             lambda x: x.expected_call.name == self.__m_fullname__,
-            self.__m_session__.expectations())
+            self.__m_session__.expectations()
+        )
 
     def __call__(self, *args, **kwargs):
         return self.__m_session__(Call(self.__m_fullname__, *args, **kwargs))
 
     def expect_call(self, *args, **kwargs):
-        return self.__m_session__.expect_call(Call(self.__m_fullname__, *args, **kwargs))
+        return self.__m_session__.expect_call(
+            Call(self.__m_fullname__, *args, **kwargs)
+        )

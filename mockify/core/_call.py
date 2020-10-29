@@ -95,10 +95,15 @@ class Call:
         self._location = LocationInfo.get_external()
 
     def __str__(self):
-        return "{}({})".format(self._name, self._format_params(*self._args, **self._kwargs))
+        return "{}({})".format(
+            self._name, self._format_params(*self._args, **self._kwargs)
+        )
 
     def __repr__(self):
-        return "<mockify.{}({})>".format(self.__class__.__name__, self._format_params(self._name, *self._args, **self._kwargs))
+        return "<mockify.{}({})>".format(
+            self.__class__.__name__,
+            self._format_params(self._name, *self._args, **self._kwargs)
+        )
 
     def __eq__(self, other):
         return self._name == other._name and\

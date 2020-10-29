@@ -36,12 +36,16 @@ class Session:
         self._unordered_expectations = []
         self._ordered_expectations = collections.deque()
         self._ordered_expectations_enabled_for = set()
-        self._config = _config.Config({
-            'uninterested_call_strategy':
-                _config.Enum(['fail', 'warn', 'ignore'], default='fail'),
-            'expectation_class':
-                _config.Type(Expectation, default=Expectation),
-        })
+        self._config = _config.Config(
+            {
+                'uninterested_call_strategy': _config.Enum(
+                    ['fail', 'warn', 'ignore'], default='fail'
+                ),
+                'expectation_class': _config.Type(
+                    Expectation, default=Expectation
+                ),
+            }
+        )
 
     @property
     def config(self):
@@ -104,16 +108,22 @@ class Session:
                 self._ordered_expectations.popleft()
 
     def __call_unordered(self, actual_call):
-        found_by_call = [x for x in self.expectations() if x.expected_call == actual_call]
+        found_by_call = [
+            x for x in self.expectations() if x.expected_call == actual_call
+        ]
         if not found_by_call:
             return self.__handle_uninterested_call(actual_call)
         for expectation in found_by_call:
             if not expectation.is_satisfied():
                 return expectation(actual_call)
-        return found_by_call[-1](actual_call)  # Oversaturate last found if all are satisfied
+        return found_by_call[-1](
+            actual_call
+        )  # Oversaturate last found if all are satisfied
 
     def __handle_uninterested_call(self, actual_call):
-        uninterested_call_strategy = self._config.get('uninterested_call_strategy')
+        uninterested_call_strategy = self._config.get(
+            'uninterested_call_strategy'
+        )
         if uninterested_call_strategy == 'fail':
             self.__handle_uninterested_call_using_fail_strategy(actual_call)
         elif uninterested_call_strategy == 'ignore':
@@ -122,7 +132,10 @@ class Session:
             warnings.warn(str(actual_call), exc.UninterestedCallWarning)
 
     def __handle_uninterested_call_using_fail_strategy(self, actual_call):
-        found_by_name = [x.expected_call for x in self.expectations() if x.expected_call.name == actual_call.name]
+        found_by_name = [
+            x.expected_call for x in self.expectations()
+            if x.expected_call.name == actual_call.name
+        ]
         if not found_by_name:
             raise exc.UninterestedCall(actual_call)
         raise exc.UnexpectedCall(actual_call, found_by_name)
@@ -133,8 +146,8 @@ class Session:
         Yields :class:`mockify.Expectation` instances.
         """
         return itertools.chain(
-            self._unordered_expectations,
-            self._ordered_expectations)
+            self._unordered_expectations, self._ordered_expectations
+        )
 
     def expect_call(self, expected_call):
         """Called by mock when expectation is recorded on it.
@@ -162,7 +175,9 @@ class Session:
         for given session only. Can be used as a replacement for any other
         checks if one global session object is used.
         """
-        unsatisfied_expectations = [x for x in self.expectations() if not x.is_satisfied()]
+        unsatisfied_expectations = [
+            x for x in self.expectations() if not x.is_satisfied()
+        ]
         if unsatisfied_expectations:
             raise exc.Unsatisfied(unsatisfied_expectations)
 

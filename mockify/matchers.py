@@ -17,8 +17,8 @@ from mockify import _utils
 
 def _format_repr(obj, *args, **kwargs):
     formatted_args_kwargs = _utils.format_args_kwargs(
-        args, kwargs, sort=False,
-        skip_kwarg_if=lambda value: value is None)
+        args, kwargs, sort=False, skip_kwarg_if=lambda value: value is None
+    )
     return "{}({})".format(obj.__class__.__name__, formatted_args_kwargs)
 
 
@@ -123,20 +123,27 @@ class Type(Matcher):
 
     def __init__(self, *types):
         if not types:
-            raise TypeError("__init__() requires at least 1 positional argument, got 0")
+            raise TypeError(
+                "__init__() requires at least 1 positional argument, got 0"
+            )
         self.__validate_types(types)
         self._types = types
 
     def __validate_types(self, types):
         for type_ in types:
             if not isinstance(type_, type):
-                raise TypeError("__init__() requires type instances, got {!r}".format(type_))
+                raise TypeError(
+                    "__init__() requires type instances, got {!r}".
+                    format(type_)
+                )
 
     def __eq__(self, other):
         return isinstance(other, *self._types)
 
     def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, ', '.join(x.__name__ for x in self._types))
+        return "{}({})".format(
+            self.__class__.__name__, ', '.join(x.__name__ for x in self._types)
+        )
 
 
 class Regex(Matcher):
@@ -172,7 +179,9 @@ class Regex(Matcher):
 
     def __repr__(self):
         if self._name is None:
-            return "{}({!r})".format(self.__class__.__name__, self._pattern.pattern)
+            return "{}({!r})".format(
+                self.__class__.__name__, self._pattern.pattern
+            )
         return "{}({})".format(self.__class__.__name__, self._name)
 
 
@@ -212,9 +221,12 @@ class List(Matcher):
         return True
 
     def __repr__(self):
-        return _format_repr(self,
-            self._matcher, min_length=self._min_length,
-            max_length=self._max_length)
+        return _format_repr(
+            self,
+            self._matcher,
+            min_length=self._min_length,
+            max_length=self._max_length
+        )
 
 
 class Object(Matcher):
@@ -252,7 +264,9 @@ class Object(Matcher):
 
     def __init__(self, **kwargs):
         if not kwargs:
-            raise TypeError("__init__ must be called with at least 1 named argument")
+            raise TypeError(
+                "__init__ must be called with at least 1 named argument"
+            )
         self._kwargs = kwargs
 
     def __eq__(self, other):

@@ -23,12 +23,16 @@ def format_call_count(count):
     return "{} times".format(count)
 
 
-def format_args_kwargs(args, kwargs, formatter=repr, sort=True, skip_kwarg_if=None):
+def format_args_kwargs(
+    args, kwargs, formatter=repr, sort=True, skip_kwarg_if=None
+):
     args_gen = map(formatter, args)
     kwargs_gen = sorted(kwargs.items()) if sort else kwargs.items()
     if skip_kwarg_if is not None:
         kwargs_gen = filter(lambda x: not skip_kwarg_if(x[1]), kwargs_gen)
-    kwargs_gen = map(lambda x: "{}={}".format(x[0], formatter(x[1])), kwargs_gen)
+    kwargs_gen = map(
+        lambda x: "{}={}".format(x[0], formatter(x[1])), kwargs_gen
+    )
     all_gen = itertools.chain(args_gen, kwargs_gen)
     return ', '.join(all_gen)
 
@@ -38,7 +42,10 @@ def validate_mock_name(name):
     parts = name.split('.') if isinstance(name, str) else [name]
     for part in parts:
         if not is_identifier(part):
-            raise TypeError("Mock name must be a valid Python identifier, got {!r} instead".format(name))
+            raise TypeError(
+                "Mock name must be a valid Python identifier, got {!r} instead".
+                format(name)
+            )
 
 
 def is_identifier(name):
@@ -63,7 +70,10 @@ def log_unhandled_exceptions(logger):
             try:
                 return func(*args, **kwargs)
             except Exception:
-                logger.error('An unhandled exception occurred during {func!r} call:', exc_info=True)
+                logger.error(
+                    'An unhandled exception occurred during {func!r} call:',
+                    exc_info=True
+                )
                 raise
 
         return proxy
@@ -90,10 +100,9 @@ class ErrorMessageBuilder:
         self._lines.append(template.format(*args, **kwargs))
 
     def append_location(self, location):
-        self._lines.extend([
-            "at {}".format(location),
-            "-" * (len(str(location)) + 3)
-        ])
+        self._lines.extend(
+            ["at {}".format(location), "-" * (len(str(location)) + 3)]
+        )
 
 
 class IterableQuery:

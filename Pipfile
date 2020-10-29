@@ -15,5 +15,6 @@ pylint = "*"
 rope = "*"
 isort = "*"
 autoflake = "*"
+yapf = "*"
 
 [packages]

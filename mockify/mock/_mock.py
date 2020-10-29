@@ -81,7 +81,8 @@ class Mock(BaseMock):
         fullname = self.__m_fullname__
         return filter(
             lambda x: x.expected_call.name == fullname,
-            self.__m_session__.expectations())
+            self.__m_session__.expectations()
+        )
 
     def __setattr__(self, name, value):
         if '__setattr__' in self.__dict__:
@@ -89,7 +90,7 @@ class Mock(BaseMock):
         return super().__setattr__(name, value)
 
     def __getattr__(self, name):
-        if '__getattr__' in self.__dict__ :
+        if '__getattr__' in self.__dict__:
             return self.__dict__['__getattr__'](name)
         self.__dict__[name] = tmp = Mock(name, parent=self)
         return tmp
@@ -115,7 +116,7 @@ class Mock(BaseMock):
 
 
 class _GetAttrMock(Mock):
-    _mocked_properties : Dict[str, Callable] = {}
+    _mocked_properties: Dict[str, Callable] = {}
 
     def __init__(self, parent):
         super().__init__('__getattr__', parent=parent)
@@ -126,17 +127,21 @@ class _GetAttrMock(Mock):
 
     def expect_call(self, name):
         if not _utils.is_identifier(name):
-            raise TypeError("__getattr__.expect_call() must be called with valid Python property name, got {!r}".format(name))
+            raise TypeError(
+                "__getattr__.expect_call() must be called with valid Python property name, got {!r}"
+                .format(name)
+            )
         if name in self.__m_parent__.__dict__:
             raise TypeError(
                 "__getattr__.expect_call() must be called with a non existing property name, "
-                "got {!r} which already exists".format(name))
+                "got {!r} which already exists".format(name)
+            )
         expected_call = Call(self.__m_fullname__, name)
         return self.__m_session__.expect_call(expected_call)
 
 
 class _SetAttrMock(Mock):
-    _mocked_properties : Dict[str, Callable] = {}
+    _mocked_properties: Dict[str, Callable] = {}
 
     def __init__(self, parent):
         super().__init__('__setattr__', parent=parent)
@@ -147,11 +152,15 @@ class _SetAttrMock(Mock):
 
     def expect_call(self, name, value):
         if not _utils.is_identifier(name):
-            raise TypeError("__setattr__.expect_call() must be called with valid Python property name, got {!r}".format(name))
+            raise TypeError(
+                "__setattr__.expect_call() must be called with valid Python property name, got {!r}"
+                .format(name)
+            )
         if name in self.__m_parent__.__dict__:
             raise TypeError(
                 "__setattr__.expect_call() must be called with a non existing property name, "
-                "got {!r} which already exists".format(name))
+                "got {!r} which already exists".format(name)
+            )
         expected_call = Call(self.__m_fullname__, name, value)
         return self.__m_session__.expect_call(expected_call)
 

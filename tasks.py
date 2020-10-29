@@ -55,10 +55,16 @@ def update_copyright(_, verbosity=0):
         return '\n'.join(lines).format(
             filename=path,
             year="{} - {}".format(year_started, year_current),
-            holder=copyright_holder)
+            holder=copyright_holder
+        )
 
     def update_files(pattern, ignore=None):
-        template = load_template(os.path.join(_root_dir, 'data', 'templates', 'heading', "{}.txt".format(pattern[2:])))
+        template = load_template(
+            os.path.join(
+                _root_dir, 'data', 'templates', 'heading',
+                "{}.txt".format(pattern[2:])
+            )
+        )
         marker_line = template[0]
         logger.info("Updating copyright notice in %s files...", pattern)
         for src_path in scan(pattern, ignore=ignore):
@@ -81,16 +87,22 @@ def update_copyright(_, verbosity=0):
 
     def update_license():
         logger.info('Updating copyright notice in LICENSE...')
-        with open(os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')) as src:
+        with open(
+            os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')
+        ) as src:
             with open(os.path.join(_root_dir, 'LICENSE'), 'w') as dst:
-                dst.write(src.read().format(
-                    year="{} - {}".format(year_started, year_current),
-                    holder=copyright_holder
-                ))
+                dst.write(
+                    src.read().format(
+                        year="{} - {}".format(year_started, year_current),
+                        holder=copyright_holder
+                    )
+                )
         logger.info('Done.')
 
     _configure_logger(verbosity)
-    update_files('*.py', ignore=lambda path: 'docs' in path or 'setup.py' in path)
+    update_files(
+        '*.py', ignore=lambda path: 'docs' in path or 'setup.py' in path
+    )
     update_files('*.rst', ignore=lambda path: 'README' in path)
     update_license()
 
@@ -151,13 +163,16 @@ def adjust_code(ctx):
         'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests tasks.py'
     )
     ctx.run('isort --atomic mockify tests tasks.py')
+    ctx.run('yapf -i --recursive --parallel mockify tests tasks.py')
 
 
 @invoke.task()
 def deploy(ctx, env):
     """Deploy library to given environment."""
     if env == 'test':
-        ctx.run('twine upload --repository-url https://test.pypi.org/legacy/ dist/*')
+        ctx.run(
+            'twine upload --repository-url https://test.pypi.org/legacy/ dist/*'
+        )
     elif env == 'prod':
         ctx.run('twine upload dist/*')
     else:

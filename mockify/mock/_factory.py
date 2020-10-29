@@ -67,7 +67,9 @@ class MockFactory(BaseMock):
             yield from mock.__m_expectations__()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(self=self)
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(
+            self=self
+        )
 
     def mock(self, name):
         """Create and return mock of given *name*.

@@ -67,7 +67,9 @@ class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
     """
 
     def __repr__(self):
-        return "<{}.{}({})>".format(self.__module__, self.__class__.__name__, self.format_params())
+        return "<{}.{}({})>".format(
+            self.__module__, self.__class__.__name__, self.format_params()
+        )
 
     @abc.abstractmethod
     def __str__(self):
@@ -143,7 +145,9 @@ class AtLeast(ExpectedCallCount):
     def __str__(self):
         if self.minimal == 0:
             return "to be called any number of times"
-        return "to be called at least {}".format(_utils.format_call_count(self.minimal))
+        return "to be called at least {}".format(
+            _utils.format_call_count(self.minimal)
+        )
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal
@@ -173,7 +177,9 @@ class AtMost(ExpectedCallCount):
         self.maximal = maximal
 
     def __str__(self):
-        return "to be called at most {}".format(_utils.format_call_count(self.maximal))
+        return "to be called at most {}".format(
+            _utils.format_call_count(self.maximal)
+        )
 
     def match(self, actual_call_count):
         return actual_call_count <= self.maximal
@@ -195,7 +201,9 @@ class Between(ExpectedCallCount):
 
     def __new__(cls, minimal, maximal):
         if minimal > maximal:
-            raise TypeError("value of 'minimal' must not be greater than 'maximal'")
+            raise TypeError(
+                "value of 'minimal' must not be greater than 'maximal'"
+            )
         if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
         if minimal == maximal:
@@ -209,7 +217,9 @@ class Between(ExpectedCallCount):
         self.maximal = maximal
 
     def __str__(self):
-        return "to be called from {} to {} times".format(self.minimal, self.maximal)
+        return "to be called from {} to {} times".format(
+            self.minimal, self.maximal
+        )
 
     def match(self, actual_call_count):
         return self.minimal <= actual_call_count <= self.maximal
