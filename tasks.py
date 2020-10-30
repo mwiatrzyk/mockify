@@ -17,94 +17,20 @@ from datetime import datetime
 
 import invoke
 
+import mockify
+
 logger = logging.getLogger(__name__)
 
 _root_dir = os.path.abspath(os.path.dirname(__file__))
 
 
-def _configure_logger(verbosity):
-    if verbosity == 0:
-        logging.basicConfig(level=logging.ERROR)
-    elif verbosity == 1:
-        logging.basicConfig(level=logging.WARNING)
-    elif verbosity == 2:
-        logging.basicConfig(level=logging.INFO)
-    else:
-        logging.basicConfig(level=logging.DEBUG)
-
-
-@invoke.task(incrementable=['verbosity'])
-def update_copyright(_, verbosity=0):
+@invoke.task
+def update_copyright(ctx):
     """Update copyright notice in license, source code and documentation
     files."""
-    year_started = 2018
-    year_current = datetime.now().year
-    copyright_holder = 'Maciej Wiatrzyk'
-
-    def scan(pattern, ignore=None):
-        for item in glob.iglob(os.path.join('**', pattern), recursive=True):
-            if ignore is None or not ignore(item):
-                stats = os.stat(item)
-                if stats.st_size > 0:
-                    yield item
-
-    def load_template(path):
-        return open(path).read().split('\n')
-
-    def format_template(lines, path):
-        return '\n'.join(lines).format(
-            filename=path,
-            year="{} - {}".format(year_started, year_current),
-            holder=copyright_holder
-        )
-
-    def update_files(pattern, ignore=None):
-        template = load_template(
-            os.path.join(
-                _root_dir, 'data', 'templates', 'heading',
-                "{}.txt".format(pattern[2:])
-            )
-        )
-        marker_line = template[0]
-        logger.info("Updating copyright notice in %s files...", pattern)
-        for src_path in scan(pattern, ignore=ignore):
-            dst_path = src_path + '.new'
-            with open(src_path) as src:
-                with open(dst_path, 'w') as dst:
-                    dst.write(format_template(template, src_path))
-                    line = src.readline()
-                    if line.startswith(marker_line):
-                        line = src.readline()
-                        while not line.startswith(marker_line):
-                            line = src.readline()
-                        line = src.readline()
-                    while line:
-                        dst.write(line)
-                        line = src.readline()
-            shutil.move(dst_path, src_path)
-            logger.debug("%s - OK", src_path)
-        logger.info('Done.')
-
-    def update_license():
-        logger.info('Updating copyright notice in LICENSE...')
-        with open(
-            os.path.join(_root_dir, 'data', 'templates', 'LICENSE.txt')
-        ) as src:
-            with open(os.path.join(_root_dir, 'LICENSE'), 'w') as dst:
-                dst.write(
-                    src.read().format(
-                        year="{} - {}".format(year_started, year_current),
-                        holder=copyright_holder
-                    )
-                )
-        logger.info('Done.')
-
-    _configure_logger(verbosity)
-    update_files(
-        '*.py', ignore=lambda path: 'docs' in path or 'setup.py' in path
-    )
-    update_files('*.rst', ignore=lambda path: 'README' in path)
-    update_license()
+    ctx.run(
+        'scripts/licenser/licenser.py . --released={released} --author="{author}" --i "*.py" -i "*.rst"'.
+        format(released=mockify.__released__, author=mockify.__author__))
 
 
 @invoke.task
