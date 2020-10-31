@@ -10,6 +10,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+import re
 import os
 import sys
 import shutil
@@ -85,6 +86,13 @@ def update_source_files(args):
         os.chown(dest_path, stat.st_uid, stat.st_gid)
         os.chmod(dest_path, stat.st_mode)
 
+    def leave_first_line(line):
+        if line.startswith('#!'):  # shebang
+            return True
+        if re.match(r'-\*-\s+coding:.+\s+-\*-', line):  # -*- coding: utf-8 -*- for example
+            return True
+        return False
+
     def update_path(path):
         _, file_ext = os.path.splitext(path)
         preamble = render_template(
@@ -97,7 +105,7 @@ def update_source_files(args):
             with open(path, 'w') as dest:
                 with open(path_old) as src:
                     line = src.readline()
-                    if line.startswith('#!'):
+                    if leave_first_line(line):
                         dest.write(line)
                         line = src.readline()
                     dest.write(preamble)

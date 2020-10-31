@@ -25,12 +25,63 @@ _root_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 @invoke.task
-def update_copyright(ctx):
-    """Update copyright notice in license, source code and documentation
-    files."""
+def test_unit(ctx):
+    """Run unit tests."""
+    ctx.run('pytest tests/')
+
+
+@invoke.task
+def test_docs(ctx):
+    """Run documentation tests."""
+    ctx.run('sphinx-build -M doctest docs/source docs/build')
+
+
+@invoke.task(test_unit, test_docs)
+def test(_):
+    """Run all tests."""
+
+
+@invoke.task
+def coverage(ctx, html=False):
+    """Run code coverage check."""
+    opts = ''
+    if html:
+        opts += ' --cov-report=html'
+    ctx.run("pytest tests/ --cov=src/_mockify{}".format(opts))
+
+
+@invoke.task
+def lint(ctx):
+    """Run static code analyzer."""
+    ctx.run('pylint --fail-under=9.0 mockify')
+
+
+@invoke.task(test, coverage, lint)
+def check(_):
+    """Run all code quality checks."""
+
+
+@invoke.task
+def fix_formatting(ctx):
+    """Run code formatting tools."""
+    ctx.run(
+        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests tasks.py'
+    )
+    ctx.run('isort --atomic mockify tests tasks.py')
+    ctx.run('yapf -i --recursive --parallel mockify tests tasks.py')
+
+
+@invoke.task
+def fix_license(ctx):
+    """Update LICENSE file and license preambles in source files."""
     ctx.run(
         'scripts/licenser/licenser.py . --released={released} --author="{author}" --i "*.py" -i "*.rst"'.
         format(released=mockify.__released__, author=mockify.__author__))
+
+
+@invoke.task(fix_formatting, fix_license)
+def fix(_):
+    """Run all code fixers."""
 
 
 @invoke.task
@@ -47,62 +98,21 @@ def build_pkg(ctx):
 
 @invoke.task(build_docs, build_pkg)
 def build(_):
-    """A shortcut for building everything."""
+    """Build all."""
 
 
 @invoke.task
-def test_unit(ctx):
-    """Run unit tests."""
-    ctx.run('pytest tests/')
-
-
-@invoke.task
-def test_cov(ctx, html=False):
-    """Run tests and check coverage."""
-    opts = ''
-    if html:
-        opts += ' --cov-report=html'
-    ctx.run("pytest tests/ --cov=src/_mockify{}".format(opts))
-
-
-@invoke.task
-def lint(ctx):
-    """Run static code analyzer."""
-    ctx.run('pylint --fail-under=9.0 mockify')
-
-
-@invoke.task
-def test_docs(ctx):
-    """Run documentation tests."""
-    ctx.run('sphinx-build -M doctest docs/source docs/build')
-
-
-@invoke.task(test_unit, test_docs)
-def test(_):
-    """Run all tests."""
-
-
-@invoke.task
-def adjust_code(ctx):
-    """Run code adjusting tools."""
+def deploy_test(ctx):
+    """Deploy library to test PyPI."""
     ctx.run(
-        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests tasks.py'
+        'twine upload --repository-url https://test.pypi.org/legacy/ dist/*'
     )
-    ctx.run('isort --atomic mockify tests tasks.py')
-    ctx.run('yapf -i --recursive --parallel mockify tests tasks.py')
 
 
-@invoke.task()
-def deploy(ctx, env):
-    """Deploy library to given environment."""
-    if env == 'test':
-        ctx.run(
-            'twine upload --repository-url https://test.pypi.org/legacy/ dist/*'
-        )
-    elif env == 'prod':
-        ctx.run('twine upload dist/*')
-    else:
-        raise RuntimeError("invalid env: {}".format(env))
+@invoke.task
+def deploy_prod(ctx):
+    """Deploy library to production PyPI."""
+    ctx.run('twine upload dist/*')
 
 
 @invoke.task
@@ -113,8 +123,3 @@ def clean(ctx):
     ctx.run('rm -rf docs/build')
     ctx.run('rm -rf build dist')
     ctx.run('rm -rf *.egg-info')
-
-
-@invoke.task(build_docs, build_pkg, test)
-def regression(_):
-    """Run regression tests."""
