@@ -19,3 +19,4 @@ yapf = "*"
 jinja2 = "*"
 
 [packages]
+gitchangelog = "*"
