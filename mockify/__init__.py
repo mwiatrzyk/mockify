@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/__init__.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -21,8 +21,7 @@ except DistributionNotFound:
 
 from .core import (  # TODO: remove from here; import from mockify.core explicitly instead
     Call, Expectation, LocationInfo, Session, assert_satisfied, ordered,
-    patched, satisfied
-)
+    patched, satisfied)
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',

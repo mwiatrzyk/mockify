@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tasks.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -9,11 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import glob
 import logging
 import os
-import shutil
-from datetime import datetime
 
 import invoke
 
@@ -75,8 +72,9 @@ def fix_formatting(ctx):
 def fix_license(ctx):
     """Update LICENSE file and license preambles in source files."""
     ctx.run(
-        'scripts/licenser/licenser.py . --released={released} --author="{author}" --i "*.py" -i "*.rst"'.
-        format(released=mockify.__released__, author=mockify.__author__))
+        'scripts/licenser/licenser.py . --released={released} --author="{author}" --i "*.py" -i "*.rst"'
+        .format(released=mockify.__released__, author=mockify.__author__)
+    )
 
 
 @invoke.task(fix_formatting, fix_license)
