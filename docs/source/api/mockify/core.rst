@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api.rst
+.. docs/source/api/mockify/core.rst
 ..
 .. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
@@ -10,16 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-API Reference
-=============
+**mockify.core** - Library core
+===============================
 
-.. toctree::
-    :maxdepth: 3
-
-    api/mockify
-    api/mockify/core
-    api/mockify/mock
-    api/mockify/actions
-    api/mockify/cardinality
-    api/mockify/matchers
-    api/mockify/exc
+.. automodule:: mockify.core
+    :members:
+    :special-members: __call__
