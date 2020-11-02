@@ -48,10 +48,20 @@ def coverage(ctx, html=False):
 
 
 @invoke.task
-def lint(ctx):
-    """Run static code analyzer."""
-    ctx.run('pylint --fail-under=9.0 mockify')
+def lint_code(ctx):
+    """Run linter on source files."""
+    ctx.run('pylint --fail-under=9.0 mockify tasks.py setup.py')
 
+
+@invoke.task
+def lint_tests(ctx):
+    """Run linter on test files."""
+    ctx.run('pylint --fail-under=9.0 tests')
+
+
+@invoke.task(lint_code, lint_tests)
+def lint(_):
+    """Run all linters."""
 
 @invoke.task(test, coverage, lint)
 def check(_):
