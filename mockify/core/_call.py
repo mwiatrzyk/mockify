@@ -8,6 +8,9 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=missing-module-docstring
+
 import traceback
 
 from .. import _globals, _utils
@@ -66,8 +69,9 @@ class LocationInfo:
         """
         stack = traceback.extract_stack()
         for frame in reversed(stack):
+            # TODO: make this if statement better
             if not frame.filename.startswith(_globals.ROOT_DIR) and\
-               not frame.filename.startswith('/usr/lib'):  # TODO: implement some kind of global hook for configuring this
+               not frame.filename.startswith('/usr/lib'):
                 return cls(frame.filename, frame.lineno)
         return cls('unknown', -1)
 
@@ -113,7 +117,8 @@ class Call:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def _format_params(self, *args, **kwargs):
+    @staticmethod
+    def _format_params(*args, **kwargs):
         return _utils.format_args_kwargs(args, kwargs)
 
     @property

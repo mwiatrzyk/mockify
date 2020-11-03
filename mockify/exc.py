@@ -9,6 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+"""Module containing Mockify's warnings and exceptions."""
+
 import logging
 
 from . import _utils
@@ -87,12 +89,12 @@ class UnexpectedCall(MockifyAssertion):
     .. versionadded:: 0.6
 
     :param actual_call:
-        Instance of :class:`mockify.Call` representing parameters of call
-        that was made
+        Instance of :class:`mockify.core.Call` representing parameters of
+        call that was made
 
     :param expected_calls:
-        List of :class:`mockify.Call` instances, each representing expected
-        parameters of single expectation
+        List of :class:`mockify.core.Call` instances, each representing
+        expected parameters of single expectation
     """
 
     def __init__(self, actual_call, expected_calls):
@@ -115,10 +117,13 @@ class UnexpectedCall(MockifyAssertion):
 
     @property
     def actual_call(self):
+        """Instance of :class:`mockify.core.Call` with actual call."""
         return self._actual_call
 
     @property
     def expected_calls(self):
+        """Sequence of :class:`mockify.core.Call` instances with expected
+        calls."""
         return self._expected_calls
 
 
@@ -159,10 +164,12 @@ class UnexpectedCallOrder(MockifyAssertion):
 
     @property
     def actual_call(self):
+        """Instance of :class:`mockify.core.Call` with actual call."""
         return self._actual_call
 
     @property
     def expected_call(self):
+        """Instance of :class:`mockify.core.Call` with expected call."""
         return self._expected_call
 
 
@@ -193,6 +200,7 @@ class UninterestedCall(MockifyAssertion):
 
     @property
     def actual_call(self):
+        """Instance of :class:`mockify.core.Call` with actual call."""
         return self._actual_call
 
 
@@ -245,10 +253,13 @@ class OversaturatedCall(MockifyAssertion):
 
     @property
     def actual_call(self):
+        """Instance of :class:`mockify.core.Call` with actual call."""
         return self._actual_call
 
     @property
     def oversaturated_expectation(self):
+        """Instance of :class:`mockify.core.Expectation` class representing
+        expectation that was oversaturated."""
         return self._oversaturated_expectation
 
 
@@ -284,18 +295,20 @@ class Unsatisfied(MockifyAssertion):
         else:
             builder.append_line('Following expectation is not satisfied:')
 
-    def __append_expectation(self, builder, expectation):
+    @classmethod
+    def __append_expectation(cls, builder, expectation):
         builder.append_line('')
         builder.append_location(expectation.expected_call.location)
         builder.append_line('Pattern:')
         builder.append_line('  {}', expectation.expected_call)
-        self.__append_action(builder, expectation)
+        cls.__append_action(builder, expectation)
         builder.append_line('Expected:')
         builder.append_line('  {}', expectation.expected_call_count)
         builder.append_line('Actual:')
         builder.append_line('  {}', expectation.actual_call_count)
 
-    def __append_action(self, builder, expectation):
+    @staticmethod
+    def __append_action(builder, expectation):
         action = str(
             expectation.action
         ) if expectation.action is not None else None

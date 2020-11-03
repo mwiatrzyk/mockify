@@ -8,9 +8,18 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-"""Library core module."""
+"""Library core module.
+
+.. deprecated:: 0.9.0
+    To import Mockify's core functionality, import from :mod:`mockify.core`
+    module instead.
+"""
 
 from pkg_resources import DistributionNotFound, get_distribution
+
+from .core import (  # TODO: remove from here; import from mockify.core explicitly instead
+    Call, Expectation, LocationInfo, Session, assert_satisfied, ordered,
+    patched, satisfied)
 
 __author__ = 'Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>'
 __released__ = 2019
@@ -18,10 +27,6 @@ try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
     __version__ = '0.8.0'  # Fallback; keep this up to date with most recent tag
-
-from .core import (  # TODO: remove from here; import from mockify.core explicitly instead
-    Call, Expectation, LocationInfo, Session, assert_satisfied, ordered,
-    patched, satisfied)
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',

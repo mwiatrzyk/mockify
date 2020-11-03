@@ -9,6 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+# pylint: disable=missing-module-docstring
+
 import unittest.mock
 from contextlib import contextmanager
 

@@ -8,6 +8,9 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=missing-module-docstring
+
 import os
 
 ROOT_DIR = os.path.dirname(__file__)

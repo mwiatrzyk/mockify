@@ -9,6 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+# pylint: disable=missing-module-docstring
+
 import collections
 from enum import Enum
 
@@ -186,18 +188,20 @@ class Expectation:
         return self._action_store.action
 
     class _ActionProxy:
+        # pylint: disable=missing-function-docstring
 
         def __init__(self, type_, action, cardinality):
             self._type = type_
             self._action = action
             self._expected_call_count = self._wrap_cardinality(cardinality)
-            self._call_count = 0
+            self._actual_call_count = 0
 
         def __call__(self, actual_call):
-            self._call_count += 1
+            self._actual_call_count += 1
             return self._action(actual_call)
 
-        def _wrap_cardinality(self, cardinality):
+        @staticmethod
+        def _wrap_cardinality(cardinality):
             if isinstance(cardinality, int):
                 return Exactly(cardinality)
             return cardinality
@@ -211,6 +215,10 @@ class Expectation:
             return self._action
 
         @property
+        def actual_call_count(self):
+            return self._actual_call_count
+
+        @property
         def expected_call_count(self):
             return self._expected_call_count
 
@@ -218,9 +226,10 @@ class Expectation:
             self._expected_call_count = self._wrap_cardinality(cardinality)
 
         def is_satisfied(self):
-            return self._expected_call_count.match(self._call_count)
+            return self._expected_call_count.match(self.actual_call_count)
 
     class _ActionStore:
+        # pylint: disable=missing-function-docstring
 
         def __init__(self):
             self._actions = collections.deque()
@@ -244,12 +253,12 @@ class Expectation:
 
         @property
         def actual_call_count(self):
-            return ActualCallCount(sum((x._call_count for x in self._actions)))
+            return ActualCallCount(sum((x.actual_call_count for x in self._actions)))
 
         @property
         def expected_call_count(self):
             if self._actions[0].type_ == _ActionType.DEFAULT:
-                return self._actions[0]._expected_call_count
+                return self._actions[0].expected_call_count
             minimal = sum(
                 map(lambda x: x.type_ == _ActionType.SINGLE, self._actions)
             )
@@ -266,18 +275,21 @@ class Expectation:
             return None
 
     class _Mutation:
+        # pylint: disable=too-few-public-methods
         _expectation = None
 
         def __repr__(self):
             return repr(self._expectation)
 
     class _Times(_Mutation):
+        # pylint: disable=too-few-public-methods
 
         def __init__(self, expectation, cardinality):
             self._expectation = expectation
             expectation._action_store[0].times(cardinality)
 
     class _WillOnce(_Mutation):
+        # pylint: disable=missing-function-docstring
 
         def __init__(self, expectation, action):
             self._expectation = expectation
@@ -292,9 +304,11 @@ class Expectation:
             return self.__class__(self._expectation, action)
 
         def will_repeatedly(self, action):
-            return self._expectation._WillRepeatedly(self._expectation, action)
+            return self._expectation.will_repeatedly(action)
 
     class _WillRepeatedly(_Mutation):
+        # pylint: disable=missing-function-docstring
+        # pylint: disable=too-few-public-methods
 
         def __init__(self, expectation, action):
             self._expectation = expectation
@@ -305,7 +319,7 @@ class Expectation:
 
         @property
         def _action_store(self):
-            return self._expectation._action_store
+            return self._expectation._action_store  # pylint: disable=protected-access
 
         def times(self, cardinality):
             self._action_proxy.times(cardinality)

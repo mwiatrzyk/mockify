@@ -8,6 +8,9 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=missing-module-docstring
+
 import abc
 
 from .. import _utils

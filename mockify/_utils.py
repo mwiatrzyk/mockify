@@ -9,6 +9,9 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+
 import functools
 import itertools
 import keyword

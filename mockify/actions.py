@@ -9,6 +9,13 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+"""Module containing action types.
+
+Actions are used to tell the mock what it must do once called with given set
+of arguments. This can be returning a value, returning a generator, calling a
+function, raising exception etc.
+"""
+
 import abc
 import functools
 

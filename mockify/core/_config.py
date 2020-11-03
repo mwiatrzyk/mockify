@@ -8,6 +8,11 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+
 import abc
 import collections
 
@@ -21,7 +26,8 @@ class Option(abc.ABC):
     def parse(self, key, value):
         pass
 
-    def fail(self, key, message):
+    @staticmethod
+    def fail(key, message):
         raise ValueError(
             "Invalid value for {!r} config option given: {}".format(
                 key, message

@@ -8,6 +8,9 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=missing-module-docstring
+
 from .. import exc
 
 

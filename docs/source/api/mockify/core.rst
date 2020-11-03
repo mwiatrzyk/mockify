@@ -15,4 +15,4 @@
 
 .. automodule:: mockify.core
     :members:
-    :special-members: __call__
+    :special-members:

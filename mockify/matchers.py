@@ -9,6 +9,14 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+"""Module with types representing matchers.
+
+Matchers are used to wildcard some expected parameters when expectation is
+recorded. Matchers do that by overloading (in)equality operator in their
+specific way. With this you can record expectations using value ranges, type
+checking, regular expressions and more.
+"""
+
 import abc
 import re
 
@@ -129,7 +137,8 @@ class Type(Matcher):
         self.__validate_types(types)
         self._types = types
 
-    def __validate_types(self, types):
+    @staticmethod
+    def __validate_types(types):
         for type_ in types:
             if not isinstance(type_, type):
                 raise TypeError(

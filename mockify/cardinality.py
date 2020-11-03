@@ -9,6 +9,9 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+"""Module containing types to be used to set expected number of mock
+calls."""
+
 import abc
 from functools import total_ordering
 
@@ -56,6 +59,7 @@ class ActualCallCount:
 
     @property
     def value(self):
+        """Number of actual mock calls."""
         return self._value
 
 
@@ -86,7 +90,12 @@ class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
     @abc.abstractmethod
     def adjust_minimal(self, minimal):
         """Make a new cardinality object based on its current state and given
-        *minimal*."""
+        *minimal*.
+
+        This produces a new :class:`ExpectedCallCount` instance, but taking
+        into account that some restrictions are already specified, f.e. with
+        use of :meth:`Session.will_once`.
+        """
 
     @abc.abstractmethod
     def format_params(self, *args, **kwargs):
