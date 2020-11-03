@@ -39,12 +39,9 @@ def test(_):
 
 
 @invoke.task
-def coverage(ctx, html=False):
+def coverage(ctx):
     """Run code coverage check."""
-    opts = ''
-    if html:
-        opts += ' --cov-report=html'
-    ctx.run("pytest tests/ --cov=src/_mockify{}".format(opts))
+    ctx.run('pytest tests/ --cov=mockify --cov-fail-under=96 --cov-report=html:reports/coverage/html --cov-report=xml:reports/coverage/coverage.xml')
 
 
 @invoke.task
@@ -131,3 +128,4 @@ def clean(ctx):
     ctx.run('rm -rf docs/build')
     ctx.run('rm -rf build dist')
     ctx.run('rm -rf *.egg-info')
+    ctx.run('rm -rf reports')
