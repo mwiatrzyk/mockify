@@ -12,12 +12,12 @@ before_script:
 build:
   stage: build
   script:
-    - pipenv run invoke build-docs
+    - pipenv run invoke build
 
 .test:
   stage: test
   script:
-    - pipenv run invoke test
+    - pipenv run invoke check
 
 test Py3.8:
   image: python:3.8-slim
@@ -40,7 +40,7 @@ deploy_to_test_pypi:
     - apt-get update
     - apt-get install -y git
     - pipenv run invoke build-pkg
-    - pipenv run invoke deploy test
+    - pipenv run invoke deploy-test
   only:
     - master
 
@@ -53,6 +53,6 @@ deploy_to_pypi:
     - apt-get update
     - apt-get install -y git
     - pipenv run invoke build-pkg
-    - pipenv run invoke deploy prod
+    - pipenv run invoke deploy-prod
   only:
     - tags
