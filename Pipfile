@@ -17,5 +17,6 @@ isort = "*"
 autoflake = "*"
 yapf = "*"
 jinja2 = "*"
+recommonmark = "*"
 
 [packages]

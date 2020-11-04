@@ -50,7 +50,7 @@
 
 **Added**
 
-  * Added :class:`mockify.mock.BaseMock` that acts as common abstract base class
+  * Added :class:`mockify.core.BaseMock` that acts as common abstract base class
     for all mocks.
 
     Already existing classes :class:`mockify.mock.Mock` and
