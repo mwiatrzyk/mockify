@@ -1,3 +1,7 @@
+![PyPI - License](https://img.shields.io/pypi/l/mockify)
+![PyPI](https://img.shields.io/pypi/v/mockify)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/mockify)
+
 Mockify
 =======
 
