@@ -48,7 +48,7 @@ class TestMockInfo:
         self.mock = StubMock('mock', session=self._dummy_session)
 
     def test_cannot_set_both_session_and_parent(self):
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError):
             StubMock('mock', session=self._dummy_session, parent=self.mock)
 
     def test_mock_info_repr(self):

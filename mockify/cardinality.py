@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Module containing types to be used to set expected number of mock
 calls."""
 

@@ -144,11 +144,11 @@ class Expectation:
     def expected_call(self):
         """Returns *expected_call* parameter passed during construction.
 
-        This is used when this expectation is compared with :class:`Call`
-        object representing **actual call**, to find expectations matching
-        that call.
+        This is used when this expectation is compared with
+        :class:`mockify.core.Call` object representing **actual call**, to
+        find expectations matching that call.
 
-        :rtype: Call
+        :rtype: mockify.core.Call
         """
         return self._expected_call
 
@@ -253,7 +253,9 @@ class Expectation:
 
         @property
         def actual_call_count(self):
-            return ActualCallCount(sum((x.actual_call_count for x in self._actions)))
+            return ActualCallCount(
+                sum((x.actual_call_count for x in self._actions))
+            )
 
         @property
         def expected_call_count(self):

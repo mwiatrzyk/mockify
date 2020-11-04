@@ -27,7 +27,7 @@ class TestUnexpectedCall:
         builder.append_line('Called:')
         builder.append_line('  {}', actual_call)
         builder.append_line('Expected (any of):')
-        for i, call in enumerate(expected_calls):
+        for call in expected_calls:
             builder.append_line('  {}', call)
         return builder.build()
 

@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Module with types representing matchers.
 
 Matchers are used to wildcard some expected parameters when expectation is
@@ -266,7 +265,7 @@ class Object(Matcher):
 
     .. versionadded:: 0.6.5
 
-    :param **kwargs:
+    :param ``**kwargs``:
         Arguments to compare value with
     """
     _undefined = object()

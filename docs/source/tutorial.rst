@@ -24,5 +24,3 @@ Tutorial
   tutorial/using-matchers
   tutorial/patching-imported-modules
   tutorial/recording-ordered-expectations
-
-.. _recording-and-validating-expectations:

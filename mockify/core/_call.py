@@ -19,8 +19,8 @@ from .. import _globals, _utils
 class LocationInfo:
     """A placeholder for file name and line number obtained from the stack.
 
-    Used by :class:`Call` objects to get their location in the code. That
-    information is later used in assertion messages.
+    Used by :class:`mockify.core.Call` objects to get their location in the
+    code. That information is later used in assertion messages.
 
     .. versionadded:: 0.6
 
@@ -65,7 +65,7 @@ class LocationInfo:
         expectation recordings will point to test function or tested code
         that uses Mockify, not to Mockify's internals.
 
-        :rtype: LocationInfo
+        :rtype: mockify.core.LocationInfo
         """
         stack = traceback.extract_stack()
         for frame in reversed(stack):
@@ -145,6 +145,6 @@ class Call:
 
         .. versionadded:: 0.6
 
-        :rtype: LocationInfo
+        :rtype: mockify.core.LocationInfo
         """
         return self._location

@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Module containing Mockify's warnings and exceptions."""
 
 import logging

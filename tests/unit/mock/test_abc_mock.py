@@ -116,7 +116,7 @@ class TestABCMock:
         self
     ):
         with pytest.raises(exc.UninterestedCall) as excinfo:
-            self.uut.foo
+            self.uut.foo  # pylint: disable=pointless-statement
         assert str(excinfo.value.actual_call) == "uut.__getattr__('foo')"
 
     def test_when_no_setattr_expectation_set_on_property__setting_it_raises_uninterested_call(

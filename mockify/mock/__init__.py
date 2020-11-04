@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Module containing types used to mock things.
 
 These can be considered as frontends on top of Mockify's core

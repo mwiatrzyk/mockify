@@ -41,7 +41,9 @@ def test(_):
 @invoke.task
 def coverage(ctx):
     """Run code coverage check."""
-    ctx.run('pytest tests/ --cov=mockify --cov-fail-under=96 --cov-report=html:reports/coverage/html --cov-report=xml:reports/coverage/coverage.xml')
+    ctx.run(
+        'pytest tests/ --cov=mockify --cov-fail-under=96 --cov-report=html:reports/coverage/html --cov-report=xml:reports/coverage/coverage.xml'
+    )
 
 
 @invoke.task
@@ -53,12 +55,26 @@ def lint_code(ctx):
 @invoke.task
 def lint_tests(ctx):
     """Run linter on test files."""
-    ctx.run('pylint -f colorized --fail-under=9.0 tests')
+    args = ['pylint tests -f colorized --fail-under=9.0']
+    args.extend(
+        [
+            '-d missing-module-docstring',
+            '-d missing-class-docstring',
+            '-d missing-function-docstring',
+            '-d attribute-defined-outside-init',
+            '-d too-few-public-methods',
+            '-d too-many-public-methods',
+            '-d no-self-use',
+            '-d line-too-long',
+        ]
+    )
+    ctx.run(' '.join(args))
 
 
 @invoke.task(lint_code, lint_tests)
 def lint(_):
     """Run all linters."""
+
 
 @invoke.task(test, coverage, lint)
 def check(_):
@@ -104,6 +120,12 @@ def build_pkg(ctx):
 @invoke.task(build_docs, build_pkg)
 def build(_):
     """Build all."""
+
+
+@invoke.task(fix, check, build)  # TODO: task to update version and changelog
+def release(_):
+    """Prepare code for next release."""
+    print('DONE!!!')
 
 
 @invoke.task

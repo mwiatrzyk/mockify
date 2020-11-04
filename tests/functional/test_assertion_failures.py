@@ -11,6 +11,8 @@
 """These tests are used to check if valid errors are reported in various
 situations."""
 
+# pylint: disable=redefined-outer-name
+
 import pytest
 
 from mockify import Call, exc, satisfied

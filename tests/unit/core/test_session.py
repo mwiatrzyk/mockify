@@ -60,7 +60,7 @@ class TestContext:
         assert value.actual_call == actual_call
 
     def test_if_called_with_unexpected_params__then_raise_unexpected_call_error(
-        self, assert_that
+        self
     ):
         actual_call = Call('foo')
         expected_call = Call('foo', 1, 2)

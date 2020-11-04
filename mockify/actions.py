@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Module containing action types.
 
 Actions are used to tell the mock what it must do once called with given set

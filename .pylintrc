@@ -1,8 +1,4 @@
 [MASTER]
-disable=
-    #missing-module-docstring,
-    #missing-class-docstring,
-    #missing-function-docstring,
-    #line-too-long,
-    #no-self-use,
-    #too-many-public-methods
+
+[BASIC]
+good-names=a,b,k,v,i,fd,os

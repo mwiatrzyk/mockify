@@ -9,6 +9,7 @@
 ..
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
+
 .. _setting-expected-call-count:
 
 Setting expected call count
@@ -117,15 +118,15 @@ fail with one of mentioned exceptions. But you can change that to
     from mockify.mock import Mock
 
     foo = Mock('foo')
-    foo.expect_call(-1).times(0)  # (1)
+    foo.expect_call(-1).times(0)  # (1) #
 
     assert_satisfied(foo)
 
-As you can see, the mock is satisfied despite the fact it **does have** an
-expectation recorded at (1). But that expectation has expected call count set
-to zero with ``times(0)`` call. And that's the trick - you are explicitly
+As you can see, the mock is satisfied despite the fact it **does have**
+an expectation recorded at (1). But that expectation has expected call count
+set to zero with ``times(0)`` call. And that's the trick - you are explicitly
 **expecting** *foo* to be **never** called (or called zero times) with -1 as
-*an argument.
+an argument.
 
 And now if you make a matching call, the mock will instantly become
 unsatisfied:

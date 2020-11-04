@@ -18,12 +18,9 @@ def assert_satisfied(*mocks):
     """Check if all given mocks are **satisfied**.
 
     This function collects all expectations from given mock for which
-    :meth:`Expectation.is_satisfied` evaluates to ``False``. Finally, if at
-    least one **unsatisfied** expectation is found, this method raises
-    :exc:`mockify.exc.Unsatisfied` exception.
-
-    See :ref:`recording-and-validating-expectations` tutorial for more
-    details.
+    :meth:`mockify.core.Expectation.is_satisfied` evaluates to ``False``.
+    Finally, if at least one **unsatisfied** expectation is found, this
+    method raises :exc:`mockify.exc.Unsatisfied` exception.
     """
 
     def iter_unsatisfied_expectations(mocks):
