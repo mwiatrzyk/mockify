@@ -9,8 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from mockify.core import satisfied
 from mockify.actions import Return
+from mockify.core import satisfied
 from mockify.mock import MockFactory
 
 

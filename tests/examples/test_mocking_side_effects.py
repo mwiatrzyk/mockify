@@ -10,8 +10,8 @@
 # ---------------------------------------------------------------------------
 from io import BytesIO
 
-from mockify.core import satisfied
 from mockify.actions import Invoke
+from mockify.core import satisfied
 from mockify.matchers import _
 from mockify.mock import Mock
 

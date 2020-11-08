@@ -10,8 +10,8 @@
 # ---------------------------------------------------------------------------
 import os
 
-from mockify.core import patched, satisfied
 from mockify.actions import Iterate, Return
+from mockify.core import patched, satisfied
 from mockify.matchers import Regex
 from mockify.mock import Mock
 

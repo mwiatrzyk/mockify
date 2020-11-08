@@ -12,11 +12,11 @@
 import pytest
 
 from mockify import exc
-from mockify.core import satisfied
 from mockify.actions import Return
 from mockify.cardinality import (
     ActualCallCount, AtLeast, AtMost, Between, Exactly
 )
+from mockify.core import satisfied
 from mockify.mock import Mock
 
 

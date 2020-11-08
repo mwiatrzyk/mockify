@@ -16,9 +16,9 @@ situations."""
 import pytest
 
 from mockify import exc
-from mockify.core import Call, satisfied
 from mockify.actions import Return
 from mockify.cardinality import AtLeast, Exactly
+from mockify.core import Call, satisfied
 from mockify.mock import Mock
 
 _args_and_kwargs = [

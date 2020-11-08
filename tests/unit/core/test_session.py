@@ -11,9 +11,9 @@
 import pytest
 
 from mockify import exc
-from mockify.core import Call, Session
 from mockify.actions import Return
 from mockify.cardinality import Exactly
+from mockify.core import Call, Session
 
 
 class TestContext:

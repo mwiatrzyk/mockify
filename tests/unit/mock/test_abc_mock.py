@@ -13,8 +13,8 @@ import abc
 import pytest
 
 from mockify import exc
-from mockify.core import assert_satisfied, satisfied
 from mockify.actions import Return
+from mockify.core import assert_satisfied, satisfied
 from mockify.mock import ABCMock
 
 

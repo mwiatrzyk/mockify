@@ -42,7 +42,9 @@ def coverage(ctx):
 @invoke.task
 def lint_code(ctx):
     """Run linter on source files."""
-    ctx.run('pylint -f colorized --fail-under=9.0 mockify scripts tasks.py setup.py')
+    ctx.run(
+        'pylint -f colorized --fail-under=9.0 mockify scripts tasks.py setup.py'
+    )
 
 
 @invoke.task

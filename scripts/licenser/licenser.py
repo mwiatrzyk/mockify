@@ -10,13 +10,13 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import re
-import os
-import sys
-import shutil
-import fnmatch
 import argparse
+import fnmatch
 import logging
+import os
+import re
+import shutil
+import sys
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -43,7 +43,9 @@ def make_copyright_holder(args):
 def update_license(args):
     copyright_year = make_copyright_year(args)
     copyright_holder = make_copyright_holder(args)
-    license_text = render_template('license.txt', year=copyright_year, holder=copyright_holder)
+    license_text = render_template(
+        'license.txt', year=copyright_year, holder=copyright_holder
+    )
     license_file_path = os.path.join(args.project_root_dir, 'LICENSE')
     license_file_path_old = license_file_path + '.old'
     shutil.move(license_file_path, license_file_path_old)
@@ -89,7 +91,9 @@ def update_source_files(args):
     def leave_first_line(line):
         if line.startswith('#!'):  # shebang
             return True
-        if re.match(r'-\*-\s+coding:.+\s+-\*-', line):  # -*- coding: utf-8 -*- for example
+        if re.match(
+            r'-\*-\s+coding:.+\s+-\*-', line
+        ):  # -*- coding: utf-8 -*- for example
             return True
         return False
 
@@ -97,7 +101,10 @@ def update_source_files(args):
         _, file_ext = os.path.splitext(path)
         preamble = render_template(
             'preamble{}.txt'.format(file_ext),
-            filename=strip_project_root(path), year=copyright_year, holder=copyright_holder)
+            filename=strip_project_root(path),
+            year=copyright_year,
+            holder=copyright_holder
+        )
         marker_line = preamble.split('\n')[0]
         path_old = path + '.old'
         shutil.move(path, path_old)
@@ -145,19 +152,54 @@ def get_logging_level(args):
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser(description='A tool for updating license and copyright notice in project')
-    parser.add_argument('project_root_dir', metavar='PROJECT_ROOT_DIR', help='path to project root directory')
-    parser.add_argument('--released', type=int, metavar='YEAR', required=True, help='year the project was first released')
-    parser.add_argument('--author', type=str, metavar='NAME', required=True, help="author's name to be placed in license file and copyright notice")
-    parser.add_argument('--include', '-i', action='append', metavar='PATTERN', help='add path pattern to include in processing')
-    parser.add_argument('--exclude', '-e', action='append', metavar='PATTERN', help='add path pattern to exclude from processing')
-    parser.add_argument('--verbosity', '-v', action='count', help='be more verbose')
+    parser = argparse.ArgumentParser(
+        description='A tool for updating license and copyright notice in project'
+    )
+    parser.add_argument(
+        'project_root_dir',
+        metavar='PROJECT_ROOT_DIR',
+        help='path to project root directory'
+    )
+    parser.add_argument(
+        '--released',
+        type=int,
+        metavar='YEAR',
+        required=True,
+        help='year the project was first released'
+    )
+    parser.add_argument(
+        '--author',
+        type=str,
+        metavar='NAME',
+        required=True,
+        help="author's name to be placed in license file and copyright notice"
+    )
+    parser.add_argument(
+        '--include',
+        '-i',
+        action='append',
+        metavar='PATTERN',
+        help='add path pattern to include in processing'
+    )
+    parser.add_argument(
+        '--exclude',
+        '-e',
+        action='append',
+        metavar='PATTERN',
+        help='add path pattern to exclude from processing'
+    )
+    parser.add_argument(
+        '--verbosity', '-v', action='count', help='be more verbose'
+    )
     return parser.parse_args(argv)
 
 
 def main(argv):
     args = parse_args(argv)
-    logging.basicConfig(level=get_logging_level(args), format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=get_logging_level(args),
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
     try:
         update_license(args)
         update_source_files(args)

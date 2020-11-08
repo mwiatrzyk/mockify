@@ -12,8 +12,8 @@ import struct
 
 import pytest
 
-from mockify.core import ordered, satisfied
 from mockify.actions import Return
+from mockify.core import ordered, satisfied
 from mockify.mock import Mock
 
 
