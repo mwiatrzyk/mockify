@@ -14,6 +14,9 @@
 
       from mockify.core import satisfied
 
+    This was changed because importing things directly from root module is
+    discouraged, as it leads to longer import times.
+
 **Deprecated**
 
   * Importing core parts of library directly from ``mockify`` core module is now
