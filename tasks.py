@@ -118,7 +118,7 @@ def build(_):
 
 
 @invoke.task
-def valdate_tag(ctx, tag):
+def validate_tag(ctx, tag):
     """Check CHANGELOG.md and mockify/__init__.py agains given tag."""
     ctx.run('scripts/tag.py -c {}'.format(tag))
 
