@@ -6,6 +6,8 @@ stages:
   - deploy
 
 before_script:
+  - apt-get update
+  - apt-get install -y git
   - pip install pipenv
   - pipenv install --dev
 
@@ -18,12 +20,6 @@ build:
   stage: test
   script:
     - pipenv run invoke -pe check
-
-.deploy:
-  stage: deploy
-  script:
-    - apt-get update
-    - apt-get install -y git
 
 test Py3.8:
   image: python:3.8-slim
@@ -42,7 +38,6 @@ deploy_test:
   variables:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
-  extends: .deploy
   script:
     - pipenv run invoke -pe deploy-test
   only:
@@ -55,7 +50,6 @@ deploy_production:
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
-  extends: .deploy
   script:
     - pipenv run invoke -pe deploy-prod
   only:
