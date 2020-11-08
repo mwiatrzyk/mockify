@@ -35,17 +35,17 @@ current_year = datetime.now().year
 
 sys.path.insert(0, src_dir)
 
-from mockify import __version__, __released__
+import mockify
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = "{} - {}, Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>".format(__released__, current_year)
-author = 'Maciej Wiatrzyk'
+copyright = "{} - {}, {}".format(mockify.__released__, current_year, mockify.__author__)
+author = mockify.__author__
 
 # The full version, including alpha/beta/rc tags
-release = __version__
+release = mockify.__version__
 
 # The short X.Y version
 version = '.'.join(release.split('.', 2))
