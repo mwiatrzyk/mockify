@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tests/unit/test_actions.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -9,13 +9,11 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import re
-
 import pytest
 
-from mockify import Call, satisfied
+from mockify.actions import Invoke, Iterate, Raise, Return
+from mockify.core import satisfied
 from mockify.mock import Mock
-from mockify.actions import Return, Iterate, Raise, Invoke
 
 
 class TestReturn:
@@ -27,7 +25,8 @@ class TestReturn:
 
     @pytest.mark.parametrize('value, expected_repr', _str_test_data)
     def test_repr(self, value, expected_repr):
-        assert repr(Return(value)) == "<mockify.actions.{}>".format(expected_repr)
+        assert repr(Return(value)
+                    ) == "<mockify.actions.{}>".format(expected_repr)
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_str(self, value, expected_str):
@@ -46,7 +45,9 @@ class TestReturn:
             assert mock() == 1
             assert mock() == 2
 
-    def test_expect_mock_to_return_one_value_once_and_then_other_value_repeatedly(self):
+    def test_expect_mock_to_return_one_value_once_and_then_other_value_repeatedly(
+        self
+    ):
         mock = Mock('mock')
         mock.expect_call().will_once(Return(1)).will_repeatedly(Return(2))
         with satisfied(mock):
@@ -63,7 +64,8 @@ class TestIterate:
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_repr(self, value, expected_str):
-        assert repr(Iterate(value)) == "<mockify.actions.{}>".format(expected_str)
+        assert repr(Iterate(value)
+                    ) == "<mockify.actions.{}>".format(expected_str)
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
     def test_str(self, value, expected_str):
@@ -82,9 +84,12 @@ class TestIterate:
             assert list(mock()) == list('abc')
             assert list(mock()) == list('cde')
 
-    def test_expect_mock_to_return_one_value_once_and_then_other_value_repeatedly(self):
+    def test_expect_mock_to_return_one_value_once_and_then_other_value_repeatedly(
+        self
+    ):
         mock = Mock('mock')
-        mock.expect_call().will_once(Iterate('abc')).will_repeatedly(Iterate('cde'))
+        mock.expect_call().will_once(Iterate('abc')
+                                     ).will_repeatedly(Iterate('cde'))
         with satisfied(mock):
             assert list(mock()) == list('abc')
             for _ in range(2):
@@ -96,6 +101,7 @@ class TestRaise:
     class Error(Exception):
 
         def __init__(self, message):
+            super().__init__()
             self.message = message
 
         def __repr__(self):
@@ -124,7 +130,8 @@ class TestRaise:
     def test_expect_mock_to_raise_two_exceptions_in_given_order(self):
         first_exc, second_exc = ValueError('first'), ValueError('second')
         mock = Mock('mock')
-        mock.expect_call().will_once(Raise(first_exc)).will_once(Raise(second_exc))
+        mock.expect_call().will_once(Raise(first_exc)
+                                     ).will_once(Raise(second_exc))
         with satisfied(mock):
             with pytest.raises(ValueError) as first_excinfo:
                 mock()
@@ -133,10 +140,13 @@ class TestRaise:
             assert str(first_excinfo.value) == 'first'
             assert str(second_excinfo.value) == 'second'
 
-    def test_expect_mock_to_raise_one_exception_once_and_then_other_exception_repeatedly(self):
+    def test_expect_mock_to_raise_one_exception_once_and_then_other_exception_repeatedly(
+        self
+    ):
         first_exc, second_exc = ValueError('first'), ValueError('second')
         mock = Mock('mock')
-        mock.expect_call().will_once(Raise(first_exc)).will_repeatedly(Raise(second_exc))
+        mock.expect_call().will_once(Raise(first_exc)
+                                     ).will_repeatedly(Raise(second_exc))
         with satisfied(mock):
             with pytest.raises(ValueError) as first_excinfo:
                 mock()
@@ -163,16 +173,24 @@ class TestInvoke:
 
     def test_repr(self):
         action = Invoke(self.func)
-        assert '<mockify.actions.Invoke(<function TestInvoke.setup.<locals>.func at 0x' in repr(action)
+        assert '<mockify.actions.Invoke(<function TestInvoke.setup.<locals>.func at 0x' in repr(
+            action
+        )
 
     def test_str(self):
         action = Invoke(self.func)
-        assert 'Invoke(<function TestInvoke.setup.<locals>.func at 0x' in str(action)
+        assert 'Invoke(<function TestInvoke.setup.<locals>.func at 0x' in str(
+            action
+        )
 
-    @pytest.mark.parametrize('args, kwargs', [
-        ((1, 2), {}),
-        ((1, 2, 3), {'c': 4}),
-    ])
+    @pytest.mark.parametrize(
+        'args, kwargs', [
+            ((1, 2), {}),
+            ((1, 2, 3), {
+                'c': 4
+            }),
+        ]
+    )
     def test_expect_mock_to_invoke_given_function_once(self, args, kwargs):
         mock = Mock('mock')
         mock.expect_call(*args, **kwargs).will_once(Invoke(self.func))
@@ -180,7 +198,9 @@ class TestInvoke:
             assert mock(*args, **kwargs) == sum(args)
             assert self.called_with == [(args, kwargs)]
 
-    def test_when_bound_args_attached_to_function__then_call_it_with_bound_args_and_call_args(self):
+    def test_when_bound_args_attached_to_function__then_call_it_with_bound_args_and_call_args(
+        self
+    ):
         mock = Mock('mock')
         mock.expect_call().will_once(Invoke(self.func, 1, 2, 3))
         with satisfied(mock):

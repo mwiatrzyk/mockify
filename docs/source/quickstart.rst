@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/quickstart.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -288,11 +288,11 @@ To make your test verify all aspects of mocks provided by Mockify, you have
 to check if mocks you were created are **satisfied** before your test ends. A
 mock is said to be satisfied if all its expectations are consumed during
 execution of tested code. Such check can be done in few ways, but this time
-let's use :func:`mockify.satisfied` context manager:
+let's use :func:`mockify.core.satisfied` context manager:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
 
     def test_read_xyz_message():
@@ -339,15 +339,15 @@ from previous step. We can either double the expectation (i.e. copy and
 paste just below) or change expected call count, which is one by default.
 Let's go with a second approach.
 
-When you call **expect_call()**, special :class:`mockify.Expectation` object
+When you call **expect_call()**, special :class:`mockify.core.Expectation` object
 is created and returned. That object has few methods that can be used to
 refine the expectation. And one of these methods is
-:meth:`mockify.Expectation.times`. Here's our fixed test with
+:meth:`mockify.core.Expectation.times`. Here's our fixed test with
 **stream_reader.readline()** expected to be called twice:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
 
     def test_read_xyz_message():
@@ -417,8 +417,8 @@ module. Actions are simply special classes that are used to override default
 behaviour of returning ``None`` when mock is called. You record actions
 directly on expectation object using one of two methods:
 
-* :meth:`mockify.Expectation.will_once` for recording chains of unique actions,
-* or :meth:`mockify.Expectation.will_repeatedly` for recording so called
+* :meth:`mockify.core.Expectation.will_once` for recording chains of unique actions,
+* or :meth:`mockify.core.Expectation.will_repeatedly` for recording so called
   **repeated actions**.
 
 In this example we'll cover use of first of that methods and also we'll use
@@ -427,7 +427,7 @@ fixed test:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -469,7 +469,7 @@ recorded:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -616,7 +616,7 @@ Let's have a look at our first test again:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -636,7 +636,7 @@ need to inject proper magic bytes here. Here's fixed OK case test:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -721,7 +721,7 @@ instead of ``None``:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -752,7 +752,7 @@ we use organize our tests with a class:
 
     import pytest
 
-    from mockify import assert_satisfied
+    from mockify.core import assert_satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -802,9 +802,9 @@ we use organize our tests with a class:
     please visit https://docs.pytest.org/en/latest/fixture.html.
 
 We've moved mock (1) and unit under test (2) construction into
-**setup_method()** method and used :func:`mockify.assert_satisfied` function
+**setup_method()** method and used :func:`mockify.core.assert_satisfied` function
 (3) in **teardown_method()**. That function works the same as
-:func:`mockify.satisfied`, but is not a context manager. Notice that we've
+:func:`mockify.core.satisfied`, but is not a context manager. Notice that we've
 also removed context manager from OK test, as it is no longer needed.
 
 Now, once tests are refactored, you can just add another tests without even
@@ -848,7 +848,7 @@ And tests:
 
     import pytest
 
-    from mockify import assert_satisfied
+    from mockify.core import assert_satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 

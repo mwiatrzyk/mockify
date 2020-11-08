@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/index.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -37,7 +37,7 @@ Here's a simple example:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 

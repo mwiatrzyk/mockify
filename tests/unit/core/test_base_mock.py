@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
-# tests/unit/mock/test_base.py
+# tests/unit/core/test_base_mock.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -10,31 +10,20 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import Session
-from mockify.mock import MockInfo, BaseMock
+from mockify.core import BaseMock, MockInfo
 
 
 class StubMock(BaseMock):
 
     def __init__(self, name, session=None, parent=None):
-        self._name = name
-        self._session = session
+        super().__init__(name, session=session, parent=parent)
         self._children = []
         self._expectations = []
-        self.__m_parent__ = parent
         if parent is not None:
             parent._children.append(self)
 
     def set_expectations(self, *expectations):
         self._expectations.extend(expectations)
-
-    @property
-    def __m_name__(self):
-        return self._name
-
-    @property
-    def __m_session__(self):
-        return self._session
 
     def __m_children__(self):
         yield from self._children
@@ -46,7 +35,9 @@ class StubMock(BaseMock):
 class TestBaseMock:
 
     def test_mock_repr(self):
-        assert repr(StubMock('dummy')) == "<tests.unit.mock.test_base.StubMock('dummy')>"
+        assert repr(
+            StubMock('dummy')
+        ) == "<tests.unit.core.test_base_mock.StubMock('dummy')>"
 
 
 class TestMockInfo:
@@ -56,13 +47,21 @@ class TestMockInfo:
     def setup(self):
         self.mock = StubMock('mock', session=self._dummy_session)
 
+    def test_cannot_set_both_session_and_parent(self):
+        with pytest.raises(TypeError):
+            StubMock('mock', session=self._dummy_session, parent=self.mock)
+
     def test_mock_info_repr(self):
-        assert repr(MockInfo(self.mock)) == "<mockify.mock._base.MockInfo: <tests.unit.mock.test_base.StubMock('mock')>>"
+        assert repr(
+            MockInfo(self.mock)
+        ) == "<mockify.core._base_mock.MockInfo: <tests.unit.core.test_base_mock.StubMock('mock')>>"
 
     def test_if_invalid_object_type_given__then_fail_with_type_error(self):
         with pytest.raises(TypeError) as excinfo:
             MockInfo(123)
-        assert str(excinfo.value) == "__init__() got an invalid value for argument 'target'"
+        assert str(
+            excinfo.value
+        ) == "__init__() got an invalid value for argument 'target'"
 
     def test_target_is_the_same_as_given_mock(self):
         assert MockInfo(self.mock).target is self.mock
@@ -82,15 +81,18 @@ class TestMockInfo:
 
     def test_obtain_expectations_from_target_mock(self):
         self.mock.set_expectations('one', 'two', 'three')
-        assert list(MockInfo(self.mock).expectations()) == ['one', 'two', 'three']
+        assert list(MockInfo(self.mock).expectations()
+                    ) == ['one', 'two', 'three']
 
     def test_obtain_direct_children_of_target_mock(self):
         first = StubMock('first', parent=self.mock)
         second = StubMock('second', parent=self.mock)
-        assert [x.target for x in MockInfo(self.mock).children()] == [first, second]
+        assert [x.target
+                for x in MockInfo(self.mock).children()] == [first, second]
 
     def test_walk_generates_all_mock_children(self):
         child = StubMock('child', parent=self.mock)
         grandchild = StubMock('grandchild', parent=child)
         grandgrandchild = StubMock('grandgrandchild', parent=grandchild)
-        assert [x.target for x in MockInfo(self.mock).walk()] == [self.mock, child, grandchild, grandgrandchild]
+        assert [x.target for x in MockInfo(self.mock).walk()
+                ] == [self.mock, child, grandchild, grandgrandchild]

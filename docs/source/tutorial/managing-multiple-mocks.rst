@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/managing-multiple-mocks.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -61,7 +61,7 @@ suitable for cryptographic use. Now let's write one test for that class:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -114,7 +114,7 @@ mock objects:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import MockFactory
     from mockify.actions import Return
 
@@ -166,7 +166,7 @@ an example, without use of any specific framework):
 
 .. testcode::
 
-    from mockify import assert_satisfied
+    from mockify.core import assert_satisfied
     from mockify.mock import MockFactory
     from mockify.actions import Return
 
@@ -225,7 +225,7 @@ class.
 
         import pytest
 
-        from mockify import satisfied
+        from mockify.core import satisfied
         from mockify.mock import MockFactory
 
 
@@ -246,14 +246,14 @@ Using sessions
 --------------
 
 A core part of Mockify library is a **session**. Sessions are instances of
-:class:`mockify.Session` class and their role is to provide mechanism for
+:class:`mockify.core.Session` class and their role is to provide mechanism for
 storing recorded expectations, and matching them with calls being made.
 Normally sessions are created automatically by each mock or mock factory, but
 you can also give it explicitly via *session* argument:
 
 .. testcode::
 
-    from mockify import Session
+    from mockify.core import Session
     from mockify.mock import Mock, MockFactory
 
     session = Session()  # (1)
@@ -279,7 +279,7 @@ write a base class for our test suite defined before:
 
 .. testcode::
 
-    from mockify import Session
+    from mockify.core import Session
 
     class TestCase:
 
@@ -336,7 +336,7 @@ session (1) in **setup** section and checking it it is satisfied (2) in
 
 As you can see, ``teardown()`` method was completely removed because it was
 no longer needed - all mocks are checked by one single call to
-:meth:`mockify.Session.assert_satisfied` method in base class. The part that
+:meth:`mockify.core.Session.assert_satisfied` method in base class. The part that
 changed is a ``setup()`` function that triggers base class setup method, and
 a mock factory (1) that is given a session. With this approach you only
 implement mock checking once - in a base class for your tests. The only thing

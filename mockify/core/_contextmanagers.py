@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
-# mockify/_contextmanagers.py
+# mockify/core/_contextmanagers.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -9,12 +9,11 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import itertools
-import unittest.mock
+# pylint: disable=missing-module-docstring
 
+import unittest.mock
 from contextlib import contextmanager
 
-from . import exc
 from ._assert import assert_satisfied
 
 
@@ -33,15 +32,17 @@ def ordered(*mocks):  # TODO: add more tests
         num_mocks = len(mocks)
         if num_mocks == 1:
             return mocks[0].__m_session__
-        for i in range(num_mocks-1):
-            first, second = mocks[i], mocks[i+1]
+        for i in range(num_mocks - 1):
+            first, second = mocks[i], mocks[i + 1]
             session = first.__m_session__
             if session is not second.__m_session__:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(first.__m_fullname__, second.__m_fullname__))
-        else:
-            return session
+                    "session object".format(
+                        first.__m_fullname__, second.__m_fullname__
+                    )
+                )
+        return session
 
     def iter_expected_mock_names(mocks):
         for mock in mocks:

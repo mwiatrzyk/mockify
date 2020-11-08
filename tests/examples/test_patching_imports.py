@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tests/examples/test_patching_imports.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -10,10 +10,10 @@
 # ---------------------------------------------------------------------------
 import os
 
-from mockify import satisfied, patched
-from mockify.mock import Mock
-from mockify.actions import Return, Iterate
+from mockify.actions import Iterate, Return
+from mockify.core import patched, satisfied
 from mockify.matchers import Regex
+from mockify.mock import Mock
 
 
 def list_files(path):
@@ -24,15 +24,15 @@ def list_files(path):
 
 
 def test_list_files():
-    os = Mock('os')
+    os_mock = Mock('os')
 
-    os.listdir.expect_call('/tmp').\
+    os_mock.listdir.expect_call('/tmp').\
         will_once(Iterate(['spam', 'foo.txt', 'bar.txt']))
-    os.path.isfile.expect_call('/tmp/spam').\
+    os_mock.path.isfile.expect_call('/tmp/spam').\
         will_once(Return(False))
-    os.path.isfile.expect_call(Regex(r'^/tmp/(.+)\.txt$')).\
+    os_mock.path.isfile.expect_call(Regex(r'^/tmp/(.+)\.txt$')).\
         will_repeatedly(Return(True)).times(2)
 
-    with patched(os):
-        with satisfied(os):
+    with patched(os_mock):
+        with satisfied(os_mock):
             assert list(list_files('/tmp')) == ['/tmp/foo.txt', '/tmp/bar.txt']

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
-# mockify/_engine/expectation.py
+# mockify/core/_expectation.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -9,16 +9,14 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import weakref
-import warnings
-import collections
+# pylint: disable=missing-module-docstring
 
+import collections
 from enum import Enum
 
-from .. import exc, _utils
-from .call import Call
+from .. import exc
 from ..actions import Return
-from ..cardinality import ActualCallCount, ExpectedCallCount, Exactly, AtLeast
+from ..cardinality import ActualCallCount, AtLeast, Exactly
 
 
 class _ActionType(Enum):
@@ -50,10 +48,13 @@ class Expectation:
         self._expected_call = expected_call
         self._action_store = self._ActionStore()
         self._action_store.add(
-            self._ActionProxy(_ActionType.DEFAULT, Return(None), Exactly(1)))
+            self._ActionProxy(_ActionType.DEFAULT, Return(None), Exactly(1))
+        )
 
     def __repr__(self):
-        return "<mockify.{}: {}>".format(self.__class__.__name__, self._expected_call)
+        return "<mockify.{}: {}>".format(
+            self.__class__.__name__, self._expected_call
+        )
 
     def __call__(self, actual_call):
         """Call this expectation object.
@@ -143,11 +144,11 @@ class Expectation:
     def expected_call(self):
         """Returns *expected_call* parameter passed during construction.
 
-        This is used when this expectation is compared with :class:`Call`
-        object representing **actual call**, to find expectations matching
-        that call.
+        This is used when this expectation is compared with
+        :class:`mockify.core.Call` object representing **actual call**, to
+        find expectations matching that call.
 
-        :rtype: Call
+        :rtype: mockify.core.Call
         """
         return self._expected_call
 
@@ -187,22 +188,23 @@ class Expectation:
         return self._action_store.action
 
     class _ActionProxy:
+        # pylint: disable=missing-function-docstring
 
         def __init__(self, type_, action, cardinality):
             self._type = type_
             self._action = action
             self._expected_call_count = self._wrap_cardinality(cardinality)
-            self._call_count = 0
+            self._actual_call_count = 0
 
         def __call__(self, actual_call):
-            self._call_count += 1
+            self._actual_call_count += 1
             return self._action(actual_call)
 
-        def _wrap_cardinality(self, cardinality):
+        @staticmethod
+        def _wrap_cardinality(cardinality):
             if isinstance(cardinality, int):
                 return Exactly(cardinality)
-            else:
-                return cardinality
+            return cardinality
 
         @property
         def type_(self):
@@ -213,6 +215,10 @@ class Expectation:
             return self._action
 
         @property
+        def actual_call_count(self):
+            return self._actual_call_count
+
+        @property
         def expected_call_count(self):
             return self._expected_call_count
 
@@ -220,9 +226,10 @@ class Expectation:
             self._expected_call_count = self._wrap_cardinality(cardinality)
 
         def is_satisfied(self):
-            return self._expected_call_count.match(self._call_count)
+            return self._expected_call_count.match(self.actual_call_count)
 
     class _ActionStore:
+        # pylint: disable=missing-function-docstring
 
         def __init__(self):
             self._actions = collections.deque()
@@ -231,11 +238,9 @@ class Expectation:
             for action in self._actions:
                 if not action.is_satisfied():
                     return action(actual_call)
-            else:
-                if self._actions[-1].type_ != _ActionType.SINGLE:
-                    return self._actions[-1](actual_call)
-                else:
-                    raise exc.OversaturatedCall(actual_call, expectation)
+            if self._actions[-1].type_ != _ActionType.SINGLE:
+                return self._actions[-1](actual_call)
+            raise exc.OversaturatedCall(actual_call, expectation)
 
         def __getitem__(self, index):
             return self._actions[index]
@@ -248,18 +253,20 @@ class Expectation:
 
         @property
         def actual_call_count(self):
-            return ActualCallCount(sum((x._call_count for x in self._actions)))
+            return ActualCallCount(
+                sum((x.actual_call_count for x in self._actions))
+            )
 
         @property
         def expected_call_count(self):
             if self._actions[0].type_ == _ActionType.DEFAULT:
-                return self._actions[0]._expected_call_count
-            else:
-                minimal = sum(map(lambda x: x.type_ == _ActionType.SINGLE, self._actions))
-                if self._actions[-1].type_ != _ActionType.REPEATED:
-                    return Exactly(minimal)
-                else:
-                    return self._actions[-1].expected_call_count.adjust_minimal(minimal)
+                return self._actions[0].expected_call_count
+            minimal = sum(
+                map(lambda x: x.type_ == _ActionType.SINGLE, self._actions)
+            )
+            if self._actions[-1].type_ != _ActionType.REPEATED:
+                return Exactly(minimal)
+            return self._actions[-1].expected_call_count.adjust_minimal(minimal)
 
         @property
         def action(self):
@@ -267,42 +274,54 @@ class Expectation:
                 if not action_proxy.is_satisfied() and\
                    action_proxy.type_ != _ActionType.DEFAULT:
                     return action_proxy.action
+            return None
 
     class _Mutation:
+        # pylint: disable=too-few-public-methods
+        _expectation = None
 
         def __repr__(self):
             return repr(self._expectation)
 
     class _Times(_Mutation):
+        # pylint: disable=too-few-public-methods
 
         def __init__(self, expectation, cardinality):
             self._expectation = expectation
             expectation._action_store[0].times(cardinality)
 
     class _WillOnce(_Mutation):
+        # pylint: disable=missing-function-docstring
 
         def __init__(self, expectation, action):
             self._expectation = expectation
             action_store = expectation._action_store
             action_store.add(
-                expectation._ActionProxy(_ActionType.SINGLE, action, Exactly(1)))
+                expectation._ActionProxy(
+                    _ActionType.SINGLE, action, Exactly(1)
+                )
+            )
 
         def will_once(self, action):
             return self.__class__(self._expectation, action)
 
         def will_repeatedly(self, action):
-            return self._expectation._WillRepeatedly(self._expectation, action)
+            return self._expectation.will_repeatedly(action)
 
     class _WillRepeatedly(_Mutation):
+        # pylint: disable=missing-function-docstring
+        # pylint: disable=too-few-public-methods
 
         def __init__(self, expectation, action):
             self._expectation = expectation
-            self._action_proxy = expectation._ActionProxy(_ActionType.REPEATED, action, AtLeast(0))
+            self._action_proxy = expectation._ActionProxy(
+                _ActionType.REPEATED, action, AtLeast(0)
+            )
             self._action_store.add(self._action_proxy)
 
         @property
         def _action_store(self):
-            return self._expectation._action_store
+            return self._expectation._action_store  # pylint: disable=protected-access
 
         def times(self, cardinality):
             self._action_proxy.times(cardinality)

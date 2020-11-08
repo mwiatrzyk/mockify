@@ -1,16 +1,17 @@
 # ---------------------------------------------------------------------------
 # mockify/cardinality.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+"""Module containing types to be used to set expected number of mock
+calls."""
 
 import abc
-
 from functools import total_ordering
 
 from . import _utils
@@ -43,8 +44,7 @@ class ActualCallCount:
     def __str__(self):
         if self._value == 0:
             return 'never called'
-        else:
-            return "called {}".format(_utils.format_call_count(self._value))
+        return "called {}".format(_utils.format_call_count(self._value))
 
     def __eq__(self, other):
         return self._value == other
@@ -58,10 +58,11 @@ class ActualCallCount:
 
     @property
     def value(self):
+        """Number of actual mock calls."""
         return self._value
 
 
-class ExpectedCallCount(abc.ABC):
+class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
     """Abstract base class for classes used to set expected call count on
     mock objects.
 
@@ -69,14 +70,9 @@ class ExpectedCallCount(abc.ABC):
     """
 
     def __repr__(self):
-        return "<{}.{}({})>".format(self.__module__, self.__class__.__name__, self.format_params())
-
-    def __eq__(self, other):
-        return type(self) is type(other) and\
-            self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+        return "<{}.{}({})>".format(
+            self.__module__, self.__class__.__name__, self.format_params()
+        )
 
     @abc.abstractmethod
     def __str__(self):
@@ -93,7 +89,12 @@ class ExpectedCallCount(abc.ABC):
     @abc.abstractmethod
     def adjust_minimal(self, minimal):
         """Make a new cardinality object based on its current state and given
-        *minimal*."""
+        *minimal*.
+
+        This produces a new :class:`ExpectedCallCount` instance, but taking
+        into account that some restrictions are already specified, f.e. with
+        use of :meth:`Session.will_once`.
+        """
 
     @abc.abstractmethod
     def format_params(self, *args, **kwargs):
@@ -113,7 +114,7 @@ class Exactly(ExpectedCallCount):
     **exactly** *expected* number of times to be satisfied.
 
     You do not have to use this class explicitly as its instances are
-    automatically created when you call :meth:`mockify.Expectation.times`
+    automatically created when you call :meth:`mockify.core.Expectation.times`
     method with integer value as argument.
     """
 
@@ -125,8 +126,7 @@ class Exactly(ExpectedCallCount):
     def __str__(self):
         if self.expected == 0:
             return 'to be never called'
-        else:
-            return "to be called {}".format(_utils.format_call_count(self.expected))
+        return "to be called {}".format(_utils.format_call_count(self.expected))
 
     def match(self, actual_call_count):
         return self.expected == actual_call_count
@@ -134,7 +134,7 @@ class Exactly(ExpectedCallCount):
     def adjust_minimal(self, minimal):
         return Exactly(self.expected + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.expected)
 
 
@@ -153,8 +153,9 @@ class AtLeast(ExpectedCallCount):
     def __str__(self):
         if self.minimal == 0:
             return "to be called any number of times"
-        else:
-            return "to be called at least {}".format(_utils.format_call_count(self.minimal))
+        return "to be called at least {}".format(
+            _utils.format_call_count(self.minimal)
+        )
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal
@@ -162,7 +163,7 @@ class AtLeast(ExpectedCallCount):
     def adjust_minimal(self, minimal):
         return AtLeast(self.minimal + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.minimal)
 
 
@@ -176,16 +177,17 @@ class AtMost(ExpectedCallCount):
     def __new__(cls, maximal):
         if maximal < 0:
             raise TypeError("value of 'maximal' must be >= 0")
-        elif maximal == 0:
+        if maximal == 0:
             return Exactly(maximal)
-        else:
-            return super().__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, maximal):
         self.maximal = maximal
 
     def __str__(self):
-        return "to be called at most {}".format(_utils.format_call_count(self.maximal))
+        return "to be called at most {}".format(
+            _utils.format_call_count(self.maximal)
+        )
 
     def match(self, actual_call_count):
         return actual_call_count <= self.maximal
@@ -193,7 +195,7 @@ class AtMost(ExpectedCallCount):
     def adjust_minimal(self, minimal):
         return Between(minimal, self.maximal + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.maximal)
 
 
@@ -207,29 +209,31 @@ class Between(ExpectedCallCount):
 
     def __new__(cls, minimal, maximal):
         if minimal > maximal:
-            raise TypeError("value of 'minimal' must not be greater than 'maximal'")
-        elif minimal < 0:
+            raise TypeError(
+                "value of 'minimal' must not be greater than 'maximal'"
+            )
+        if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
-        elif minimal == maximal:
+        if minimal == maximal:
             return Exactly(maximal)
-        elif minimal == 0:
+        if minimal == 0:
             return AtMost(maximal)
-        else:
-            return super().__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, minimal, maximal):
         self.minimal = minimal
         self.maximal = maximal
 
     def __str__(self):
-        return "to be called from {} to {} times".format(self.minimal, self.maximal)
+        return "to be called from {} to {} times".format(
+            self.minimal, self.maximal
+        )
 
     def match(self, actual_call_count):
-        return actual_call_count >= self.minimal and\
-            actual_call_count <= self.maximal
+        return self.minimal <= actual_call_count <= self.maximal
 
     def adjust_minimal(self, minimal):
-        return Between(self.minimal + minimal, self.maximal + maximal)
+        return Between(self.minimal + minimal, self.maximal + minimal)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.minimal, self.maximal)

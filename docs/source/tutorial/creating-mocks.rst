@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/creating-mocks.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -101,21 +101,21 @@ And if you call *async_sum* again, it will now pass:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
 
     with satisfied(foo):
         async_sum(2, 3, foo)
 
-Note that we've additionally used :func:`mockify.satisfied`. It's a context
+Note that we've additionally used :func:`mockify.core.satisfied`. It's a context
 manager for wrapping portions of test code that **satisfies** one or more
 given mocks. And mock is satisfied if all expectations recorded for it are
 satisfied, meaning that they were called **exactly** expected number of
-times. Alternatively, you could also use :func:`mockify.assert_satisfied`
+times. Alternatively, you could also use :func:`mockify.core.assert_satisfied`
 function:
 
 .. testcode::
 
-    from mockify import assert_satisfied
+    from mockify.core import assert_satisfied
 
     foo.expect_call(3)
     async_sum(1, 2, foo)

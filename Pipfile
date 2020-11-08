@@ -13,5 +13,10 @@ sphinx-rtd-theme = "*"
 pytest-cov = "*"
 pylint = "*"
 rope = "*"
+isort = "*"
+autoflake = "*"
+yapf = "*"
+jinja2 = "*"
+recommonmark = "*"
 
 [packages]

@@ -12,47 +12,55 @@ before_script:
 build:
   stage: build
   script:
-    - pipenv run invoke build-docs
+    - apt-get update
+    - apt-get install -y git
+    - pipenv run invoke -pe build
 
-.test:
+.base-test:
   stage: test
   script:
-    - pipenv run invoke test
+    - pipenv run invoke -pe check
 
 test Py3.8:
   image: python:3.8-slim
-  extends: .test
+  extends: .base-test
 
 test Py3.7:
   image: python:3.7-slim
-  extends: .test
+  extends: .base-test
 
 test Py3.6:
   image: python:3.6-slim
-  extends: .test
+  extends: .base-test
 
-deploy_to_test_pypi:
+.base-deploy:
+  before_script:
+    - apt-get update
+    - apt-get install -y git
+    - pip install pipenv
+    - pipenv install --dev
+
+deploy_test:
   stage: deploy
   variables:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
+  extends: .base-deploy
   script:
-    - apt-get update
-    - apt-get install -y git
-    - pipenv run invoke build-pkg
-    - pipenv run invoke deploy test
+    - pipenv run invoke -pe deploy-test
   only:
+    - branches
+  except:
     - master
 
-deploy_to_pypi:
+deploy_production:
   stage: deploy
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
+  extends: .base-deploy
   script:
-    - apt-get update
-    - apt-get install -y git
-    - pipenv run invoke build-pkg
-    - pipenv run invoke deploy prod
+    - pipenv run invoke -pe validate-tag $CI_COMMIT_TAG
+    - pipenv run invoke -pe deploy-prod
   only:
     - tags

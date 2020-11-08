@@ -1,19 +1,32 @@
 # ---------------------------------------------------------------------------
 # mockify/matchers.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+"""Module with types representing matchers.
 
-import re
+Matchers are used to wildcard some expected parameters when expectation is
+recorded. Matchers do that by overloading (in)equality operator in their
+specific way. With this you can record expectations using value ranges, type
+checking, regular expressions and more.
+"""
+
 import abc
-import itertools
+import re
 
 from mockify import _utils
+
+
+def _format_repr(obj, *args, **kwargs):
+    formatted_args_kwargs = _utils.format_args_kwargs(
+        args, kwargs, sort=False, skip_kwarg_if=lambda value: value is None
+    )
+    return "{}({})".format(obj.__class__.__name__, formatted_args_kwargs)
 
 
 class Matcher(abc.ABC):
@@ -28,22 +41,11 @@ class Matcher(abc.ABC):
         """Check if *other* can be accepted by this matcher."""
 
     @abc.abstractmethod
-    def format_repr(self, *args, **kwargs):
-        """Return matcher's textual representation.
-
-        Typical use case of this class is to override it in child class
-        without parameters and then call super giving it args you want to
-        include in repr. Like in this example::
-
-            def format_repr(self):
-                return super().format_repr(self._first_arg, self._second_arg, kwd=self._kwd_arg)
-        """
-        formatted = _utils.format_args_kwargs(args, kwargs,
-            sort=False, skip_kwarg_if=lambda value: value is None)
-        return "{}({})".format(self.__class__.__name__, formatted)
-
     def __repr__(self):
-        return self.format_repr()
+        """Return textual representation of this matcher.
+
+        Returned string representation is later used in error reporting.
+        """
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -70,10 +72,9 @@ class AnyOf(Matcher):
         for value in self._values:
             if value == other:
                 return True
-        else:
-            return False
+        return False
 
-    def format_repr(self):
+    def __repr__(self):
         return ' | '.join(repr(x) for x in self._values)
 
 
@@ -93,10 +94,9 @@ class AllOf(Matcher):
         for value in self._values:
             if value != other:
                 return False
-        else:
-            return True
+        return True
 
-    def format_repr(self):
+    def __repr__(self):
         return ' & '.join(repr(x) for x in self._values)
 
 
@@ -115,7 +115,7 @@ class Any(Matcher):
     def __eq__(self, other):
         return True
 
-    def format_repr(self):
+    def __repr__(self):
         return '_'
 
 
@@ -130,20 +130,28 @@ class Type(Matcher):
 
     def __init__(self, *types):
         if not types:
-            raise TypeError("__init__() requires at least 1 positional argument, got 0")
+            raise TypeError(
+                "__init__() requires at least 1 positional argument, got 0"
+            )
         self.__validate_types(types)
         self._types = types
 
-    def __validate_types(self, types):
+    @staticmethod
+    def __validate_types(types):
         for type_ in types:
             if not isinstance(type_, type):
-                raise TypeError("__init__() requires type instances, got {!r}".format(type_))
+                raise TypeError(
+                    "__init__() requires type instances, got {!r}".
+                    format(type_)
+                )
 
     def __eq__(self, other):
         return isinstance(other, *self._types)
 
-    def format_repr(self):
-        return "{}({})".format(self.__class__.__name__, ', '.join(x.__name__ for x in self._types))
+    def __repr__(self):
+        return "{}({})".format(
+            self.__class__.__name__, ', '.join(x.__name__ for x in self._types)
+        )
 
 
 class Regex(Matcher):
@@ -177,11 +185,12 @@ class Regex(Matcher):
         return isinstance(other, str) and\
             self._pattern.match(other) is not None
 
-    def format_repr(self):
+    def __repr__(self):
         if self._name is None:
-            return "{}({!r})".format(self.__class__.__name__, self._pattern.pattern)
-        else:
-            return "{}({})".format(self.__class__.__name__, self._name)
+            return "{}({!r})".format(
+                self.__class__.__name__, self._pattern.pattern
+            )
+        return "{}({})".format(self.__class__.__name__, self._name)
 
 
 class List(Matcher):
@@ -210,21 +219,22 @@ class List(Matcher):
     def __eq__(self, other):
         if not isinstance(other, list):
             return False
-        elif self._max_length is not None and len(other) > self._max_length:
+        if self._max_length is not None and len(other) > self._max_length:
             return False
-        elif self._min_length is not None and len(other) < self._min_length:
+        if self._min_length is not None and len(other) < self._min_length:
             return False
-        else:
-            for item in other:
-                if self._matcher != item:
-                    return False
-            else:
-                return True
+        for item in other:
+            if self._matcher != item:
+                return False
+        return True
 
-    def format_repr(self):
-        return super().format_repr(
-            self._matcher, min_length=self._min_length,
-            max_length=self._max_length)
+    def __repr__(self):
+        return _format_repr(
+            self,
+            self._matcher,
+            min_length=self._min_length,
+            max_length=self._max_length
+        )
 
 
 class Object(Matcher):
@@ -241,7 +251,7 @@ class Object(Matcher):
 
         from collections import namedtuple
 
-        from mockify import satisfied
+        from mockify.core import satisfied
         from mockify.mock import Mock
         from mockify.matchers import Object
 
@@ -255,26 +265,27 @@ class Object(Matcher):
 
     .. versionadded:: 0.6.5
 
-    :param **kwargs:
+    :param ``**kwargs``:
         Arguments to compare value with
     """
     _undefined = object()
 
     def __init__(self, **kwargs):
         if not kwargs:
-            raise TypeError("__init__ must be called with at least 1 named argument")
+            raise TypeError(
+                "__init__ must be called with at least 1 named argument"
+            )
         self._kwargs = kwargs
 
     def __eq__(self, other):
-        for k, v in self._kwargs.items():
-            reference_value = getattr(other, k, self._undefined)
-            if reference_value is self._undefined or v != reference_value:
+        for key, value in self._kwargs.items():
+            reference_value = getattr(other, key, self._undefined)
+            if reference_value is self._undefined or value != reference_value:
                 return False
-        else:
-            return True
+        return True
 
-    def format_repr(self):
-        return super().format_repr(**self._kwargs)
+    def __repr__(self):
+        return _format_repr(self, **self._kwargs)
 
 
 class Func(Matcher):
@@ -308,11 +319,10 @@ class Func(Matcher):
     def __eq__(self, other):
         return self._func(other)
 
-    def format_repr(self):
+    def __repr__(self):
         if self._name is None:
             return "{}({})".format(self.__class__.__name__, self._func.__name__)
-        else:
-            return "{}({})".format(self.__class__.__name__, self._name)
+        return "{}({})".format(self.__class__.__name__, self._name)
 
 
 _ = Any()

@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/mock-behavior.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -9,6 +9,7 @@
 ..
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
+
 Most common assertions
 ======================
 
@@ -89,7 +90,7 @@ matching expectation is found, we still need a way to verify if expectations
 we've recorded are **satisfied**, which means that all are called expected
 number of times.
 
-To check if mock is satisfied you can use :func:`mockify.assert_satisfied`
+To check if mock is satisfied you can use :func:`mockify.core.assert_satisfied`
 function. This function can be used more than once, but usually the best
 place to check if mock is satisfied is at the end of test function.
 
@@ -97,7 +98,7 @@ Each newly created mock is already satisfied:
 
 .. testcode::
 
-    from mockify import assert_satisfied
+    from mockify.core import assert_satisfied
     from mockify.mock import Mock
 
     foo = Mock('foo')
@@ -144,13 +145,13 @@ that will match the expectation:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
 
     with satisfied(foo):
         foo.bar('spam')
 
-In example above we've used :func:`mockify.satisfied` context manager instead
-of :func:`mockify.assert_satisfied` presented above. Those two work in
+In example above we've used :func:`mockify.core.satisfied` context manager instead
+of :func:`mockify.core.assert_satisfied` presented above. Those two work in
 exactly the same way, raising exactly the same exceptions, but context
 manager version is better suited for simple tests or when you want to mark
 part of test code that satisfies all given mocks.
@@ -198,6 +199,6 @@ Well, this was made like this actually to make life easier. Mockify allows
 you to record very sophisticated expectations, including expected call count
 ranges etc. And when mock is called it does not know how many times it will be
 called during the test, so we must explicitly tell it that testing is done.
-And that's why :func:`mockify.assert_satisfied` is needed. Moreover, it is
+And that's why :func:`mockify.core.assert_satisfied` is needed. Moreover, it is
 the only single assertion function you will find in Mockify (not counting its
 context manager counterpart).

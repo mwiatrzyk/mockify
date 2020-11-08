@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/setting-expected-call-count.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -9,6 +9,7 @@
 ..
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
+
 .. _setting-expected-call-count:
 
 Setting expected call count
@@ -22,7 +23,7 @@ When you create expectation, you **implicitly** expect your mock to be called
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
 
     foo = Mock('foo')
@@ -38,7 +39,7 @@ called exactly three times:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
 
     def func_caller(func, a, b, count):
@@ -75,14 +76,14 @@ recommended solution for setting expected call count to fixed value:
     test_func_caller()
 
 We've removed loop from test function and instead used
-:meth:`mockify.Expectation.times` method (1), giving it expected number of
+:meth:`mockify.core.Expectation.times` method (1), giving it expected number of
 calls to ``foo(1, 2)``. Thanks to this, our expectation is self-explanatory
 and in case of unsatisfied assertion you will see that expected call count in
 error message:
 
 .. doctest::
 
-    >>> from mockify import assert_satisfied
+    >>> from mockify.core import assert_satisfied
     >>> from mockify.mock import Mock
     >>> foo = Mock('foo')
     >>> foo.expect_call().times(3)
@@ -113,19 +114,19 @@ fail with one of mentioned exceptions. But you can change that to
 
 .. testcode::
 
-    from mockify import assert_satisfied
+    from mockify.core import assert_satisfied
     from mockify.mock import Mock
 
     foo = Mock('foo')
-    foo.expect_call(-1).times(0)  # (1)
+    foo.expect_call(-1).times(0)  # (1) #
 
     assert_satisfied(foo)
 
-As you can see, the mock is satisfied despite the fact it **does have** an
-expectation recorded at (1). But that expectation has expected call count set
-to zero with ``times(0)`` call. And that's the trick - you are explicitly
+As you can see, the mock is satisfied despite the fact it **does have**
+an expectation recorded at (1). But that expectation has expected call count
+set to zero with ``times(0)`` call. And that's the trick - you are explicitly
 **expecting** *foo* to be **never** called (or called zero times) with -1 as
-*an argument.
+an argument.
 
 And now if you make a matching call, the mock will instantly become
 unsatisfied:
@@ -152,7 +153,7 @@ And that's the whole trick.
 Setting expected call count using **cardinality objects**
 ---------------------------------------------------------
 
-Previously presented :meth:`mockify.Expectation.times` can also be used in
+Previously presented :meth:`mockify.core.Expectation.times` can also be used in
 conjunction with so called **cardinality objects** available via
 :mod:`mockify.cardinality` module.
 
@@ -173,7 +174,7 @@ called yet:
 
 .. doctest::
 
-    >>> from mockify import assert_satisfied
+    >>> from mockify.core import assert_satisfied
     >>> assert_satisfied(foo)
     Traceback (most recent call last):
         ...

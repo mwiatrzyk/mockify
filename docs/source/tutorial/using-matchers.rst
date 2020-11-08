@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/using-matchers.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -9,6 +9,7 @@
 ..
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
+
 Using matchers
 ==============
 
@@ -56,7 +57,7 @@ And here comes **the matchers**:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
     from mockify.matchers import _  # (1)
@@ -92,7 +93,7 @@ For example, we can use :class:`mockify.matchers.Regex` to check if this
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
     from mockify.matchers import Regex

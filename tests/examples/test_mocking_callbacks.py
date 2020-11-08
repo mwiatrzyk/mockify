@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tests/examples/test_mocking_callbacks.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import ordered, satisfied
+from mockify.core import ordered, satisfied
 from mockify.mock import Mock, MockFactory
 
 

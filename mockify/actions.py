@@ -1,13 +1,19 @@
 # ---------------------------------------------------------------------------
 # mockify/actions.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+"""Module containing action types.
+
+Actions are used to tell the mock what it must do once called with given set
+of arguments. This can be returning a value, returning a generator, calling a
+function, raising exception etc.
+"""
 
 import abc
 import functools
@@ -15,7 +21,7 @@ import functools
 from . import _utils
 
 
-class Action(abc.ABC):
+class Action(abc.ABC, _utils.DictEqualityMixin):
     """Abstract base class for actions.
 
     This is common base class for all actions defined in this module. Custom
@@ -30,13 +36,6 @@ class Action(abc.ABC):
     def __str__(self):
         return "{}({})".format(self.__class__.__name__, self.format_params())
 
-    def __eq__(self, other):
-        return type(self) is type(other) and\
-            self.__dict__ == other.__dict__
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     @abc.abstractmethod
     def __call__(self, actual_call):
         """Action body.
@@ -46,7 +45,7 @@ class Action(abc.ABC):
         functionality of the action being implemented.
 
         :param actual_call:
-            Instance of :class:`mockify.Call` containing params of actual
+            Instance of :class:`mockify.core.Call` containing params of actual
             call being made
         """
 
@@ -83,7 +82,7 @@ class Return(Action):
     def __call__(self, actual_call):
         return self.value
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.value)
 
 
@@ -112,7 +111,7 @@ class Iterate(Action):
     def __call__(self, actual_call):
         return iter(self.iterable)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.iterable)
 
 
@@ -140,7 +139,7 @@ class Raise(Action):
     def __call__(self, actual_call):
         raise self.exc
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.exc)
 
 
@@ -189,5 +188,5 @@ class Invoke(Action):
         partial_func = functools.partial(self.func, *self.args, **self.kwargs)
         return partial_func(*actual_call.args, **actual_call.kwargs)
 
-    def format_params(self):
+    def format_params(self, *args, **kwargs):
         return super().format_params(self.func, *self.args, **self.kwargs)

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tests/examples/test_mocking_objects.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -12,9 +12,9 @@ import struct
 
 import pytest
 
-from mockify import satisfied, ordered
-from mockify.mock import Mock
 from mockify.actions import Return
+from mockify.core import ordered, satisfied
+from mockify.mock import Mock
 
 
 class ProtocolReader:
@@ -52,7 +52,9 @@ class TestProtocolReader:
 
     def test_read_message_from_connection(self):
         self.connection.read.expect_call(3).will_once(Return(b'XYZ'))
-        self.connection.read.expect_call(2).will_once(Return(struct.pack('!H', 13)))
+        self.connection.read.expect_call(2).will_once(
+            Return(struct.pack('!H', 13))
+        )
         self.connection.read.expect_call(13).will_once(Return(b'Hello, world!'))
 
         with satisfied(self.connection):

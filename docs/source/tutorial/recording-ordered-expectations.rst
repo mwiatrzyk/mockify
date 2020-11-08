@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/recording-ordered-expectations.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -43,7 +43,7 @@ The result of processing is a **call** to both of these two interfaces, but
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
 
     def test_interface_caller():
@@ -89,7 +89,7 @@ does not come into play). And here comes **ordered expectations**:
 
 .. testcode::
 
-    from mockify import satisfied, ordered
+    from mockify.core import satisfied, ordered
     from mockify.mock import MockFactory
 
     def test_interface_caller():
@@ -107,7 +107,7 @@ does not come into play). And here comes **ordered expectations**:
 
 In the test above we've used mock factory (1), because ordered expectations
 require all checked mocks to operate on a common session. The main difference
-however is use of :func:`mockify.ordered` context manager (2) which ensures that
+however is use of :func:`mockify.core.ordered` context manager (2) which ensures that
 given mocks (mocks created by *factory* in this case) will be called **in
 their declaration order**. And since we've changed the order in tested code,
 the test will no longer pass and :exc:`mockify.exc.UnexpectedCallOrder`

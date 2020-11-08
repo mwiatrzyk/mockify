@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tests/unit/test_exc.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -9,30 +9,13 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import itertools
-
 import pytest
 
-from mockify import exc, Call, Expectation
+from mockify import _utils, exc
 from mockify.actions import Return
+from mockify.core import Call, Expectation
 
-
-class ErrorMessageBuilder:
-
-    def __init__(self):
-        self._lines = []
-
-    def build(self):
-        return '\n'.join(self._lines)
-
-    def append_line(self, template, *args, **kwargs):
-        self._lines.append(template.format(*args, **kwargs))
-
-    def append_location(self, location):
-        self._lines.extend([
-            "at {}".format(location),
-            "-" * (len(str(location)) + 3)
-        ])
+ErrorMessageBuilder = _utils.ErrorMessageBuilder
 
 
 class TestUnexpectedCall:
@@ -45,19 +28,23 @@ class TestUnexpectedCall:
         builder.append_line('Called:')
         builder.append_line('  {}', actual_call)
         builder.append_line('Expected (any of):')
-        for i, call in enumerate(expected_calls):
+        for call in expected_calls:
             builder.append_line('  {}', call)
         return builder.build()
 
-    @pytest.mark.parametrize('actual_call, expected_calls', [
-        (Call('foo', 1, 2, c=3), [Call('foo')]),
-        (Call('foo', 1, 2, c=3), [Call('foo'), Call('foo', 1, 2, 3)])
-    ])
+    @pytest.mark.parametrize(
+        'actual_call, expected_calls', [
+            (Call('foo', 1, 2, c=3), [Call('foo')]),
+            (Call('foo', 1, 2, c=3), [Call('foo'),
+                                      Call('foo', 1, 2, 3)])
+        ]
+    )
     def test_string_representation(self, actual_call, expected_calls):
         uut = exc.UnexpectedCall(actual_call, expected_calls)
         assert uut.actual_call == actual_call
         assert uut.expected_calls == expected_calls
-        assert str(uut) == self.make_expected_message(actual_call, expected_calls)
+        assert str(uut
+                   ) == self.make_expected_message(actual_call, expected_calls)
 
 
 class TestUnexpectedCallOrder:
@@ -73,15 +60,18 @@ class TestUnexpectedCallOrder:
         builder.append_line('  {}', expected_call)
         return builder.build()
 
-    @pytest.mark.parametrize('actual_call, expected_call', [
-        (Call('foo', 1, 2, c=3), Call('foo')),
-        (Call('foo', 1, 2, c=3), Call('foo', 1, 2, 3))
-    ])
+    @pytest.mark.parametrize(
+        'actual_call, expected_call', [
+            (Call('foo', 1, 2, c=3), Call('foo')),
+            (Call('foo', 1, 2, c=3), Call('foo', 1, 2, 3))
+        ]
+    )
     def test_string_representation(self, actual_call, expected_call):
         uut = exc.UnexpectedCallOrder(actual_call, expected_call)
         assert uut.actual_call == actual_call
         assert uut.expected_call == expected_call
-        assert str(uut) == self.make_expected_message(actual_call, expected_call)
+        assert str(uut
+                   ) == self.make_expected_message(actual_call, expected_call)
 
 
 class TestUninterestedCall:
@@ -95,10 +85,12 @@ class TestUninterestedCall:
         builder.append_line('  {}', actual_call)
         return builder.build()
 
-    @pytest.mark.parametrize('actual_call', [
-        Call('foo', 1, 2),
-        Call('bar', 1, 2, c=3),
-    ])
+    @pytest.mark.parametrize(
+        'actual_call', [
+            Call('foo', 1, 2),
+            Call('bar', 1, 2, c=3),
+        ]
+    )
     def test_string_representation(self, actual_call):
         uut = exc.UninterestedCall(actual_call)
         assert uut.actual_call == actual_call
@@ -111,24 +103,37 @@ class TestOversaturatedCall:
         builder = ErrorMessageBuilder()
         builder.append_line('Following expectation was oversaturated:')
         builder.append_line('')
-        builder.append_location(oversaturated_expectation.expected_call.location)
+        builder.append_location(
+            oversaturated_expectation.expected_call.location
+        )
         builder.append_line('Pattern:')
         builder.append_line('  {}', oversaturated_expectation.expected_call)
         builder.append_line('Expected:')
-        builder.append_line('  {}', oversaturated_expectation.expected_call_count)
+        builder.append_line(
+            '  {}', oversaturated_expectation.expected_call_count
+        )
         builder.append_line('Actual:')
-        builder.append_line('  oversaturated by {} at {} (no more actions)', actual_call, actual_call.location)
+        builder.append_line(
+            '  oversaturated by {} at {} (no more actions)', actual_call,
+            actual_call.location
+        )
         return builder.build()
 
-    @pytest.mark.parametrize('actual_call, oversaturated_expectation', [
-        (Call('foo'), Expectation(Call('foo'))),
-        (Call('foo', 1, 2, 3), Expectation(Call('foo', 1, 2, 3)))
-    ])
-    def test_string_representation(self, actual_call, oversaturated_expectation):
+    @pytest.mark.parametrize(
+        'actual_call, oversaturated_expectation', [
+            (Call('foo'), Expectation(Call('foo'))),
+            (Call('foo', 1, 2, 3), Expectation(Call('foo', 1, 2, 3)))
+        ]
+    )
+    def test_string_representation(
+        self, actual_call, oversaturated_expectation
+    ):
         uut = exc.OversaturatedCall(actual_call, oversaturated_expectation)
         assert uut.actual_call == actual_call
         assert uut.oversaturated_expectation == oversaturated_expectation
-        assert str(uut) == self.make_expected_message(actual_call, oversaturated_expectation)
+        assert str(uut) == self.make_expected_message(
+            actual_call, oversaturated_expectation
+        )
 
 
 class TestUnsatisfied:
@@ -144,7 +149,10 @@ class TestUnsatisfied:
 
     def __append_title(self, builder, unsatisfied_expectations):
         if len(unsatisfied_expectations) > 1:
-            builder.append_line('Following {} expectations are not satisfied:', len(unsatisfied_expectations))
+            builder.append_line(
+                'Following {} expectations are not satisfied:',
+                len(unsatisfied_expectations)
+            )
         else:
             builder.append_line('Following expectation is not satisfied:')
 
@@ -160,16 +168,21 @@ class TestUnsatisfied:
         builder.append_line('  {}', expectation.actual_call_count)
 
     def __append_action(self, builder, expectation):
-        action = str(expectation.action) if expectation.action is not None else None
+        action = str(
+            expectation.action
+        ) if expectation.action is not None else None
         if action is not None:
             builder.append_line('Action:')
             builder.append_line('  {}', action)
 
-    @pytest.mark.parametrize('unsatisfied_expectations', [
-        [Expectation(Call('foo'))],
-        [Expectation(Call('foo')), Expectation(Call('bar', 1, 2))],
-        [Expectation(Call('foo')), _expectation_with_action],
-    ])
+    @pytest.mark.parametrize(
+        'unsatisfied_expectations', [
+            [Expectation(Call('foo'))],
+            [Expectation(Call('foo')),
+             Expectation(Call('bar', 1, 2))],
+            [Expectation(Call('foo')), _expectation_with_action],
+        ]
+    )
     def test_string_representation(self, unsatisfied_expectations):
         uut = exc.Unsatisfied(unsatisfied_expectations)
         assert uut.unsatisfied_expectations == unsatisfied_expectations

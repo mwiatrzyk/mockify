@@ -1,25 +1,26 @@
 # ---------------------------------------------------------------------------
-# mockify/_engine/call.py
+# mockify/core/_call.py
 #
-# Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import os
-import keyword
+
+# pylint: disable=missing-module-docstring
+
 import traceback
 
-from .. import exc, _utils, _globals
+from .. import _globals, _utils
 
 
 class LocationInfo:
     """A placeholder for file name and line number obtained from the stack.
 
-    Used by :class:`Call` objects to get their location in the code. That
-    information is later used in assertion messages.
+    Used by :class:`mockify.core.Call` objects to get their location in the
+    code. That information is later used in assertion messages.
 
     .. versionadded:: 0.6
 
@@ -64,13 +65,15 @@ class LocationInfo:
         expectation recordings will point to test function or tested code
         that uses Mockify, not to Mockify's internals.
 
-        :rtype: LocationInfo
+        :rtype: mockify.core.LocationInfo
         """
         stack = traceback.extract_stack()
         for frame in reversed(stack):
+            # TODO: make this if statement better
             if not frame.filename.startswith(_globals.ROOT_DIR) and\
-               not frame.filename.startswith('/usr/lib'):  # FIXME: make this better
+               not frame.filename.startswith('/usr/lib'):
                 return cls(frame.filename, frame.lineno)
+        return cls('unknown', -1)
 
 
 class Call:
@@ -89,17 +92,22 @@ class Call:
     """
 
     def __init__(self, _name_, *args, **kwargs):
+        _utils.validate_mock_name(_name_)
         self._name = _name_
         self._args = args
         self._kwargs = kwargs
         self._location = LocationInfo.get_external()
-        _utils.validate_mock_name(self._name)
 
     def __str__(self):
-        return "{}({})".format(self._name, self._format_params(*self._args, **self._kwargs))
+        return "{}({})".format(
+            self._name, self._format_params(*self._args, **self._kwargs)
+        )
 
     def __repr__(self):
-        return "<mockify.{}({})>".format(self.__class__.__name__, self._format_params(self._name, *self._args, **self._kwargs))
+        return "<mockify.{}({})>".format(
+            self.__class__.__name__,
+            self._format_params(self._name, *self._args, **self._kwargs)
+        )
 
     def __eq__(self, other):
         return self._name == other._name and\
@@ -109,7 +117,8 @@ class Call:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def _format_params(self, *args, **kwargs):
+    @staticmethod
+    def _format_params(*args, **kwargs):
         return _utils.format_args_kwargs(args, kwargs)
 
     @property
@@ -136,6 +145,6 @@ class Call:
 
         .. versionadded:: 0.6
 
-        :rtype: LocationInfo
+        :rtype: mockify.core.LocationInfo
         """
         return self._location

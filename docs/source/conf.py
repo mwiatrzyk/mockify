@@ -1,3 +1,13 @@
+# ---------------------------------------------------------------------------
+# docs/source/conf.py
+#
+# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+#
+# This file is part of Mockify library and is released under the terms of the
+# MIT license: http://opensource.org/licenses/mit-license.php.
+#
+# See LICENSE for details.
+# ---------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
@@ -25,22 +35,20 @@ current_year = datetime.now().year
 
 sys.path.insert(0, src_dir)
 
-from mockify import __version__
+import mockify
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Mockify'
-copyright = "2018 - {}, Maciej Wiatrzyk".format(current_year)
-author = 'Maciej Wiatrzyk'
+copyright = "{} - {}, {}".format(mockify.__released__, current_year, mockify.__author__)
+author = mockify.__author__
 
 # The full version, including alpha/beta/rc tags
-release = __version__
-print('Release: ', release)
+release = mockify.__version__
 
 # The short X.Y version
 version = '.'.join(release.split('.', 2))
-print('Version: ', version)
 
 # -- General configuration ---------------------------------------------------
 
@@ -56,6 +64,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosectionlabel',
+    'recommonmark',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

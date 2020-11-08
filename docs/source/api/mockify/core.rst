@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api/mockify/actions.rst
+.. docs/source/api/mockify/core.rst
 ..
 .. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
@@ -10,10 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.actions** - Classes for recording side effects
-========================================================
+**mockify.core** - Library core
+===============================
 
-.. automodule:: mockify.actions
+.. automodule:: mockify.core
     :members:
-    :special-members: __call__
-    :show-inheritance:
+    :special-members:

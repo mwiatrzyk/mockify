@@ -1,7 +1,7 @@
 .. ----------------------------------------------------------------------------
 .. docs/source/tutorial/patching-imported-modules.rst
 ..
-.. Copyright (C) 2018 - 2020 Maciej Wiatrzyk
+.. Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
 .. This file is part of Mockify library documentation
 .. and is released under the terms of the MIT license:
@@ -36,7 +36,7 @@ methods of :mod:`os` module. And here's how this can be done in Mockify:
 
 .. testcode::
 
-    from mockify import satisfied, patched
+    from mockify.core import satisfied, patched
     from mockify.mock import Mock
     from mockify.actions import Return
 
@@ -60,11 +60,11 @@ And here's what's going on in presented test:
 
 * We've created *os* mock (1) for mocking **os.listdir()** (2) and
   **os.path.isdir()** (3) methods,
-* Then we've used :func:`mockify.patched` context manager (4) that does the
+* Then we've used :func:`mockify.core.patched` context manager (4) that does the
   whole magic of substituting modules matching full names of mocks with
   expectations recorded (which are ``'os.listdir'`` and ``'os.path.isdir'``
   in our case) with corresponding mock objects
-* Finally, we've used :func:`mockify.satisfied` context manager (5) to ensure
+* Finally, we've used :func:`mockify.core.satisfied` context manager (5) to ensure
   that all expectations are satisfied, and ran tested function (6) checking
   it's result.
 
