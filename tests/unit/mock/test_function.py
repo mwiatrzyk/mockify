@@ -10,7 +10,8 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import Session, assert_satisfied, exc, satisfied
+from mockify import exc
+from mockify.core import Session, assert_satisfied, satisfied
 from mockify.actions import Return
 from mockify.mock import FunctionMock
 

@@ -62,7 +62,7 @@ Single actions
 --------------
 
 To record single action, you have to use
-:meth:`mockify.Expectation.will_once` method and give it instance of action
+:meth:`mockify.core.Expectation.will_once` method and give it instance of action
 you want your mock to perform. For example:
 
 .. testcode::
@@ -86,7 +86,7 @@ expectations defined in (1) and (2) present:
 
 .. doctest::
 
-    >>> from mockify import assert_satisfied
+    >>> from mockify.core import assert_satisfied
     >>> assert_satisfied(foo)
     Traceback (most recent call last):
         ...
@@ -133,7 +133,7 @@ Action chains
 -------------
 
 It is also possible to record **multiple** actions on single expectation,
-simply by adding more :meth:`mockify.Expectation.will_once` method calls:
+simply by adding more :meth:`mockify.core.Expectation.will_once` method calls:
 
 .. testcode::
 
@@ -197,7 +197,7 @@ Repeated actions
 ----------------
 
 You also can record so called **repeated** actions with
-:meth:`mockify.Expectation.will_repeatedly` method instead of previously used
+:meth:`mockify.core.Expectation.will_repeatedly` method instead of previously used
 ``will_once()``:
 
 .. testcode::
@@ -234,7 +234,7 @@ Repeated actions with cardinality
 ---------------------------------
 
 You can also declare repeated actions that can only be executed given number
-of times by simply adding call to :meth:`mockify.Expectation.times` method
+of times by simply adding call to :meth:`mockify.core.Expectation.times` method
 just after ``will_repeatedly()``:
 
 .. testcode::

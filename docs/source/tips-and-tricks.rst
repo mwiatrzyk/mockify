@@ -52,7 +52,7 @@ Here's a solution:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Invoke
     from mockify.matchers import _

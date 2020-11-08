@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 import os
 
-from mockify import patched, satisfied
+from mockify.core import patched, satisfied
 from mockify.actions import Iterate, Return
 from mockify.matchers import Regex
 from mockify.mock import Mock

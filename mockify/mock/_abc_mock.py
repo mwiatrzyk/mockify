@@ -31,7 +31,7 @@ def ABCMock(name, abstract_base_class, **kwargs):
 
         import abc
 
-        from mockify import satisfied
+        from mockify.core import satisfied
         from mockify.mock import ABCMock
         from mockify.actions import Return
 

@@ -45,7 +45,7 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
         functionality of the action being implemented.
 
         :param actual_call:
-            Instance of :class:`mockify.Call` containing params of actual
+            Instance of :class:`mockify.core.Call` containing params of actual
             call being made
         """
 

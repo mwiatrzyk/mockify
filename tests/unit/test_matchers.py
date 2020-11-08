@@ -13,7 +13,8 @@ import collections
 
 import pytest
 
-from mockify import Call, exc, satisfied
+from mockify import exc
+from mockify.core import Call, satisfied
 from mockify.matchers import AnyOf, Func, List, Object, Regex, Type, _
 from mockify.mock import Mock
 

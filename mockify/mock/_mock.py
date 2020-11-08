@@ -32,14 +32,14 @@ class Mock(BaseMock):
     To record expectations, you have to call **expect_call()** method on one
     of that attributes, or on mock object itself (for function mocks). Then
     you pass mock object to unit under test. Finally, you will need
-    :func:`mockify.assert_satisfied` function or :func:`mockify.satisfied`
+    :func:`mockify.core.assert_satisfied` function or :func:`mockify.core.satisfied`
     context manager to check if the mock is satisfied.
 
     Here's an example:
 
     .. testcode::
 
-        from mockify import satisfied
+        from mockify.core import satisfied
         from mockify.mock import Mock
 
         def caller(func, a, b):

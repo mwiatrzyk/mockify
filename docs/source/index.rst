@@ -37,7 +37,7 @@ Here's a simple example:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
 

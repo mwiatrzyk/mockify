@@ -23,15 +23,20 @@ API.
 Here's a simple example:
 
 ```python
-from mockify import satisfied
+from mockify.core import satisfied
 from mockify.mock import Mock
 from mockify.actions import Return
 
-greet = Mock('greet')
-greet.expect_call().will_once(Return('Hello, world!'))
 
-with satisfied(greet):
-    assert greet() == 'Hello, world!'
+def func_caller(func):
+    return func()
+
+
+def test_func_caller():
+    func_mock = Mock('greet')
+    func_mock.expect_call().will_once(Return('Hello, world!'))
+    with satisfied(func_mock):
+        assert func_caller(func_mock) == 'Hello, world!'
 ```
 
 Mockify allows you to:

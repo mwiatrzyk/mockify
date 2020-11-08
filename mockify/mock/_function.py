@@ -23,7 +23,7 @@ class FunctionMock(BaseMock):
 
     .. testcode::
 
-        from mockify import satisfied
+        from mockify.core import satisfied
         from mockify.mock import FunctionMock
         from mockify.actions import Return
 

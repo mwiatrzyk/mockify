@@ -11,7 +11,8 @@
 
 import pytest
 
-from mockify import Call, Expectation, _utils, exc
+from mockify import exc, _utils
+from mockify.core import Call, Expectation
 from mockify.actions import Return
 
 ErrorMessageBuilder = _utils.ErrorMessageBuilder

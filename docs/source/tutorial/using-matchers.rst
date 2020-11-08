@@ -57,7 +57,7 @@ And here comes **the matchers**:
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
     from mockify.matchers import _  # (1)
@@ -93,7 +93,7 @@ For example, we can use :class:`mockify.matchers.Regex` to check if this
 
 .. testcode::
 
-    from mockify import satisfied
+    from mockify.core import satisfied
     from mockify.mock import Mock
     from mockify.actions import Return
     from mockify.matchers import Regex

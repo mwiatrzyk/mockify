@@ -93,13 +93,13 @@
   * New matchers introduced (see :mod:`mockify.matchers`)
   * New assertion errors introduced and improved exception hierarchy (see
     :mod:`mockify.exc`)
-  * Can now define ordered expectations with :func:`mockify.ordered` context manager
-  * Can now patch imports using :func:`mockify.patched` context manager
+  * Can now define ordered expectations with :func:`mockify.core.ordered` context manager
+  * Can now patch imports using :func:`mockify.core.patched` context manager
 
 **Changed**
 
   * Deprecated code was removed
-  * Class **Registry** was renamed to :class:`mockify.Session`
+  * Class **Registry** was renamed to :class:`mockify.core.Session`
   * All classes for making mocks were replaced by single generic
     :class:`mockify.mock.Mock` class, supported by
     :class:`mockify.mock.MockFactory` class

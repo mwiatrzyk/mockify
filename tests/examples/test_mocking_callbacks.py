@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify import ordered, satisfied
+from mockify.core import ordered, satisfied
 from mockify.mock import Mock, MockFactory
 
 

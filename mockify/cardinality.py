@@ -114,7 +114,7 @@ class Exactly(ExpectedCallCount):
     **exactly** *expected* number of times to be satisfied.
 
     You do not have to use this class explicitly as its instances are
-    automatically created when you call :meth:`mockify.Expectation.times`
+    automatically created when you call :meth:`mockify.core.Expectation.times`
     method with integer value as argument.
     """
 

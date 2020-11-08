@@ -12,7 +12,7 @@ from inspect import currentframe, getframeinfo
 
 import pytest
 
-from mockify import Call, LocationInfo
+from mockify.core import Call, LocationInfo
 
 
 class TestLocationInfo:

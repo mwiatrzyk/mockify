@@ -36,7 +36,7 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
         This attribute must be set by inheriting class.
 
     :param session:
-        Instance of :class:`mockify.Session` to be used.
+        Instance of :class:`mockify.core.Session` to be used.
 
         If not given, parent's session will be used if parent is set.
         Otherwise, a new session will be created.
@@ -85,7 +85,7 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
 
     @property
     def __m_session__(self) -> Session:
-        """Instance of :class:`mockify.Session` used by this mock.
+        """Instance of :class:`mockify.core.Session` used by this mock.
 
         This should always be the same object for mock and all its children.
         """
@@ -138,7 +138,7 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
 
     @abc.abstractmethod
     def __m_expectations__(self):
-        """Iterator over :class:`mockify.Expectation` objects recorded for
+        """Iterator over :class:`mockify.core.Expectation` objects recorded for
         this mock.
 
         It should not include expectations recorded on mock's children. To

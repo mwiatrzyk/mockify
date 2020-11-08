@@ -12,7 +12,7 @@ import struct
 
 import pytest
 
-from mockify import ordered, satisfied
+from mockify.core import ordered, satisfied
 from mockify.actions import Return
 from mockify.mock import Mock
 

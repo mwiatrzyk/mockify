@@ -251,7 +251,7 @@ class Object(Matcher):
 
         from collections import namedtuple
 
-        from mockify import satisfied
+        from mockify.core import satisfied
         from mockify.mock import Mock
         from mockify.matchers import Object
 

@@ -28,7 +28,7 @@ class UninterestedCallWarning(MockifyWarning):
     """This warning is used to inform about uninterested call being made.
 
     It is only used when uninterested call strategy is changed in mocking
-    session. See :class:`mockify.Session` for more details.
+    session. See :class:`mockify.core.Session` for more details.
 
     .. versionadded:: 0.6
     """
@@ -131,7 +131,7 @@ class UnexpectedCallOrder(MockifyAssertion):
     before.
 
     This can only be raised if you use ordered expectations with
-    :func:`mockify.ordered` context manager.
+    :func:`mockify.core.ordered` context manager.
 
     See :ref:`recording-ordered-expectations` for more details.
 
@@ -205,12 +205,12 @@ class UninterestedCall(MockifyAssertion):
 
 class OversaturatedCall(MockifyAssertion):
     """Raised when mock with actions recorded using
-    :meth:`mockify.Expectation.will_once` was called more times than
+    :meth:`mockify.core.Expectation.will_once` was called more times than
     expected and has all recorded actions already consumed.
 
     This exception can be avoided if you record repeated action to the end of
     expected action chain (using
-    :meth:`mockify.Expectation.will_repeatedly`). However, it was added for a
+    :meth:`mockify.core.Expectation.will_repeatedly`). However, it was added for a
     reason. For example, if your mock returns value of incorrect type (the
     default one), you'll result in production code errors instead of mock
     errors. And that can possibly be harder to debug.
@@ -265,8 +265,8 @@ class OversaturatedCall(MockifyAssertion):
 class Unsatisfied(MockifyAssertion):
     """Raised when unsatisfied expectations are present.
 
-    This can only be raised by either :func:`mockify.satisfied`
-    :func:`mockify.assert_satisfied` or :meth:`mockify.Session.done`. You'll
+    This can only be raised by either :func:`mockify.core.satisfied`
+    :func:`mockify.core.assert_satisfied` or :meth:`mockify.core.Session.done`. You'll
     not get this exception when mock is called.
 
     :param unsatisfied_expectations:

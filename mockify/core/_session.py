@@ -28,7 +28,7 @@ class Session:
     explicitly and then shared across multiple mocks. While mock classes can
     be seen as som kind of frontends that mimic behavior of various Python
     constructs, session instances are some kind of backends that receive
-    :class:`mockify.Call` instances created by mocks during either mock call,
+    :class:`mockify.core.Call` instances created by mocks during either mock call,
     or expectation recording.
 
     .. versionchanged:: 0.6
@@ -60,7 +60,7 @@ class Session:
             Can be used to override expectation class used when expectations
             are recorded.
 
-            By default, this is :class:`mockify.Expectation`, and there is a
+            By default, this is :class:`mockify.core.Expectation`, and there is a
             requirement that custom class must inherit from original one.
 
         ``'uninterested_call_strategy'``
@@ -94,7 +94,7 @@ class Session:
         raised by this method are also returned or raised by mock.
 
         :param actual_call:
-            Instance of :class:`mockify.Call` class created by calling mock.
+            Instance of :class:`mockify.core.Call` class created by calling mock.
         """
         if self._is_ordered(actual_call):
             return self.__call_ordered(actual_call)
@@ -146,7 +146,7 @@ class Session:
     def expectations(self):
         """An iterator over all expectations recorded in this session.
 
-        Yields :class:`mockify.Expectation` instances.
+        Yields :class:`mockify.core.Expectation` instances.
         """
         return itertools.chain(
             self._unordered_expectations, self._ordered_expectations
@@ -161,7 +161,7 @@ class Session:
         :rtype: mockify.Expectation
 
         :param expected_call:
-            Instance of :class:`mockify.Call` created by mock when
+            Instance of :class:`mockify.core.Call` created by mock when
             **expect_call()** was called on it.
 
             Represents parameters the mock is expected to be called with.
@@ -174,7 +174,7 @@ class Session:
     def assert_satisfied(self):
         """Check if all registered expectations are satisfied.
 
-        This works exactly the same as :func:`mockify.assert_satisfied`, but
+        This works exactly the same as :func:`mockify.core.assert_satisfied`, but
         for given session only. Can be used as a replacement for any other
         checks if one global session object is used.
         """
@@ -188,7 +188,7 @@ class Session:
         """Mark expectations matching given mock *names* as **ordered**, so
         they will have to be resolved in their declaration order.
 
-        This is used internally by :func:`mockify.ordered`.
+        This is used internally by :func:`mockify.core.ordered`.
         """
         self._ordered_expectations_enabled_for = set(names)
         unordered_expectations = list(self._unordered_expectations)
@@ -201,7 +201,7 @@ class Session:
                 self._unordered_expectations.append(expectation)
 
     def disable_ordered(self):
-        """Called by :func:`mockify.ordered` when processing of ordered
+        """Called by :func:`mockify.core.ordered` when processing of ordered
         expectations is done.
 
         Moves any remaining expectations back to the **unordered** storage,

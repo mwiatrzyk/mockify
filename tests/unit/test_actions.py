@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify import satisfied
+from mockify.core import satisfied
 from mockify.actions import Invoke, Iterate, Raise, Return
 from mockify.mock import Mock
 

@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 from io import BytesIO
 
-from mockify import satisfied
+from mockify.core import satisfied
 from mockify.actions import Invoke
 from mockify.matchers import _
 from mockify.mock import Mock
