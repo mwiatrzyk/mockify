@@ -50,6 +50,7 @@ deploy_test:
     - pipenv run invoke -pe deploy-test
   only:
     - branches
+    - tags
   except:
     - master
 
