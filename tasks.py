@@ -9,16 +9,9 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-import logging
-import os
-
 import invoke
 
 import mockify
-
-logger = logging.getLogger(__name__)
-
-_root_dir = os.path.abspath(os.path.dirname(__file__))
 
 
 @invoke.task
@@ -95,7 +88,7 @@ def fix_formatting(ctx):
 def fix_license(ctx):
     """Update LICENSE file and license preambles in source files."""
     ctx.run(
-        'scripts/licenser/licenser.py . --released={released} --author="{author}" --i "*.py" -i "*.rst"'
+        'scripts/licenser/licenser.py . --released={released} --author="{author}" -i "*.py" -i "*.rst"'
         .format(released=mockify.__released__, author=mockify.__author__)
     )
 
@@ -122,21 +115,22 @@ def build(_):
     """Build all."""
 
 
-@invoke.task(fix, check, build)  # TODO: task to update version and changelog
+@invoke.task  #(fix, check, build)  # TODO: task to update version and changelog
 def release(_):
     """Prepare code for next release."""
-    print('DONE!!!')
+    import mockify
+    print(mockify.__version__)
 
 
-@invoke.task
+@invoke.task(build_pkg)
 def deploy_test(ctx):
-    """Deploy library to test PyPI."""
+    """Build and deploy library to test PyPI."""
     ctx.run(
         'twine upload --repository-url https://test.pypi.org/legacy/ dist/*'
     )
 
 
-@invoke.task
+@invoke.task(build_pkg)
 def deploy_prod(ctx):
     """Deploy library to production PyPI."""
     ctx.run('twine upload dist/*')
@@ -150,4 +144,5 @@ def clean(ctx):
     ctx.run('rm -rf docs/build')
     ctx.run('rm -rf build dist')
     ctx.run('rm -rf *.egg-info')
+    ctx.run('rm -rf .eggs')
     ctx.run('rm -rf reports')

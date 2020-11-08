@@ -13,3 +13,6 @@ mockify/_version.py
 docs/build
 Pipfile.lock
 reports
+build/
+dist/
+*.egg-info/

@@ -12,12 +12,18 @@ before_script:
 build:
   stage: build
   script:
-    - pipenv run invoke build
+    - pipenv run invoke -pe build
 
 .test:
   stage: test
   script:
-    - pipenv run invoke check
+    - pipenv run invoke -pe check
+
+.deploy:
+  stage: deploy
+  script:
+    - apt-get update
+    - apt-get install -y git
 
 test Py3.8:
   image: python:3.8-slim
@@ -31,28 +37,26 @@ test Py3.6:
   image: python:3.6-slim
   extends: .test
 
-deploy_to_test_pypi:
+deploy_test:
   stage: deploy
   variables:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
+  extends: .deploy
   script:
-    - apt-get update
-    - apt-get install -y git
-    - pipenv run invoke build-pkg
-    - pipenv run invoke deploy-test
+    - pipenv run invoke -pe deploy-test
   only:
+    - branches
+  except:
     - master
 
-deploy_to_pypi:
+deploy_production:
   stage: deploy
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
+  extends: .deploy
   script:
-    - apt-get update
-    - apt-get install -y git
-    - pipenv run invoke build-pkg
-    - pipenv run invoke deploy-prod
+    - pipenv run invoke -pe deploy-prod
   only:
     - tags
