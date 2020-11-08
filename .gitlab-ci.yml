@@ -9,15 +9,11 @@ before_script:
   - pip install pipenv
   - pipenv install --dev
 
-.install-git-mixin:
-  before_script:
-    - apt-get update
-    - apt-get install -y git
-
 build:
   stage: build
-  extends: .install-git-mixin
   script:
+    - apt-get update
+    - apt-get install -y git
     - pipenv run invoke -pe build
 
 .base-test:
@@ -38,7 +34,11 @@ test Py3.6:
   extends: .base-test
 
 .base-deploy:
-  extends: .install-git-mixin
+  before_script:
+    - apt-get update
+    - apt-get install -y git
+    - pip install pipenv
+    - pipenv install --dev
 
 deploy_test:
   stage: deploy
