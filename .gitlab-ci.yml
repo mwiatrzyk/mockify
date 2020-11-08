@@ -10,7 +10,7 @@ before_script:
   - pipenv install --dev
 
 .install-git-mixin:
-  script:
+  before_script:
     - apt-get update
     - apt-get install -y git
 
