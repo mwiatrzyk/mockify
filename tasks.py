@@ -42,7 +42,7 @@ def coverage(ctx):
 @invoke.task
 def lint_code(ctx):
     """Run linter on source files."""
-    ctx.run('pylint -f colorized --fail-under=9.0 mockify tasks.py setup.py')
+    ctx.run('pylint -f colorized --fail-under=9.0 mockify scripts tasks.py setup.py')
 
 
 @invoke.task
@@ -78,10 +78,10 @@ def check(_):
 def fix_formatting(ctx):
     """Run code formatting tools."""
     ctx.run(
-        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests tasks.py'
+        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests scripts tasks.py'
     )
-    ctx.run('isort --atomic mockify tests tasks.py')
-    ctx.run('yapf -i --recursive --parallel mockify tests tasks.py')
+    ctx.run('isort --atomic mockify tests scripts tasks.py')
+    ctx.run('yapf -i --recursive --parallel mockify tests scripts tasks.py')
 
 
 @invoke.task
@@ -113,6 +113,15 @@ def build_pkg(ctx):
 @invoke.task(build_docs, build_pkg)
 def build(_):
     """Build all."""
+
+
+@invoke.task
+def tag(ctx, tag_or_version, check_only=False):
+    """Update CHANGELOG.md and Mockify's __version__ attribute with given tag."""
+    args = ['scripts/tag.py', tag_or_version]
+    if check_only:
+        args.append('-c')
+    ctx.run(' '.join(args))
 
 
 @invoke.task  #(fix, check, build)  # TODO: task to update version and changelog
