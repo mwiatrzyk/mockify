@@ -60,6 +60,7 @@ deploy_production:
     TWINE_PASSWORD: $PYPI_PASS
   extends: .base-deploy
   script:
+    - pipenv run invoke -pe validate-tag $CI_COMMIT_TAG
     - pipenv run invoke -pe deploy-prod
   only:
     - tags
