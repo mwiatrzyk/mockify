@@ -102,6 +102,8 @@ def update(args):
 def check(args):
 
     def split_version(version):
+        if version == '(unreleased)':
+            return version, _NOW
         match = _CHANGELOG_TAG_RE.search(version)
         return match.group(3), datetime.strptime(match.group(4), '%Y-%m-%d')
 

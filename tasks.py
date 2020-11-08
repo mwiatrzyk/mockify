@@ -118,19 +118,21 @@ def build(_):
 
 
 @invoke.task
-def tag(ctx, tag_or_version, check_only=False):
-    """Update CHANGELOG.md and Mockify's __version__ attribute with given tag."""
-    args = ['scripts/tag.py', tag_or_version]
-    if check_only:
-        args.append('-c')
-    ctx.run(' '.join(args))
+def valdate_tag(ctx, tag):
+    """Check CHANGELOG.md and mockify/__init__.py agains given tag."""
+    ctx.run('scripts/tag.py -c {}'.format(tag))
 
 
-@invoke.task  #(fix, check, build)  # TODO: task to update version and changelog
-def release(_):
-    """Prepare code for next release."""
-    import mockify
-    print(mockify.__version__)
+@invoke.task(fix)
+def release(ctx, tag_or_version):
+    """Run code fixers and update version in library code.
+
+    This task should be run just before committing the last changes before
+    next release. `tag_or_version` should contain version library will
+    receive in PyPI. This can later be verified in CI with `validate-tag`
+    task.
+    """
+    ctx.run('scripts/tag.py {}'.format(tag_or_version))
 
 
 @invoke.task(build_pkg)
