@@ -1,6 +1,7 @@
 ![PyPI - License](https://img.shields.io/pypi/l/mockify)
 ![PyPI](https://img.shields.io/pypi/v/mockify)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/mockify)
+[![codecov](https://codecov.io/gl/zef1r/mockify/branch/master/graph/badge.svg?token=UX2T69XQAJ)](https://codecov.io/gl/zef1r/mockify)
 
 Mockify
 =======
