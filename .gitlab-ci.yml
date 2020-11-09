@@ -40,10 +40,13 @@ publish_coverage:
   variables:
     CODECOV_TOKEN: $CODECOV_TOKEN
   script:
+    - apt-get update
+    - apt-get install -y curl
     - pipenv run invoke coverage
     - bash <(curl -s https://codecov.io/bash)
   only:
     - master
+    - tags
 
 validate_tag:
   stage: pre-deploy
