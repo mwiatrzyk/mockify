@@ -1,3 +1,15 @@
+(unreleased)
+------------
+
+**Other**
+
+  * Added job to publish coverage reports to https://codecov.io/gl/zef1r/mockify
+  * Using ``-pe`` as default mode to ``invoke`` task runner (with help of
+    config file)
+  * Since now, tags are verified by CI **before** publishing to any PyPI, so it
+    will not be possible to publish to test PyPI and to not publish to production
+    PyPI (or vice-versa)
+
 0.9.0 (2020-11-08)
 ------------------
 
