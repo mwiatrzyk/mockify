@@ -43,7 +43,7 @@ publish_coverage:
     - pipenv run invoke coverage
     - bash <(curl -s https://codecov.io/bash)
   only:
-    - tags
+    - master
 
 validate_tag:
   stage: pre-deploy
