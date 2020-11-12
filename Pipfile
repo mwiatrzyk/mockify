@@ -18,5 +18,6 @@ autoflake = "*"
 yapf = "*"
 jinja2 = "*"
 recommonmark = "*"
+tox = "*"
 
 [packages]

@@ -70,10 +70,8 @@ deploy_test:
   script:
     - pipenv run invoke deploy-test
   only:
-    - branches
-    - tags
-  except:
     - master
+    - tags
 
 deploy_production:
   stage: deploy

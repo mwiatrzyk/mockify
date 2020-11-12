@@ -1,3 +1,10 @@
+(unreleased)
+------------
+
+**Other**
+
+  * Running tests using ``tox``
+
 0.9.1 (2020-11-09)
 ------------------
 

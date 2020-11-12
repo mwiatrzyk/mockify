@@ -77,6 +77,21 @@ def check(_):
 
 
 @invoke.task
+def tox(ctx, env=None):
+    """Run checks using tox tool.
+
+    This will by default run checks on all supported Python versions.
+
+    -e, --env
+        Run tox with specified environment only, f.e. py36
+    """
+    args = ['tox']
+    if env:
+        args.append('-e {}'.format(env))
+    ctx.run(' '.join(args))
+
+
+@invoke.task
 def fix_formatting(ctx):
     """Run code formatting tools."""
     ctx.run(
