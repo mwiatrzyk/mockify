@@ -7,6 +7,8 @@ stages:
   - deploy
 
 before_script:
+  - apt-get update
+  - apt-get install -y git
   - pip install pipenv
   - pipenv install --dev
 
@@ -20,8 +22,6 @@ validate_tag:
 build:
   stage: build
   script:
-    - apt-get update
-    - apt-get install -y git
     - pipenv run invoke build
 
 .base-test:
@@ -53,7 +53,6 @@ publish_coverage:
   variables:
     CODECOV_TOKEN: $CODECOV_TOKEN
   script:
-    - apt-get update
     - apt-get install -y curl
     - pipenv run invoke coverage
     - bash <(curl -s https://codecov.io/bash)
@@ -61,19 +60,11 @@ publish_coverage:
     - master
     - tags
 
-.base-deploy:
-  before_script:
-    - apt-get update
-    - apt-get install -y git
-    - pip install pipenv
-    - pipenv install --dev
-
 deploy_test:
   stage: deploy
   variables:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
-  extends: .base-deploy
   script:
     - pipenv run invoke deploy-test
   only:
@@ -85,7 +76,6 @@ deploy_production:
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
-  extends: .base-deploy
   script:
     - pipenv run invoke deploy-prod
   only:
