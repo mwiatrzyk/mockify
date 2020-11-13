@@ -43,11 +43,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://mockify.readthedocs.io/",
     packages=setuptools.find_packages(exclude=["docs", "tests*"]),
-    keywords='mock, mocking, testing, toolkit, library, framework',
-    python_requires='>=3.6, <4',
+    keywords="mock, mocking, testing, toolkit, library, framework",
+    python_requires=">=3.6, <4",
     project_urls={
-        'Bug Reports': 'https://gitlab.com/zef1r/mockify/-/issues',
-        'Source': 'https://gitlab.com/zef1r/mockify',
+        'Bug Reports': "https://gitlab.com/zef1r/mockify/-/issues",
+        'Source': "https://gitlab.com/zef1r/mockify",
+        'Documentation': "https://mockify.readthedocs.io/",
     },
     classifiers=[
         "Development Status :: 4 - Beta",
