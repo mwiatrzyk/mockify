@@ -1,6 +1,10 @@
 (unreleased)
 ------------
 
+**Added**
+
+  * Added support for Python 3.9
+
 **Other**
 
   * Using ``tox`` to run tests against supported Python versions
