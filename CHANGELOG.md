@@ -1,5 +1,9 @@
-(unreleased)
-------------
+0.10.0 (2020-11-13)
+-------------------
+
+**Added**
+
+  * Added support for Python 3.9
 
 **Other**
 

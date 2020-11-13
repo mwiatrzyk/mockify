@@ -29,6 +29,12 @@ build:
   script:
     - pipenv run tox -e ${PY_ENV}
 
+test Py3.9:
+  image: python:3.9-slim
+  variables:
+    PY_ENV: py39
+  extends: .base-test
+
 test Py3.8:
   image: python:3.8-slim
   variables:
