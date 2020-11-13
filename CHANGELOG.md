@@ -3,7 +3,9 @@
 
 **Other**
 
-  * Running tests using ``tox``
+  * Using ``tox`` to run tests against supported Python versions
+  * Improved packaging according to https://github.com/pypa/sampleproject
+    example project
 
 0.9.1 (2020-11-09)
 ------------------
