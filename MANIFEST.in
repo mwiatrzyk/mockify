@@ -1,0 +1,16 @@
+include *.md
+include *.py
+include *.yapf
+include *.yml
+include .isort.cfg
+include LICENSE
+include Pipfile
+include TODO
+include tox.ini
+include .pylintrc
+
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include scripts *.py
+recursive-include scripts *.txt
+recursive-include tests *.py

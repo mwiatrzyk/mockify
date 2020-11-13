@@ -18,16 +18,14 @@ with open("README.md", "r") as fd:
 def version_scheme(version):
     if not version.distance:
         return str(version.tag)
-    else:
-        major, minor, build = str(version.tag).split('.')
-        return "{}.{}.{}".format(major, minor, int(build)+1)
+    major, minor, build = str(version.tag).split('.')
+    return "{}.{}.{}".format(major, minor, int(build)+1)
 
 
 def local_scheme(version):
     if not version.distance:
         return ''
-    else:
-        return "dev{}".format(version.distance)
+    return "rc{}".format(version.distance)
 
 
 setuptools.setup(
@@ -42,9 +40,15 @@ setuptools.setup(
     author_email="maciej.wiatrzyk@gmail.com",
     description="Mocking library for Python inspired by Google Mock C++ mocking toolkit",
     long_description=long_description,
-    long_description_content_type="text/markdown; charset=UTF-8",
+    long_description_content_type="text/markdown",
     url="https://mockify.readthedocs.io/",
     packages=setuptools.find_packages(exclude=["docs", "tests*"]),
+    keywords='mock, mocking, testing, toolkit, library, framework',
+    python_requires='>=3.6, <4',
+    project_urls={
+        'Bug Reports': 'https://gitlab.com/zef1r/mockify/-/issues',
+        'Source': 'https://gitlab.com/zef1r/mockify',
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",

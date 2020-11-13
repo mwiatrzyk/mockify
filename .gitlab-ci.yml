@@ -7,8 +7,10 @@ stages:
   - deploy
 
 before_script:
+  - apt-get update
+  - apt-get install -y git
   - pip install pipenv
-  - pipenv install --dev
+  - pipenv install --skip-lock --dev
 
 validate_tag:
   stage: prepare
@@ -20,25 +22,29 @@ validate_tag:
 build:
   stage: build
   script:
-    - apt-get update
-    - apt-get install -y git
     - pipenv run invoke build
 
 .base-test:
   stage: test
   script:
-    - pipenv run invoke check
+    - pipenv run tox -e ${PY_ENV}
 
 test Py3.8:
   image: python:3.8-slim
+  variables:
+    PY_ENV: py38
   extends: .base-test
 
 test Py3.7:
   image: python:3.7-slim
+  variables:
+    PY_ENV: py37
   extends: .base-test
 
 test Py3.6:
   image: python:3.6-slim
+  variables:
+    PY_ENV: py36
   extends: .base-test
 
 publish_coverage:
@@ -46,7 +52,6 @@ publish_coverage:
   variables:
     CODECOV_TOKEN: $CODECOV_TOKEN
   script:
-    - apt-get update
     - apt-get install -y curl
     - pipenv run invoke coverage
     - bash <(curl -s https://codecov.io/bash)
@@ -54,33 +59,22 @@ publish_coverage:
     - master
     - tags
 
-.base-deploy:
-  before_script:
-    - apt-get update
-    - apt-get install -y git
-    - pip install pipenv
-    - pipenv install --dev
-
 deploy_test:
   stage: deploy
   variables:
     TWINE_USERNAME: $TEST_PYPI_USER
     TWINE_PASSWORD: $TEST_PYPI_PASS
-  extends: .base-deploy
   script:
     - pipenv run invoke deploy-test
   only:
-    - branches
-    - tags
-  except:
     - master
+    - tags
 
 deploy_production:
   stage: deploy
   variables:
     TWINE_USERNAME: $PYPI_USER
     TWINE_PASSWORD: $PYPI_PASS
-  extends: .base-deploy
   script:
     - pipenv run invoke deploy-prod
   only:
