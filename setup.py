@@ -27,7 +27,7 @@ def local_scheme(version):
     if not version.distance:
         return ''
     else:
-        return "dev{}".format(version.distance)
+        return "rc{}".format(version.distance)
 
 
 setuptools.setup(

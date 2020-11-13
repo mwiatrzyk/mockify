@@ -27,18 +27,25 @@ build:
 .base-test:
   stage: test
   script:
+    - pipenv run tox -e ${PY_ENV}
     - pipenv run invoke check
 
 test Py3.8:
   image: python:3.8-slim
+  variables:
+    PY_ENV: py38
   extends: .base-test
 
 test Py3.7:
   image: python:3.7-slim
+  variables:
+    PY_ENV: py37
   extends: .base-test
 
 test Py3.6:
   image: python:3.6-slim
+  variables:
+    PY_ENV: py36
   extends: .base-test
 
 publish_coverage:

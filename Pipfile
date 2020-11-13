@@ -19,5 +19,6 @@ yapf = "*"
 jinja2 = "*"
 recommonmark = "*"
 tox = "*"
+check-manifest = "*"
 
 [packages]
