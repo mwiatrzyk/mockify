@@ -32,26 +32,6 @@ def test(_):
 
 
 @invoke.task
-def tox(ctx, parallel=False, env=None):
-    """Run tests on different Python versions using tox.
-
-    This will by default run checks on all supported Python versions.
-
-    -p, --parallel
-        Run tox in parallel
-
-    -e, --env
-        Run tox with specified environment only, f.e. py36
-    """
-    args = ['tox']
-    if parallel:
-        args.append('-p')
-    if env:
-        args.append('-e {}'.format(env))
-    ctx.run(' '.join(args))
-
-
-@invoke.task
 def coverage(ctx):
     """Run code coverage check."""
     ctx.run(
@@ -94,6 +74,21 @@ def lint(_):
 @invoke.task(test, coverage, lint)
 def check(_):
     """Run all code quality checks."""
+
+
+@invoke.task
+def tox(ctx, env=None):
+    """Run all code quality checks using tox.
+
+    This will by default run checks on all supported Python versions.
+
+    -e, --env
+        Run tox with specified environment only, f.e. py36
+    """
+    args = ['tox']
+    if env:
+        args.append('-e {}'.format(env))
+    ctx.run(' '.join(args))
 
 
 @invoke.task
