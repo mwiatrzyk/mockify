@@ -4,6 +4,8 @@ stages:
   - prepare
   - build
   - test
+  - coverage
+  - lint
   - deploy
 
 before_script:
@@ -52,6 +54,16 @@ test Py3.6:
   variables:
     PY_ENV: py36
   extends: .base-test
+
+check_coverage:
+  stage: coverage
+  script:
+    - pipenv run invoke coverage
+
+check_lint:
+  stage: lint
+  script:
+    - pipenv run invoke lint
 
 publish_coverage:
   stage: deploy
