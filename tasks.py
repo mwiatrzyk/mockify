@@ -77,15 +77,21 @@ def check(_):
 
 
 @invoke.task
-def tox(ctx, env=None):
+def tox(ctx, parallel=False, env=None):
     """Run all code quality checks using tox.
 
     This will by default run checks on all supported Python versions.
+
+    -p, --parallel
+        If set, all environments will be tested simultaneously, with a level
+        of concurrency up to available CPU cores
 
     -e, --env
         Run tox with specified environment only, f.e. py36
     """
     args = ['tox']
+    if parallel:
+        args.append('-p')
     if env:
         args.append('-e {}'.format(env))
     ctx.run(' '.join(args))

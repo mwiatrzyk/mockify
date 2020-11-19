@@ -15,5 +15,6 @@
 
 .. automodule:: mockify.actions
     :members:
-    :special-members: __call__
+    :special-members: __call__, __str__
+    :private-members:
     :show-inheritance:

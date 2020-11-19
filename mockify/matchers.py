@@ -23,9 +23,13 @@ from mockify import _utils
 
 
 def _format_repr(obj, *args, **kwargs):
-    formatted_args_kwargs = _utils.format_args_kwargs(
-        args, kwargs, sort=False, skip_kwarg_if=lambda value: value is None
-    )
+
+    def skip_kwarg_func(value):
+        return value is None
+
+    formatted_args_kwargs = _utils.\
+        ArgsKwargsFormatter(sort=False, skip_kwarg_if=skip_kwarg_func).\
+        format(*args, **kwargs)
     return "{}({})".format(obj.__class__.__name__, formatted_args_kwargs)
 
 

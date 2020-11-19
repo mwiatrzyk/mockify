@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.actions import Invoke, Iterate, Raise, Return
+from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync
 from mockify.core import satisfied
 from mockify.mock import Mock
 
@@ -54,6 +54,30 @@ class TestReturn:
             assert mock() == 1
             for _ in range(2):
                 assert mock() == 2
+
+
+class TestReturnAsync:
+    _str_test_data = [
+        (123, 'ReturnAsync(123)'),
+        (3.14, 'ReturnAsync(3.14)'),
+        ('foo', "ReturnAsync('foo')"),
+    ]
+
+    @pytest.mark.parametrize('value, expected_repr', _str_test_data)
+    def test_repr(self, value, expected_repr):
+        assert repr(ReturnAsync(value)
+                    ) == "<mockify.actions.{}>".format(expected_repr)
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(ReturnAsync(value)) == expected_str
+
+    @pytest.mark.asyncio
+    async def test_expect_mock_to_asynchronously_return_value_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(ReturnAsync(1))
+        with satisfied(mock):
+            assert await mock() == 1
 
 
 class TestIterate:

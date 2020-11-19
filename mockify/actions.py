@@ -21,6 +21,13 @@ import functools
 from . import _utils
 
 
+def _format_str(obj, *args, **kwargs):
+    return "{}({})".format(
+        obj.__class__.__name__,
+        _utils.ArgsKwargsFormatter().format(*args, **kwargs)
+    )
+
+
 class Action(abc.ABC, _utils.DictEqualityMixin):
     """Abstract base class for actions.
 
@@ -33,8 +40,16 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
     def __repr__(self):
         return "<{}.{}>".format(self.__module__, self)
 
+    @abc.abstractmethod
     def __str__(self):
-        return "{}({})".format(self.__class__.__name__, self.format_params())
+        """Return string representation of this action.
+
+        This is later used in error messages when test fails.
+
+        .. versionchanged:: 0.11
+            Now this is made abstract and previous abstract
+            :meth:`format_params` was removed
+        """
 
     @abc.abstractmethod
     def __call__(self, actual_call):
@@ -48,16 +63,6 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
             Instance of :class:`mockify.core.Call` containing params of actual
             call being made
         """
-
-    @abc.abstractmethod
-    def format_params(self, *args, **kwargs):
-        """Used to calculate **str()** and **repr()** for this action.
-
-        This method should be overloaded in subclass as a no argument method,
-        and then call **super().format_params(...)** with args and kwargs
-        you want to be included in **str()** and **repr()** methods.
-        """
-        return _utils.format_args_kwargs(args, kwargs)
 
 
 class Return(Action):
@@ -79,11 +84,49 @@ class Return(Action):
     def __init__(self, value):
         self.value = value
 
+    def __str__(self):
+        return _format_str(self, self.value)
+
     def __call__(self, actual_call):
         return self.value
 
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.value)
+
+class ReturnAsync(Return):
+    """Similar to :class:`Return`, but to be used with asynchronous Python
+    code.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import Mock
+        from mockify.actions import ReturnAsync
+
+        async def async_caller(func):
+            return await func()
+
+        async def test_async_caller():
+            func = Mock('func')
+            func.expect_call().will_once(ReturnAsync('foo'))
+            with satisfied(func):
+                assert await async_caller(func) == 'foo'
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_async_caller())
+
+    .. versionadded:: 0.11
+    """
+
+    def __call__(self, actual_call):
+
+        async def proxy(value):
+            return value
+
+        return proxy(self.value)
 
 
 class Iterate(Action):
@@ -108,11 +151,11 @@ class Iterate(Action):
     def __init__(self, iterable):
         self.iterable = iterable
 
+    def __str__(self):
+        return _format_str(self, self.iterable)
+
     def __call__(self, actual_call):
         return iter(self.iterable)
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.iterable)
 
 
 class Raise(Action):
@@ -136,11 +179,11 @@ class Raise(Action):
     def __init__(self, exc):
         self.exc = exc
 
+    def __str__(self):
+        return _format_str(self, self.exc)
+
     def __call__(self, actual_call):
         raise self.exc
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.exc)
 
 
 class Invoke(Action):
@@ -184,9 +227,9 @@ class Invoke(Action):
         self.args = args
         self.kwargs = kwargs
 
+    def __str__(self):
+        return _format_str(self, self.func, *self.args, **self.kwargs)
+
     def __call__(self, actual_call):
         partial_func = functools.partial(self.func, *self.args, **self.kwargs)
         return partial_func(*actual_call.args, **actual_call.kwargs)
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.func, *self.args, **self.kwargs)
