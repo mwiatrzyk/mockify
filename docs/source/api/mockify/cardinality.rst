@@ -15,5 +15,5 @@
 
 .. automodule:: mockify.cardinality
     :members:
-    :special-members: __str__
+    :special-members: __str__, __repr__
     :show-inheritance:

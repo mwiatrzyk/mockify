@@ -17,6 +17,13 @@ from functools import total_ordering
 from . import _utils
 
 
+def _format_repr(obj, *args, **kwargs):
+    formatted_args_kwargs = _utils.ArgsKwargsFormatter().format(*args, **kwargs)
+    return "<{}.{}({})>".format(
+        obj.__module__, obj.__class__.__name__, formatted_args_kwargs
+    )
+
+
 @total_ordering
 class ActualCallCount:
     """Proxy class that is used to calculate actual mock calls.
@@ -69,10 +76,18 @@ class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
     .. versionadded:: 0.6
     """
 
+    @abc.abstractmethod
     def __repr__(self):
-        return "<{}.{}({})>".format(
-            self.__module__, self.__class__.__name__, self.format_params()
-        )
+        """Return textual representation of expected call count object.
+
+        Since :meth:`__str__` is used to render textual message of expected
+        call count, this should render actual object representation, i.e.
+        module, name, params it was created with etc.
+
+        .. versionchanged:: 0.11
+            Now this is made abstract and previous :meth:`format_params` was
+            removed.
+        """
 
     @abc.abstractmethod
     def __str__(self):
@@ -96,16 +111,6 @@ class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
         use of :meth:`Session.will_once`.
         """
 
-    @abc.abstractmethod
-    def format_params(self, *args, **kwargs):
-        """Format params to be used in **repr()**.
-
-        This method must be overloaded without params, and call
-        **super().format_params(...)** with args and kwargs you want to
-        include in **repr()**.
-        """
-        return _utils.format_args_kwargs(args, kwargs)
-
 
 class Exactly(ExpectedCallCount):
     """Used to set expected call count to fixed *expected* value.
@@ -123,6 +128,9 @@ class Exactly(ExpectedCallCount):
             raise TypeError("value of 'expected' must be >= 0")
         self.expected = expected
 
+    def __repr__(self):
+        return _format_repr(self, self.expected)
+
     def __str__(self):
         if self.expected == 0:
             return 'to be never called'
@@ -133,9 +141,6 @@ class Exactly(ExpectedCallCount):
 
     def adjust_minimal(self, minimal):
         return Exactly(self.expected + minimal)
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.expected)
 
 
 class AtLeast(ExpectedCallCount):
@@ -150,6 +155,9 @@ class AtLeast(ExpectedCallCount):
             raise TypeError("value of 'minimal' must be >= 0")
         self.minimal = minimal
 
+    def __repr__(self):
+        return _format_repr(self, self.minimal)
+
     def __str__(self):
         if self.minimal == 0:
             return "to be called any number of times"
@@ -162,9 +170,6 @@ class AtLeast(ExpectedCallCount):
 
     def adjust_minimal(self, minimal):
         return AtLeast(self.minimal + minimal)
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.minimal)
 
 
 class AtMost(ExpectedCallCount):
@@ -184,6 +189,9 @@ class AtMost(ExpectedCallCount):
     def __init__(self, maximal):
         self.maximal = maximal
 
+    def __repr__(self):
+        return _format_repr(self, self.maximal)
+
     def __str__(self):
         return "to be called at most {}".format(
             _utils.format_call_count(self.maximal)
@@ -194,9 +202,6 @@ class AtMost(ExpectedCallCount):
 
     def adjust_minimal(self, minimal):
         return Between(minimal, self.maximal + minimal)
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.maximal)
 
 
 class Between(ExpectedCallCount):
@@ -224,6 +229,9 @@ class Between(ExpectedCallCount):
         self.minimal = minimal
         self.maximal = maximal
 
+    def __repr__(self):
+        return _format_repr(self, self.minimal, self.maximal)
+
     def __str__(self):
         return "to be called from {} to {} times".format(
             self.minimal, self.maximal
@@ -234,6 +242,3 @@ class Between(ExpectedCallCount):
 
     def adjust_minimal(self, minimal):
         return Between(self.minimal + minimal, self.maximal + minimal)
-
-    def format_params(self, *args, **kwargs):
-        return super().format_params(self.minimal, self.maximal)

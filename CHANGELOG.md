@@ -1,3 +1,19 @@
+(unreleased)
+------------
+
+**Added**
+
+  * New action added: :class:`mockify.actions.ReturnAsync`
+
+**Changed**
+
+  * Abstract method :meth:`mockify.actions.Action.format_params` was removed
+    and :meth:`mockify.actions.Action.__str__` is now made abstract instead
+
+  * Abstract method :meth:`mockify.cardinality.ExpectedCallCount.format_params`
+    was removed and :meth:`mockify.cardinality.ExpectedCallCount.__repr__` is
+    now made abstract instead
+
 0.10.0 (2020-11-13)
 -------------------
 

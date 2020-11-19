@@ -20,5 +20,6 @@ jinja2 = "*"
 recommonmark = "*"
 tox = "*"
 check-manifest = "*"
+pytest-asyncio = "*"
 
 [packages]

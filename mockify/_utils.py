@@ -26,20 +26,6 @@ def format_call_count(count):
     return "{} times".format(count)
 
 
-def format_args_kwargs(
-    args, kwargs, formatter=repr, sort=True, skip_kwarg_if=None
-):
-    args_gen = map(formatter, args)
-    kwargs_gen = sorted(kwargs.items()) if sort else kwargs.items()
-    if skip_kwarg_if is not None:
-        kwargs_gen = filter(lambda x: not skip_kwarg_if(x[1]), kwargs_gen)
-    kwargs_gen = map(
-        lambda x: "{}={}".format(x[0], formatter(x[1])), kwargs_gen
-    )
-    all_gen = itertools.chain(args_gen, kwargs_gen)
-    return ', '.join(all_gen)
-
-
 def validate_mock_name(name):
     """Check if *name* can be used as a mock name."""
     parts = name.split('.') if isinstance(name, str) else [name]
@@ -88,6 +74,44 @@ def make_weak(value):
     if value is not None:
         return weakref.ref(value)
     return value
+
+
+class ArgsKwargsFormatter:
+    """A helper to return string representation of given args and kwargs.
+
+    :param formatter:
+        Formatter to be used to render string representation of function's
+        arguments
+
+    :param sort:
+        Choose if keyword args (if any) should be alphabetically sorted or
+        not
+
+    :param skip_kwarg_if:
+        A function to be used to test each keyword argument.
+
+        If the function evaluates to true, that keyword argument will be
+        removed from string representation.
+    """
+
+    def __init__(self, formatter=repr, sort=True, skip_kwarg_if=None):
+        self._formatter = formatter
+        self._sort = sort
+        self._skip_kwarg_if = skip_kwarg_if
+
+    def format(self, *args, **kwargs):
+        """Render string representation of given args and kwargs."""
+        args_gen = map(self._formatter, args)
+        kwargs_gen = sorted(kwargs.items()) if self._sort else kwargs.items()
+        if self._skip_kwarg_if is not None:
+            kwargs_gen = filter(
+                lambda x: not self._skip_kwarg_if(x[1]), kwargs_gen
+            )
+        kwargs_gen = map(
+            lambda x: "{}={}".format(x[0], self._formatter(x[1])), kwargs_gen
+        )
+        all_gen = itertools.chain(args_gen, kwargs_gen)
+        return ', '.join(all_gen)
 
 
 class ErrorMessageBuilder:
