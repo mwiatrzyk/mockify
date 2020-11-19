@@ -115,7 +115,7 @@ class ReturnAsync(Return):
     .. testcode::
         :hide:
 
-        import asyncio
+        from mockify._compat import asyncio
         asyncio.run(test_async_caller())
 
     .. versionadded:: 0.11
