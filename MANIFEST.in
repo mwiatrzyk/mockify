@@ -8,6 +8,7 @@ include Pipfile
 include TODO
 include tox.ini
 include .pylintrc
+include .coveragerc
 
 recursive-include docs *.py
 recursive-include docs *.rst

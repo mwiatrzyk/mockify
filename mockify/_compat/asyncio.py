@@ -15,4 +15,3 @@ else:
     def run(coroutine):
         loop = _asyncio.get_event_loop()
         loop.run_until_complete(coroutine)
-        loop.close()

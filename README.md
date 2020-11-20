@@ -28,10 +28,8 @@ from mockify.core import satisfied
 from mockify.mock import Mock
 from mockify.actions import Return
 
-
 def func_caller(func):
     return func()
-
 
 def test_func_caller():
     func_mock = Mock('greet')
