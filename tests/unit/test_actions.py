@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync
+from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync, IterateAsync
 from mockify.core import satisfied
 from mockify.mock import Mock
 
@@ -118,6 +118,29 @@ class TestIterate:
             assert list(mock()) == list('abc')
             for _ in range(2):
                 assert list(mock()) == list('cde')
+
+
+class TestIterateAsync:
+    _str_test_data = [
+        ([], 'IterateAsync([])'),
+        ('123', "IterateAsync('123')"),
+    ]
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_repr(self, value, expected_str):
+        assert repr(IterateAsync(value)
+                    ) == "<mockify.actions.{}>".format(expected_str)
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(IterateAsync(value)) == expected_str
+
+    @pytest.mark.asyncio
+    async def test_expect_mock_to_iterate_over_sequence_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(IterateAsync('abc'))
+        with satisfied(mock):
+            assert list(await mock()) == list('abc')
 
 
 class TestRaise:

@@ -1,0 +1,6 @@
+[run]
+omit =
+    # No need to check this for now
+    mockify/_compat/*
+    # This file is generated
+    mockify/_version.py

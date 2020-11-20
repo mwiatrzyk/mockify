@@ -4,6 +4,7 @@
 **Added**
 
   * New action added: :class:`mockify.actions.ReturnAsync`
+  * New action added: :class:`mockify.actions.IterateAsync`
 
 **Changed**
 
@@ -13,6 +14,11 @@
   * Abstract method :meth:`mockify.cardinality.ExpectedCallCount.format_params`
     was removed and :meth:`mockify.cardinality.ExpectedCallCount.__repr__` is
     now made abstract instead
+
+**Other**
+
+  * Added CLI tasks to serve documentation and coverage locally for development
+    purposes
 
 0.10.0 (2020-11-13)
 -------------------

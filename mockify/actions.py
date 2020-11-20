@@ -158,6 +158,45 @@ class Iterate(Action):
         return iter(self.iterable)
 
 
+class IterateAsync(Iterate):
+    """Similar to :class:`Iterate`, but returns awaitable that returns an
+    iterator to given *iterable*.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import Mock
+        from mockify.actions import IterateAsync
+
+        async def get_next(func):
+            iterable = await func()
+            return next(iterable)
+
+        async def test_get_next():
+            func = Mock('func')
+            func.expect_call().will_once(IterateAsync('foo'))
+            with satisfied(func):
+                assert await get_next(func) == 'f'
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_get_next())
+
+    .. versionadded:: 0.11
+    """
+
+    def __call__(self, actual_call):
+
+        async def proxy(iterable):
+            return iter(iterable)
+
+        return proxy(self.iterable)
+
+
 class Raise(Action):
     """Forces mock to raise *exc* when called.
 

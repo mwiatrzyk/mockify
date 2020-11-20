@@ -39,6 +39,13 @@ def coverage(ctx):
     )
 
 
+@invoke.task(coverage)
+def serve_coverage(ctx, host='localhost', port=8000):
+    """Generate coverage report and use Python's built-in HTTP server to
+    serve it locally."""
+    ctx.run('python -m http.server {} -d reports/coverage/html -b {}'.format(port, host))
+
+
 @invoke.task
 def lint_code(ctx):
     """Run linter on source files."""
@@ -138,6 +145,13 @@ def build(_):
     """Build all."""
 
 
+@invoke.task(build_docs)
+def serve_docs(ctx, host='localhost', port=8000):
+    """Generate documentation and use Python's built-in HTTP server to serve
+    it locally."""
+    ctx.run('python -m http.server {} -d docs/build/html -b {}'.format(port, host))
+
+
 @invoke.task
 def validate_tag(ctx, tag):
     """Check CHANGELOG.md and mockify/__init__.py agains given tag."""
@@ -175,6 +189,7 @@ def clean(ctx):
     """Clean working directory."""
     ctx.run('find . -name "*.pyc" -delete')
     ctx.run('find . -type d -name "__pycache__" -empty -delete')
+    ctx.run('rm mockify/_version.py')
     ctx.run('rm -rf docs/build')
     ctx.run('rm -rf build dist')
     ctx.run('rm -rf *.egg-info')
