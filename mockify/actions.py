@@ -225,6 +225,47 @@ class Raise(Action):
         raise self.exc
 
 
+class RaiseAsync(Raise):
+    """Similar to :class:`Raise`, but to be used with asynchronous Python
+    code.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import Mock
+        from mockify.actions import RaiseAsync
+
+        async def async_caller(func):
+            try:
+                return await func()
+            except ValueError as e:
+                return str(e)
+
+        async def test_async_caller():
+            func = Mock('func')
+            func.expect_call().will_once(RaiseAsync(ValueError('an error')))
+            with satisfied(func):
+                assert await async_caller(func) == 'an error'
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_async_caller())
+
+    .. versionadded:: (unreleased)
+    """
+
+    def __call__(self, actual_call):
+
+        async def proxy(exc):
+            raise exc
+
+        return proxy(self.exc)
+
+
 class Invoke(Action):
     """Forces mock to invoke *func* when called.
 

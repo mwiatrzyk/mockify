@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync, IterateAsync
+from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync, IterateAsync, RaiseAsync
 from mockify.core import satisfied
 from mockify.mock import Mock
 
@@ -143,7 +143,7 @@ class TestIterateAsync:
             assert list(await mock()) == list('abc')
 
 
-class TestRaise:
+class TestRaiseBase:
 
     class Error(Exception):
 
@@ -154,8 +154,10 @@ class TestRaise:
         def __repr__(self):
             return "Error({!r})".format(self.message)
 
+
+class TestRaise(TestRaiseBase):
     _str_test_data = [
-        (Error('an error'), "Raise(Error('an error'))"),
+        (TestRaiseBase.Error('an error'), "Raise(Error('an error'))"),
     ]
 
     @pytest.mark.parametrize('value, expected_str', _str_test_data)
@@ -202,6 +204,29 @@ class TestRaise:
                 with pytest.raises(ValueError) as second_excinfo:
                     mock()
                 assert str(second_excinfo.value) == 'second'
+
+
+class TestRaiseAsync(TestRaiseBase):
+    _str_test_data = [
+        (TestRaiseBase.Error('an error'), "RaiseAsync(Error('an error'))"),
+    ]
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_repr(self, value, expected_str):
+        assert repr(RaiseAsync(value)) == "<mockify.actions.{}>".format(expected_str)
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(RaiseAsync(value)) == expected_str
+
+    @pytest.mark.asyncio
+    async def test_expect_mock_to_asynchronously_return_value_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(RaiseAsync(ValueError('an error')))
+        with satisfied(mock):
+            with pytest.raises(ValueError) as excinfo:
+                await mock()
+            assert str(excinfo.value) == 'an error'
 
 
 class TestInvoke:
