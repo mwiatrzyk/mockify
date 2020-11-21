@@ -46,7 +46,7 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
 
         This is later used in error messages when test fails.
 
-        .. versionchanged:: 0.11
+        .. versionchanged:: (unreleased)
             Now this is made abstract and previous abstract
             :meth:`format_params` was removed
         """
@@ -118,7 +118,7 @@ class ReturnAsync(Return):
         from mockify._compat import asyncio
         asyncio.run(test_async_caller())
 
-    .. versionadded:: 0.11
+    .. versionadded:: (unreleased)
     """
 
     def __call__(self, actual_call):
@@ -186,7 +186,7 @@ class IterateAsync(Iterate):
         from mockify._compat import asyncio
         asyncio.run(test_get_next())
 
-    .. versionadded:: 0.11
+    .. versionadded:: (unreleased)
     """
 
     def __call__(self, actual_call):

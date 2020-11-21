@@ -12,10 +12,12 @@
 
 import argparse
 import contextlib
+import glob
 import logging
 import os
 import re
 import shutil
+import itertools
 import sys
 from datetime import datetime
 
@@ -28,7 +30,9 @@ logging.basicConfig(
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 _ROOT_DIR = os.path.join(_THIS_DIR, '..')
 _CHANGELOG_FILE_PATH = os.path.join(_ROOT_DIR, 'CHANGELOG.md')
-_INIT_FILE_PATH = os.path.join(_ROOT_DIR, 'mockify', '__init__.py')
+_SOURCES_PATH = os.path.join(_ROOT_DIR, 'mockify')
+_DOCS_PATH = os.path.join(_ROOT_DIR, 'docs')
+_INIT_FILE_PATH = os.path.join(_SOURCES_PATH, '__init__.py')
 _NOW = datetime.now()
 _TAG_RE = re.compile(r'^v?\d+\.\d+\.\d+$')
 _LIBRARY_VERSION_RE = re.compile(r"__version__\s+=\s+'(\d+\.\d+\.\d+)'")
@@ -36,10 +40,17 @@ _CHANGELOG_TAG_RE = re.compile(
     r'(\(unreleased\))|((\d+\.\d+\.\d+)\s+\((\d+-\d+-\d+)\))',
     flags=re.IGNORECASE
 )
+_SPHINX_ADDED_CHANGED_RE = re.compile(r'\.\. (versionadded|versionchanged)\:\:\s+(\(unreleased\))', flags=re.IGNORECASE)
 
 
 @contextlib.contextmanager
 def overwrite(path):
+
+    def copy_stats(source_path, dest_path):
+        stat = os.stat(source_path)
+        os.chown(dest_path, stat.st_uid, stat.st_gid)
+        os.chmod(dest_path, stat.st_mode)
+
     path_old = path + '.old'
     shutil.move(path, path_old)
     try:
@@ -50,6 +61,7 @@ def overwrite(path):
         shutil.move(path_old, path)  # restore backup on failure
         raise
     else:
+        copy_stats(path_old, path)
         os.unlink(path_old)  # remove backup on success
 
 
@@ -94,9 +106,22 @@ def update(args):
                     line = line.replace(version_match.group(1), version)
                 dest.write(line)
 
+    def update_docstrings(version):
+        major, minor, _ = version.split('.', 2)
+        for path in itertools.chain(
+                glob.glob(_SOURCES_PATH + '/**/*.py', recursive=True),
+                glob.glob(_DOCS_PATH + '/**/*.rst', recursive=True)):
+            with overwrite(path) as (src, dest):
+                for line in src:
+                    found = _SPHINX_ADDED_CHANGED_RE.search(line)
+                    if found is not None:
+                        line = line.replace(found.group(2), "{}.{}".format(major, minor))
+                    dest.write(line)
+
     version_string = parse_version(args)
     update_changelog(version_string)
     update_init(version_string)
+    update_docstrings(version_string)
 
 
 def check(args):
@@ -142,9 +167,22 @@ def check(args):
                             .format(_INIT_FILE_PATH, last_version, version)
                         )
 
+    def check_docstrings():
+        for path in itertools.chain(
+                glob.glob(_SOURCES_PATH + '/**/*.py', recursive=True),
+                glob.glob(_DOCS_PATH + '/**/*.rst', recursive=True)):
+            with open(path) as fd:
+                for line in fd:
+                    found = _SPHINX_ADDED_CHANGED_RE.search(line)
+                    if found is not None:
+                        raise ValueError(
+                            'unreleased mark present in file: {}'.format(path)
+                        )
+
     version = parse_version(args)
     check_changelog(version)
     check_init(version)
+    check_docstrings()
 
 
 def parse_args(argv):

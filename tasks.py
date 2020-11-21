@@ -43,7 +43,11 @@ def coverage(ctx):
 def serve_coverage(ctx, host='localhost', port=8000):
     """Generate coverage report and use Python's built-in HTTP server to
     serve it locally."""
-    ctx.run('python -m http.server {} -d reports/coverage/html -b {}'.format(port, host))
+    ctx.run(
+        'python -m http.server {} -d reports/coverage/html -b {}'.format(
+            port, host
+        )
+    )
 
 
 @invoke.task
@@ -149,7 +153,9 @@ def build(_):
 def serve_docs(ctx, host='localhost', port=8000):
     """Generate documentation and use Python's built-in HTTP server to serve
     it locally."""
-    ctx.run('python -m http.server {} -d docs/build/html -b {}'.format(port, host))
+    ctx.run(
+        'python -m http.server {} -d docs/build/html -b {}'.format(port, host)
+    )
 
 
 @invoke.task
