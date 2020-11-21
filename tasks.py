@@ -195,7 +195,7 @@ def clean(ctx):
     """Clean working directory."""
     ctx.run('find . -name "*.pyc" -delete')
     ctx.run('find . -type d -name "__pycache__" -empty -delete')
-    ctx.run('rm mockify/_version.py')
+    ctx.run('rm -rf mockify/_version.py')
     ctx.run('rm -rf docs/build')
     ctx.run('rm -rf build dist')
     ctx.run('rm -rf *.egg-info')
