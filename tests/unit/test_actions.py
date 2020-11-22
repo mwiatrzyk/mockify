@@ -11,7 +11,7 @@
 
 import pytest
 
-from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync, IterateAsync, RaiseAsync
+from mockify.actions import Invoke, Iterate, Raise, Return, ReturnAsync, IterateAsync, RaiseAsync, InvokeAsync
 from mockify.core import satisfied
 from mockify.mock import Mock
 
@@ -278,3 +278,66 @@ class TestInvoke:
         with satisfied(mock):
             assert mock() == sum([1, 2, 3])
             assert self.called_with == [((1, 2, 3), {})]
+
+
+class TestInvokeAsync:
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+
+        def func(*args, **kwargs):
+            self.func_args.append((args, kwargs))
+            return sum(args)
+
+        async def async_func(*args, **kwargs):
+            self.async_func_args.append((args, kwargs))
+            return sum(args)
+
+        self.func = func
+        self.async_func = async_func
+        self.func_args = []
+        self.async_func_args = []
+
+    def test_repr(self):
+        action = InvokeAsync(self.func)
+        assert '<mockify.actions.InvokeAsync(<function TestInvokeAsync.setup.<locals>.func at 0x' in repr(
+            action
+        )
+
+    def test_str(self):
+        action = InvokeAsync(self.func)
+        assert 'InvokeAsync(<function TestInvokeAsync.setup.<locals>.func at 0x' in str(
+            action
+        )
+
+    @pytest.mark.asyncio
+    async def test_invoke_mock_with_non_async_func_passed_to_invoke_async_action(self):
+        mock = Mock('mock')
+        mock.expect_call(1, 2).will_once(InvokeAsync(self.func))
+        with satisfied(mock):
+            assert await mock(1, 2) == 3
+        assert self.func_args == [((1, 2), {})]
+
+    @pytest.mark.asyncio
+    async def test_invoke_mock_with_non_async_func_passed_to_invoke_async_action_with_args(self):
+        mock = Mock('mock')
+        mock.expect_call(3, 4).will_once(InvokeAsync(self.func, 1, 2, c=3))
+        with satisfied(mock):
+            assert await mock(3, 4) == 10
+        assert self.func_args == [((1, 2, 3, 4), {'c': 3})]
+
+    @pytest.mark.asyncio
+    async def test_invoke_mock_with_async_func_passed_to_invoke_async_action(self):
+        mock = Mock('mock')
+        mock.expect_call(1, 2).will_once(InvokeAsync(self.async_func))
+        with satisfied(mock):
+            assert await mock(1, 2) == 3
+        assert self.async_func_args == [((1, 2), {})]
+
+    @pytest.mark.asyncio
+    async def test_invoke_mock_with_async_func_passed_to_invoke_async_action_with_args(self):
+        mock = Mock('mock')
+        mock.expect_call(3, 4).will_once(InvokeAsync(self.async_func, 1, 2, c=3))
+        with satisfied(mock):
+            assert await mock(3, 4) == 10
+        assert self.async_func_args == [((1, 2, 3, 4), {'c': 3})]
