@@ -6,6 +6,7 @@
   * New action added: :class:`mockify.actions.ReturnAsync`
   * New action added: :class:`mockify.actions.IterateAsync`
   * New action added: :class:`mockify.actions.RaiseAsync`
+  * New action added: :class:`mockify.actions.InvokeAsync`
 
 **Changed**
 

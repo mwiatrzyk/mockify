@@ -16,6 +16,7 @@ function, raising exception etc.
 """
 
 import abc
+import inspect
 import functools
 
 from . import _utils
@@ -307,9 +308,67 @@ class Invoke(Action):
         self.args = args
         self.kwargs = kwargs
 
+    @property
+    def _bound_func(self):
+        return functools.partial(self.func, *self.args, **self.kwargs)
+
     def __str__(self):
         return _format_str(self, self.func, *self.args, **self.kwargs)
 
     def __call__(self, actual_call):
-        partial_func = functools.partial(self.func, *self.args, **self.kwargs)
-        return partial_func(*actual_call.args, **actual_call.kwargs)
+        return self._bound_func(*actual_call.args, **actual_call.kwargs)
+
+
+class InvokeAsync(Invoke):
+    """Similar to :class:`Invoke`, but to be used with asynchronous Python
+    code.
+
+    This action can be instantiated with either non-async or async *func*. No
+    matter which one you pick, it always makes mock awaitable. Here's an
+    example showing usage with both callback function types:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import Mock
+        from mockify.actions import InvokeAsync
+        from mockify.matchers import _
+
+        async def test_invoke_async_with_non_async_func():
+
+            def func(numbers):
+                return sum(numbers)
+
+            mock = Mock('func')
+            mock.expect_call(_).will_once(InvokeAsync(func))
+            with satisfied(mock):
+                assert await mock([1, 2, 3]) == 6
+
+        async def test_invoke_async_with_async_func():
+
+            async def async_func(numbers):
+                return sum(numbers)
+
+            mock = Mock('func')
+            mock.expect_call(_).will_once(InvokeAsync(async_func))
+            with satisfied(mock):
+                assert await mock([1, 2, 3]) == 6
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_invoke_async_with_non_async_func())
+        asyncio.run(test_invoke_async_with_async_func())
+
+    .. versionadded:: (unreleased)
+    """
+
+    def __call__(self, actual_call):
+
+        async def proxy(func, actual_call):
+            if inspect.iscoroutinefunction(func.func):
+                return await func(*actual_call.args, **actual_call.kwargs)
+            return func(*actual_call.args, **actual_call.kwargs)
+
+        return proxy(self._bound_func, actual_call)
