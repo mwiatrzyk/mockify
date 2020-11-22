@@ -367,7 +367,7 @@ class InvokeAsync(Invoke):
     def __call__(self, actual_call):
 
         async def proxy(func, actual_call):
-            if inspect.iscoroutinefunction(func):
+            if inspect.iscoroutinefunction(func.func):
                 return await func(*actual_call.args, **actual_call.kwargs)
             return func(*actual_call.args, **actual_call.kwargs)
 
