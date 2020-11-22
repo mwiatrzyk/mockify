@@ -46,7 +46,7 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
 
         This is later used in error messages when test fails.
 
-        .. versionchanged:: 0.11
+        .. versionchanged:: (unreleased)
             Now this is made abstract and previous abstract
             :meth:`format_params` was removed
         """
@@ -118,7 +118,7 @@ class ReturnAsync(Return):
         from mockify._compat import asyncio
         asyncio.run(test_async_caller())
 
-    .. versionadded:: 0.11
+    .. versionadded:: (unreleased)
     """
 
     def __call__(self, actual_call):
@@ -186,7 +186,7 @@ class IterateAsync(Iterate):
         from mockify._compat import asyncio
         asyncio.run(test_get_next())
 
-    .. versionadded:: 0.11
+    .. versionadded:: (unreleased)
     """
 
     def __call__(self, actual_call):
@@ -223,6 +223,47 @@ class Raise(Action):
 
     def __call__(self, actual_call):
         raise self.exc
+
+
+class RaiseAsync(Raise):
+    """Similar to :class:`Raise`, but to be used with asynchronous Python
+    code.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import Mock
+        from mockify.actions import RaiseAsync
+
+        async def async_caller(func):
+            try:
+                return await func()
+            except ValueError as e:
+                return str(e)
+
+        async def test_async_caller():
+            func = Mock('func')
+            func.expect_call().will_once(RaiseAsync(ValueError('an error')))
+            with satisfied(func):
+                assert await async_caller(func) == 'an error'
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_async_caller())
+
+    .. versionadded:: (unreleased)
+    """
+
+    def __call__(self, actual_call):
+
+        async def proxy(exc):
+            raise exc
+
+        return proxy(self.exc)
 
 
 class Invoke(Action):
