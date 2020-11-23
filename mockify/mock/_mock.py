@@ -11,7 +11,7 @@
 from typing import Callable, Dict
 
 from .. import _utils
-from ..core import BaseMock, Call
+from ..core import BaseMock, Call, MockInfo
 
 
 class Mock(BaseMock):
@@ -72,13 +72,17 @@ class Mock(BaseMock):
     def __init__(self, name, **kwargs):
         super().__init__(name=name, **kwargs)
 
+    @property
+    def _info(self):
+        return MockInfo(self)
+
     def __m_children__(self):
         for obj in self.__dict__.values():
             if isinstance(obj, Mock):
                 yield obj
 
     def __m_expectations__(self):
-        fullname = self.__m_fullname__
+        fullname = self._info.fullname
         return filter(
             lambda x: x.expected_call.name == fullname,
             self.__m_session__.expectations()
@@ -107,11 +111,11 @@ class Mock(BaseMock):
         return tmp
 
     def __call__(self, *args, **kwargs):
-        actual_call = Call(self.__m_fullname__, *args, **kwargs)
+        actual_call = Call(self._info.fullname, *args, **kwargs)
         return self.__m_session__(actual_call)
 
     def expect_call(self, *args, **kwargs):
-        expected_call = Call(self.__m_fullname__, *args, **kwargs)
+        expected_call = Call(self._info.fullname, *args, **kwargs)
         return self.__m_session__.expect_call(expected_call)
 
 
@@ -122,7 +126,7 @@ class _GetAttrMock(Mock):
         super().__init__('__getattr__', parent=parent)
 
     def __call__(self, name):
-        actual_call = Call(self.__m_fullname__, name)
+        actual_call = Call(self._info.fullname, name)
         return self.__m_session__(actual_call)
 
     def expect_call(self, name):
@@ -136,7 +140,7 @@ class _GetAttrMock(Mock):
                 "__getattr__.expect_call() must be called with a non existing property name, "
                 "got {!r} which already exists".format(name)
             )
-        expected_call = Call(self.__m_fullname__, name)
+        expected_call = Call(self._info.fullname, name)
         return self.__m_session__.expect_call(expected_call)
 
 
@@ -147,7 +151,7 @@ class _SetAttrMock(Mock):
         super().__init__('__setattr__', parent=parent)
 
     def __call__(self, name, value):
-        actual_call = Call(self.__m_fullname__, name, value)
+        actual_call = Call(self._info.fullname, name, value)
         return self.__m_session__(actual_call)
 
     def expect_call(self, name, value):
@@ -161,7 +165,7 @@ class _SetAttrMock(Mock):
                 "__setattr__.expect_call() must be called with a non existing property name, "
                 "got {!r} which already exists".format(name)
             )
-        expected_call = Call(self.__m_fullname__, name, value)
+        expected_call = Call(self._info.fullname, name, value)
         return self.__m_session__.expect_call(expected_call)
 
 
@@ -172,14 +176,14 @@ class _ExpectCallMock(Mock):
 
     def __call__(self, *args, **kwargs):
         query = _utils.IterableQuery(self.__m_session__.expectations())
-        if query.exists(lambda x: x.expected_call.name == self.__m_fullname__):
+        if query.exists(lambda x: x.expected_call.name == self._info.fullname):
             return self._call(*args, **kwargs)
         return self._expect_call(*args, **kwargs)
 
     def _call(self, *args, **kwargs):
-        actual_call = Call(self.__m_fullname__, *args, **kwargs)
+        actual_call = Call(self._info.fullname, *args, **kwargs)
         return self.__m_session__(actual_call)
 
     def _expect_call(self, *args, **kwargs):
-        expected_call = Call(self.__m_parent__.__m_fullname__, *args, **kwargs)
+        expected_call = Call(self._info.parent.fullname, *args, **kwargs)
         return self.__m_session__.expect_call(expected_call)

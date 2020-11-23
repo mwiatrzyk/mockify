@@ -12,6 +12,7 @@
 # pylint: disable=missing-module-docstring
 
 from .. import exc
+from ._base_mock import MockInfo
 
 
 def assert_satisfied(*mocks):
@@ -25,9 +26,9 @@ def assert_satisfied(*mocks):
 
     def iter_unsatisfied_expectations(mocks):
         for mock in mocks:
-            for child in mock.__m_walk__():
+            for child in MockInfo(mock).walk():
                 yield from (
-                    x for x in child.__m_expectations__()
+                    x for x in child.expectations()
                     if not x.is_satisfied()
                 )
 
