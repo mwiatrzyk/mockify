@@ -31,10 +31,12 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
     interface.
 
     :param name:
-        Mock name.
+        Name of this mock.
 
-        This is used for error reporting to display which mock has failed.
-        This attribute must be set by inheriting class.
+        This is later used in error reports and it identifies the mock in
+        Mockify's internals. The name used here must be a valid Python
+        identifier (or identifiers, concatenated with a period sign) and
+        should reflect what the mock is actually mocking.
 
     :param session:
         Instance of :class:`mockify.core.Session` to be used.
@@ -59,7 +61,7 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
     .. versionadded:: 0.8
     """
 
-    def __init__(self, name=None, session=None, parent=None):
+    def __init__(self, name, session=None, parent=None):
         self.__name = name
         self.__parent = _utils.make_weak(parent)
         if name is not None:

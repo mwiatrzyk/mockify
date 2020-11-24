@@ -17,6 +17,14 @@
     was removed and :meth:`mockify.cardinality.ExpectedCallCount.__repr__` is
     now made abstract instead
 
+**Deprecated**
+
+  * Methods :meth:`mockify.core.BaseMock.__m_fullname__` and
+    :meth:`mockify.core.BaseMock.__m_walk__` are made deprecated and will be
+    removed in one of upcoming releases; functionality is now provided
+    completely by class :class:`mockify.core.MockInfo` (which was previously
+    acting as a proxy)
+
 **Other**
 
   * Added CLI tasks to serve documentation and coverage locally for development

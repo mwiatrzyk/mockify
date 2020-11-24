@@ -69,9 +69,6 @@ class Mock(BaseMock):
         'expect_call': lambda: _ExpectCallMock,
     }
 
-    def __init__(self, name, **kwargs):
-        super().__init__(name=name, **kwargs)
-
     @property
     def _info(self):
         return MockInfo(self)

@@ -45,9 +45,6 @@ class FunctionMock(BaseMock):
     .. versionadded:: 0.8
     """
 
-    def __init__(self, name, **kwargs):
-        super().__init__(name=name, **kwargs)
-
     @property
     def _info(self):
         return MockInfo(self)

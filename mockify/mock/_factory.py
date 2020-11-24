@@ -53,7 +53,7 @@ class MockFactory(BaseMock):
     """
 
     def __init__(self, name=None, mock_class=None, **kwargs):
-        super().__init__(name=name, **kwargs)
+        super().__init__(name, **kwargs)
         self._mock_class = mock_class or Mock
         self._factories = {}
         self._mocks = {}
