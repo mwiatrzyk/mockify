@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from ..core import BaseMock, Call
+from ..core import BaseMock, Call, MockInfo
 
 
 class FunctionMock(BaseMock):
@@ -45,22 +45,23 @@ class FunctionMock(BaseMock):
     .. versionadded:: 0.8
     """
 
-    def __init__(self, name, **kwargs):
-        super().__init__(name=name, **kwargs)
+    @property
+    def _info(self):
+        return MockInfo(self)
 
     def __m_children__(self):
         return iter([])  # Function mock has no children
 
     def __m_expectations__(self):
         return filter(
-            lambda x: x.expected_call.name == self.__m_fullname__,
+            lambda x: x.expected_call.name == self._info.fullname,
             self.__m_session__.expectations()
         )
 
     def __call__(self, *args, **kwargs):
-        return self.__m_session__(Call(self.__m_fullname__, *args, **kwargs))
+        return self.__m_session__(Call(self._info.fullname, *args, **kwargs))
 
     def expect_call(self, *args, **kwargs):
         return self.__m_session__.expect_call(
-            Call(self.__m_fullname__, *args, **kwargs)
+            Call(self._info.fullname, *args, **kwargs)
         )

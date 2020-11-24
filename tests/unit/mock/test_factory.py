@@ -25,7 +25,7 @@ class TestMockFactory:
 
     def test_child_factory_has_parent_of_uut(self):
         child = self.uut.factory('child')
-        assert MockInfo(child).parent is self.uut
+        assert MockInfo(child).parent.target is self.uut
 
     @pytest.mark.parametrize(
         'factory, expected_name', [

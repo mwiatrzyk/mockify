@@ -14,7 +14,7 @@ import pytest
 
 from mockify import exc
 from mockify.actions import Return
-from mockify.core import assert_satisfied, satisfied
+from mockify.core import MockInfo, assert_satisfied, satisfied
 from mockify.mock import ABCMock
 
 
@@ -192,10 +192,10 @@ class TestABCMock:
 
     @pytest.mark.parametrize('name', _valid_names)
     def test_get_mock_fullname(self, name):
-        assert ABCMock(name, IDummy).__m_fullname__ == name
+        assert MockInfo(ABCMock(name, IDummy)).fullname == name
 
     def test_get_fullname_of_a_method(self):
-        assert self.uut.spam.__m_fullname__ == 'uut.spam'
+        assert MockInfo(self.uut.spam).fullname == 'uut.spam'
 
     def test_list_mock_children(self):
         children = set(self.uut.__m_children__())

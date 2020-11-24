@@ -84,7 +84,7 @@ class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
         call count, this should render actual object representation, i.e.
         module, name, params it was created with etc.
 
-        .. versionchanged:: (unreleased)
+        .. versionchanged:: 0.11
             Now this is made abstract and previous :meth:`format_params` was
             removed.
         """

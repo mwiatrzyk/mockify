@@ -13,11 +13,11 @@
 import argparse
 import contextlib
 import glob
+import itertools
 import logging
 import os
 import re
 import shutil
-import itertools
 import sys
 from datetime import datetime
 
@@ -40,7 +40,10 @@ _CHANGELOG_TAG_RE = re.compile(
     r'(\(unreleased\))|((\d+\.\d+\.\d+)\s+\((\d+-\d+-\d+)\))',
     flags=re.IGNORECASE
 )
-_SPHINX_ADDED_CHANGED_RE = re.compile(r'\.\. (versionadded|versionchanged)\:\:\s+(\(unreleased\))', flags=re.IGNORECASE)
+_SPHINX_ADDED_CHANGED_RE = re.compile(
+    r'\.\. (versionadded|versionchanged|deprecated)\:\:\s+(\(unreleased\))',
+    flags=re.IGNORECASE
+)
 
 
 @contextlib.contextmanager
@@ -109,13 +112,16 @@ def update(args):
     def update_docstrings(version):
         major, minor, _ = version.split('.', 2)
         for path in itertools.chain(
-                glob.glob(_SOURCES_PATH + '/**/*.py', recursive=True),
-                glob.glob(_DOCS_PATH + '/**/*.rst', recursive=True)):
+            glob.glob(_SOURCES_PATH + '/**/*.py', recursive=True),
+            glob.glob(_DOCS_PATH + '/**/*.rst', recursive=True)
+        ):
             with overwrite(path) as (src, dest):
                 for line in src:
                     found = _SPHINX_ADDED_CHANGED_RE.search(line)
                     if found is not None:
-                        line = line.replace(found.group(2), "{}.{}".format(major, minor))
+                        line = line.replace(
+                            found.group(2), "{}.{}".format(major, minor)
+                        )
                     dest.write(line)
 
     version_string = parse_version(args)
@@ -169,8 +175,9 @@ def check(args):
 
     def check_docstrings():
         for path in itertools.chain(
-                glob.glob(_SOURCES_PATH + '/**/*.py', recursive=True),
-                glob.glob(_DOCS_PATH + '/**/*.rst', recursive=True)):
+            glob.glob(_SOURCES_PATH + '/**/*.py', recursive=True),
+            glob.glob(_DOCS_PATH + '/**/*.rst', recursive=True)
+        ):
             with open(path) as fd:
                 for line in fd:
                     found = _SPHINX_ADDED_CHANGED_RE.search(line)

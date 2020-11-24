@@ -136,7 +136,7 @@ def ABCMock(name, abstract_base_class, **kwargs):
                     ) from None
 
         def __init__(self, name, **kwargs):
-            super().__init__(name=name, **kwargs)
+            super().__init__(name, **kwargs)
             if self.__abstract_properties__:
                 self.__dict__['__getattr__'] = self._GetAttrProxy(
                     '__getattr__', self

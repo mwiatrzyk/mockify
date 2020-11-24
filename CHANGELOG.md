@@ -1,5 +1,5 @@
-(unreleased)
-------------
+0.11.0 (2020-11-24)
+-------------------
 
 **Added**
 
@@ -16,6 +16,14 @@
   * Abstract method :meth:`mockify.cardinality.ExpectedCallCount.format_params`
     was removed and :meth:`mockify.cardinality.ExpectedCallCount.__repr__` is
     now made abstract instead
+
+**Deprecated**
+
+  * Methods :meth:`mockify.core.BaseMock.__m_fullname__` and
+    :meth:`mockify.core.BaseMock.__m_walk__` are made deprecated and will be
+    removed in one of upcoming releases; functionality is now provided
+    completely by class :class:`mockify.core.MockInfo` (which was previously
+    acting as a proxy)
 
 **Other**
 

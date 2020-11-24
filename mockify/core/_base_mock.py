@@ -12,6 +12,7 @@
 # pylint: disable=missing-module-docstring
 
 import abc
+import warnings
 
 from .. import _utils
 from ._session import Session
@@ -30,10 +31,12 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
     interface.
 
     :param name:
-        Mock name.
+        Name of this mock.
 
-        This is used for error reporting to display which mock has failed.
-        This attribute must be set by inheriting class.
+        This is later used in error reports and it identifies the mock in
+        Mockify's internals. The name used here must be a valid Python
+        identifier (or identifiers, concatenated with a period sign) and
+        should reflect what the mock is actually mocking.
 
     :param session:
         Instance of :class:`mockify.core.Session` to be used.
@@ -44,9 +47,8 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
     :param parent:
         Instance of :class:`BaseMock` representing parent for this mock.
 
-        When this parameter is given, mock implicitly uses same session as
-        given parent and uses parent's :attr:`__m_fullname__` as a prefix for
-        its fullname.
+        When this parameter is given, mock implicitly uses paren't session
+        object.
 
     .. note::
         Parameters ``session`` and ``parent`` are self-exclusive and cannot
@@ -59,7 +61,7 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
     .. versionadded:: 0.8
     """
 
-    def __init__(self, name=None, session=None, parent=None):
+    def __init__(self, name, session=None, parent=None):
         self.__name = name
         self.__parent = _utils.make_weak(parent)
         if name is not None:
@@ -92,7 +94,7 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
         return self.__session
 
     @property
-    def __m_parent__(self):
+    def __m_parent__(self) -> 'BaseMock':
         """Weak reference to :class:`BaseMock` that is a parent of this
         mock.
 
@@ -113,7 +115,17 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
         It is composed of parent's :attr:`__m_fullname__` and current
         :attr:`__m_name__`. If mock has no parent, then this will be same as
         :attr:`__m_name__`.
+
+        .. deprecated:: 0.11
+            This is now deprecated and will be removed in one of upcoming
+            releases.
+
+            To access mock's fullname, use :attr:`MockInfo.fullname`
         """
+        warnings.warn(
+            'Deprecated since 0.11 - use MockInfo(mock).fullname instead',
+            DeprecationWarning
+        )
         parent = self.__m_parent__
         if parent is None or parent.__m_fullname__ is None:
             return self.__m_name__
@@ -127,7 +139,17 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
 
         This method is used by Mockify internals to collect all expectations
         recorded for mock and all its children.
+
+        .. deprecated:: 0.11
+            This will be removed in one of upcoming releases.
+
+            To walk through all mock's children and grandchildren, use
+            :meth:`MockInfo.walk` instead.
         """
+        warnings.warn(
+            'Deprecated since 0.11 - use MockInfo(mock).walk() instead',
+            DeprecationWarning
+        )
 
         def walk(mock):
             yield mock
@@ -157,16 +179,17 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
 class MockInfo:
     """A class for inspecting mocks.
 
-    This class simplifies access to mock's special properties and methods
-    defined in :class:`BaseMock`, but wraps results (when applicable) with
-    :class:`MockInfo` instances. If you need to access mock metadata in your
-    tests, then this class is a recommended way to do this.
+    This class simplifies and extends access to mock's special properties and
+    methods defined in :class:`BaseMock`, but wraps results (when applicable)
+    with :class:`MockInfo` instances. If you need to access mock metadata in
+    your tests, or when you build your own mocks from the scratch, then you
+    should use this class.
 
     :param target:
         Instance of :class:`BaseMock` object to be inspected
     """
 
-    def __init__(self, target):
+    def __init__(self, target: BaseMock):
         if not isinstance(target, BaseMock):
             raise TypeError(
                 "__init__() got an invalid value for argument 'target'"
@@ -205,7 +228,10 @@ class MockInfo:
 
         .. versionadded:: 0.8
         """
-        return self._target.__m_parent__
+        parent = self._target.__m_parent__
+        if parent is None:
+            return None
+        return self.__class__(parent)
 
     @property
     def name(self):
@@ -218,11 +244,19 @@ class MockInfo:
 
     @property
     def fullname(self):
-        """A proxy to access :attr:`BaseMock.__m_fullname__` of target mock.
+        """Return full name of underlying mock.
+
+        Mock's full name is calculated by concatenating :attr:`fullname` of
+        info object representing mock's parent, with :attr:`name` of this
+        info object. If there is no parent or parent has no full name, then
+        this is the same as :attr:`name`.
 
         .. versionadded:: 0.8
         """
-        return self._target.__m_fullname__
+        parent = self.parent
+        if parent is None or parent.fullname is None:
+            return self.name
+        return "{}.{}".format(parent.fullname, self.name)
 
     @property
     def session(self):
@@ -243,9 +277,18 @@ class MockInfo:
             yield self.__class__(child)
 
     def walk(self):
-        """An iterator over results returnend by :meth:`BaseMock.__m_walk__` method.
+        """Recursively iterate over :class:`MockInfo` instances yielded by
+        :meth:`children` generator.
 
-        It wraps each found child with a :class:`MockInfo` object.
+        It always yields *self* as first element.
+
+        This method is used by Mockify internals to collect all expectations
+        recorded for mock and all its children.
         """
-        for child in self._target.__m_walk__():
-            yield self.__class__(child)
+
+        def walk(mock):
+            yield mock
+            for child in mock.children():
+                yield from walk(child)
+
+        yield from walk(self)

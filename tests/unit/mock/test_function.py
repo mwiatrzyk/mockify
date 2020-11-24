@@ -12,7 +12,7 @@ import pytest
 
 from mockify import exc
 from mockify.actions import Return
-from mockify.core import Session, assert_satisfied, satisfied
+from mockify.core import MockInfo, Session, assert_satisfied, satisfied
 from mockify.mock import FunctionMock
 
 
@@ -43,7 +43,7 @@ class TestFunctionMock:
 
     @pytest.mark.parametrize('name', _valid_names)
     def test_get_mock_full_name(self, name):
-        assert FunctionMock(name).__m_fullname__ == name
+        assert MockInfo(FunctionMock(name)).fullname == name
 
     def test_get_mock_session(self):
         session = Session()

@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from ..core import BaseMock
+from ..core import BaseMock, MockInfo
 from ._mock import Mock
 
 
@@ -53,7 +53,7 @@ class MockFactory(BaseMock):
     """
 
     def __init__(self, name=None, mock_class=None, **kwargs):
-        super().__init__(name=name, **kwargs)
+        super().__init__(name, **kwargs)
         self._mock_class = mock_class or Mock
         self._factories = {}
         self._mocks = {}
@@ -67,8 +67,8 @@ class MockFactory(BaseMock):
             yield from mock.__m_expectations__()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(
-            self=self
+        return "<{self.__module__}.{self.__class__.__name__}({self_info.fullname!r})>".format(
+            self=self, self_info=MockInfo(self)
         )
 
     def mock(self, name):

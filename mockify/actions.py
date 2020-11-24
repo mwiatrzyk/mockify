@@ -16,8 +16,8 @@ function, raising exception etc.
 """
 
 import abc
-import inspect
 import functools
+import inspect
 
 from . import _utils
 
@@ -47,7 +47,7 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
 
         This is later used in error messages when test fails.
 
-        .. versionchanged:: (unreleased)
+        .. versionchanged:: 0.11
             Now this is made abstract and previous abstract
             :meth:`format_params` was removed
         """
@@ -119,7 +119,7 @@ class ReturnAsync(Return):
         from mockify._compat import asyncio
         asyncio.run(test_async_caller())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.11
     """
 
     def __call__(self, actual_call):
@@ -187,7 +187,7 @@ class IterateAsync(Iterate):
         from mockify._compat import asyncio
         asyncio.run(test_get_next())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.11
     """
 
     def __call__(self, actual_call):
@@ -256,7 +256,7 @@ class RaiseAsync(Raise):
         from mockify._compat import asyncio
         asyncio.run(test_async_caller())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.11
     """
 
     def __call__(self, actual_call):
@@ -361,7 +361,7 @@ class InvokeAsync(Invoke):
         asyncio.run(test_invoke_async_with_non_async_func())
         asyncio.run(test_invoke_async_with_async_func())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.11
     """
 
     def __call__(self, actual_call):
