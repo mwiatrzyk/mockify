@@ -39,9 +39,7 @@ def ordered(*mocks):  # TODO: add more tests
             if session is not second.session:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(
-                        first.fullname, second.fullname
-                    )
+                    "session object".format(first.fullname, second.fullname)
                 )
         return session
 

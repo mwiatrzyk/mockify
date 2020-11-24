@@ -28,8 +28,7 @@ def assert_satisfied(*mocks):
         for mock in mocks:
             for child in MockInfo(mock).walk():
                 yield from (
-                    x for x in child.expectations()
-                    if not x.is_satisfied()
+                    x for x in child.expectations() if not x.is_satisfied()
                 )
 
     unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))

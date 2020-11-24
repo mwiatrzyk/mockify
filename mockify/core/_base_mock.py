@@ -116,13 +116,16 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
         :attr:`__m_name__`. If mock has no parent, then this will be same as
         :attr:`__m_name__`.
 
-        .. deprecated:: (unreleased)
+        .. deprecated:: 0.11
             This is now deprecated and will be removed in one of upcoming
             releases.
 
             To access mock's fullname, use :attr:`MockInfo.fullname`
         """
-        warnings.warn('Deprecated since 0.11 - use MockInfo(mock).fullname instead', DeprecationWarning)
+        warnings.warn(
+            'Deprecated since 0.11 - use MockInfo(mock).fullname instead',
+            DeprecationWarning
+        )
         parent = self.__m_parent__
         if parent is None or parent.__m_fullname__ is None:
             return self.__m_name__
@@ -137,13 +140,16 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
         This method is used by Mockify internals to collect all expectations
         recorded for mock and all its children.
 
-        .. deprecated:: (unreleased)
+        .. deprecated:: 0.11
             This will be removed in one of upcoming releases.
 
             To walk through all mock's children and grandchildren, use
             :meth:`MockInfo.walk` instead.
         """
-        warnings.warn('Deprecated since 0.11 - use MockInfo(mock).walk() instead', DeprecationWarning)
+        warnings.warn(
+            'Deprecated since 0.11 - use MockInfo(mock).walk() instead',
+            DeprecationWarning
+        )
 
         def walk(mock):
             yield mock
