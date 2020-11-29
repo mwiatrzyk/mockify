@@ -18,7 +18,7 @@ function, raising exception etc.
 import abc
 import functools
 import inspect
-from contextlib import asynccontextmanager, contextmanager
+from contextlib import contextmanager
 
 from . import _utils
 
@@ -219,11 +219,18 @@ class ReturnAsyncContext(ReturnContext):
 
     def __call__(self, actual_call):
 
-        @asynccontextmanager
-        async def proxy(value):
-            yield value
+        class Proxy:
 
-        return proxy(self.value)
+            def __init__(self, value):
+                self._value = value
+
+            async def __aenter__(self):
+                return self._value
+
+            async def __aexit__(self, exc_type, exc_value, traceback):
+                pass
+
+        return Proxy(self.value)
 
 
 class Iterate(Action):
