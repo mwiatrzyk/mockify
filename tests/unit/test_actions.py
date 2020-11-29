@@ -13,7 +13,7 @@ import pytest
 
 from mockify.actions import (
     Invoke, InvokeAsync, Iterate, IterateAsync, Raise, RaiseAsync, Return,
-    ReturnAsync, YieldAsync, ReturnContext, ReturnAsyncContext
+    ReturnAsync, ReturnAsyncContext, ReturnContext, YieldAsync
 )
 from mockify.core import satisfied
 from mockify.mock import Mock
@@ -124,7 +124,9 @@ class TestReturnAsyncContext:
         assert str(ReturnAsyncContext(value)) == expected_str
 
     @pytest.mark.asyncio
-    async def test_expect_mock_to_return_value_via_async_context_manager_when_called(self):
+    async def test_expect_mock_to_return_value_via_async_context_manager_when_called(
+        self
+    ):
         mock = Mock('mock')
         mock.expect_call().will_once(ReturnAsyncContext(123))
         with satisfied(mock):

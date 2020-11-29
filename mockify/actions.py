@@ -18,8 +18,7 @@ function, raising exception etc.
 import abc
 import functools
 import inspect
-
-from contextlib import contextmanager, asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 
 from . import _utils
 
@@ -167,7 +166,7 @@ class ReturnContext(Return):
 
         test_user_storage_get()
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.12
     """
 
     def __call__(self, actual_call):
@@ -215,7 +214,7 @@ class ReturnAsyncContext(ReturnContext):
         from mockify._compat import asyncio
         asyncio.run(test_user_storage_async_get())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.12
     """
 
     def __call__(self, actual_call):
@@ -326,7 +325,7 @@ class YieldAsync(Iterate):
         from mockify._compat import asyncio
         asyncio.run(test_fetch())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.12
     """
 
     def __call__(self, actual_call):
