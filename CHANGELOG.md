@@ -4,6 +4,7 @@
 **Added**
 
   * New action added: :class:`mockify.actions.YieldAsync`
+  * New action added: :class:`mockify.actions.ReturnContext`
 
 0.11.0 (2020-11-24)
 -------------------
