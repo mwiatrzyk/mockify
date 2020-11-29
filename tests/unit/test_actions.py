@@ -13,7 +13,7 @@ import pytest
 
 from mockify.actions import (
     Invoke, InvokeAsync, Iterate, IterateAsync, Raise, RaiseAsync, Return,
-    ReturnAsync, YieldAsync
+    ReturnAsync, YieldAsync, ReturnContext
 )
 from mockify.core import satisfied
 from mockify.mock import Mock
@@ -81,6 +81,30 @@ class TestReturnAsync:
         mock.expect_call().will_once(ReturnAsync(1))
         with satisfied(mock):
             assert await mock() == 1
+
+
+class TestReturnContext:
+    _str_test_data = [
+        (123, 'ReturnContext(123)'),
+        (3.14, 'ReturnContext(3.14)'),
+        ('foo', "ReturnContext('foo')"),
+    ]
+
+    @pytest.mark.parametrize('value, expected_repr', _str_test_data)
+    def test_repr(self, value, expected_repr):
+        assert repr(ReturnContext(value)
+                    ) == "<mockify.actions.{}>".format(expected_repr)
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(ReturnContext(value)) == expected_str
+
+    def test_expect_mock_to_return_value_via_context_manager_when_called(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(ReturnContext(123))
+        with satisfied(mock):
+            with mock() as ctx:
+                assert ctx == 123
 
 
 class TestIterate:

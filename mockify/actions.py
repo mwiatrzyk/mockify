@@ -19,6 +19,8 @@ import abc
 import functools
 import inspect
 
+from contextlib import contextmanager
+
 from . import _utils
 
 
@@ -126,6 +128,53 @@ class ReturnAsync(Return):
 
         async def proxy(value):
             return value
+
+        return proxy(self.value)
+
+
+class ReturnContext(Return):
+    """Similar to :class:`Return`, but returns *value* via context
+    manager.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import MockFactory
+        from mockify.actions import Return, ReturnContext
+
+        class UserStorage:
+
+            def __init__(self, database):
+                self._database = database
+
+            def get(self, user_id):
+                with self._database.begin_transaction() as transaction:
+                    return transaction.users.get(user_id)
+
+        def test_user_storage_get():
+            factory = MockFactory()
+            transaction = factory.mock('transaction')
+            transaction.users.get.expect_call(123).will_once(Return('user-123'))
+            database = factory.mock('database')
+            database.begin_transaction.expect_call().will_once(ReturnContext(transaction))
+            with satisfied(factory):
+                assert UserStorage(database).get(123) == 'user-123'
+
+    .. testcode::
+        :hide:
+
+        test_user_storage_get()
+
+    .. versionadded:: (unreleased)
+    """
+
+    def __call__(self, actual_call):
+
+        @contextmanager
+        def proxy(value):
+            yield value
 
         return proxy(self.value)
 
