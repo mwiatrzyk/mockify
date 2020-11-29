@@ -13,7 +13,7 @@ import pytest
 
 from mockify.actions import (
     Invoke, InvokeAsync, Iterate, IterateAsync, Raise, RaiseAsync, Return,
-    ReturnAsync
+    ReturnAsync, YieldAsync
 )
 from mockify.core import satisfied
 from mockify.mock import Mock
@@ -144,6 +144,31 @@ class TestIterateAsync:
         mock.expect_call().will_once(IterateAsync('abc'))
         with satisfied(mock):
             assert list(await mock()) == list('abc')
+
+
+class TestYieldAsync:
+    _str_test_data = [
+        (123, 'YieldAsync(123)'),
+        (3.14, 'YieldAsync(3.14)'),
+        ('foo', "YieldAsync('foo')"),
+    ]
+
+    @pytest.mark.parametrize('value, expected_repr', _str_test_data)
+    def test_repr(self, value, expected_repr):
+        assert repr(YieldAsync(value)
+                    ) == "<mockify.actions.{}>".format(expected_repr)
+
+    @pytest.mark.parametrize('value, expected_str', _str_test_data)
+    def test_str(self, value, expected_str):
+        assert str(YieldAsync(value)) == expected_str
+
+    @pytest.mark.asyncio
+    async def test_expect_mock_to_async_iterate_over_sequence_once(self):
+        mock = Mock('mock')
+        mock.expect_call().will_once(YieldAsync('abc'))
+        with satisfied(mock):
+            async for item in mock():
+                print(item)
 
 
 class TestRaiseBase:
