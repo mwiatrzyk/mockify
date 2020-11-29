@@ -19,7 +19,7 @@ import abc
 import functools
 import inspect
 
-from contextlib import contextmanager
+from contextlib import contextmanager, asynccontextmanager
 
 from . import _utils
 
@@ -174,6 +174,54 @@ class ReturnContext(Return):
 
         @contextmanager
         def proxy(value):
+            yield value
+
+        return proxy(self.value)
+
+
+class ReturnAsyncContext(ReturnContext):
+    """Similar to :class:`ReturnContext`, but returns *value* via async
+    context manager.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import MockFactory
+        from mockify.actions import Return, ReturnAsyncContext
+
+        class UserStorage:
+
+            def __init__(self, database):
+                self._database = database
+
+            async def get(self, user_id):
+                async with self._database.begin_transaction() as transaction:
+                    return await transaction.users.get(user_id)
+
+        async def test_user_storage_async_get():
+            factory = MockFactory()
+            transaction = factory.mock('transaction')
+            transaction.users.get.expect_call(123).will_once(ReturnAsync('user-123'))
+            database = factory.mock('database')
+            database.begin_transaction.expect_call().will_once(ReturnAsyncContext(transaction))
+            with satisfied(factory):
+                assert await UserStorage(database).get(123) == 'user-123'
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_user_storage_async_get())
+
+    .. versionadded:: (unreleased)
+    """
+
+    def __call__(self, actual_call):
+
+        @asynccontextmanager
+        async def proxy(value):
             yield value
 
         return proxy(self.value)
