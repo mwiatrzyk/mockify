@@ -198,6 +198,49 @@ class IterateAsync(Iterate):
         return proxy(self.iterable)
 
 
+class YieldAsync(Iterate):
+    """Similar to :class:`Iterate`, but returns async iterator to given *iterable*.
+
+    This iterator can later be used with ``async for`` statement.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import Mock
+        from mockify.actions import YieldAsync
+
+        async def fetch(func):
+            result = []
+            async for item in func():
+                result.append(item)
+            return result
+
+        async def test_fetch():
+            func = Mock('func')
+            func.expect_call().will_once(YieldAsync('foo'))
+            with satisfied(func):
+                assert await fetch(func) == ['f', 'o', 'o']
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_fetch())
+
+    .. versionadded:: (unreleased)
+    """
+
+    def __call__(self, actual_call):
+
+        async def proxy(iterable):
+            for item in iterable:
+                yield item
+
+        return proxy(self.iterable)
+
+
 class Raise(Action):
     """Forces mock to raise *exc* when called.
 

@@ -1,3 +1,10 @@
+(unreleased)
+------------
+
+**Added**
+
+  * New action added: :class:`mockify.actions.YieldAsync`
+
 0.11.0 (2020-11-24)
 -------------------
 
