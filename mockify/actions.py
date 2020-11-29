@@ -18,7 +18,6 @@ function, raising exception etc.
 import abc
 import functools
 import inspect
-
 from contextlib import contextmanager
 
 from . import _utils
@@ -167,7 +166,7 @@ class ReturnContext(Return):
 
         test_user_storage_get()
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.12
     """
 
     def __call__(self, actual_call):
@@ -177,6 +176,61 @@ class ReturnContext(Return):
             yield value
 
         return proxy(self.value)
+
+
+class ReturnAsyncContext(ReturnContext):
+    """Similar to :class:`ReturnContext`, but returns *value* via async
+    context manager.
+
+    For example:
+
+    .. testcode::
+
+        from mockify.core import satisfied
+        from mockify.mock import MockFactory
+        from mockify.actions import Return, ReturnAsyncContext
+
+        class UserStorage:
+
+            def __init__(self, database):
+                self._database = database
+
+            async def get(self, user_id):
+                async with self._database.begin_transaction() as transaction:
+                    return await transaction.users.get(user_id)
+
+        async def test_user_storage_async_get():
+            factory = MockFactory()
+            transaction = factory.mock('transaction')
+            transaction.users.get.expect_call(123).will_once(ReturnAsync('user-123'))
+            database = factory.mock('database')
+            database.begin_transaction.expect_call().will_once(ReturnAsyncContext(transaction))
+            with satisfied(factory):
+                assert await UserStorage(database).get(123) == 'user-123'
+
+    .. testcode::
+        :hide:
+
+        from mockify._compat import asyncio
+        asyncio.run(test_user_storage_async_get())
+
+    .. versionadded:: 0.12
+    """
+
+    def __call__(self, actual_call):
+
+        class Proxy:
+
+            def __init__(self, value):
+                self._value = value
+
+            async def __aenter__(self):
+                return self._value
+
+            async def __aexit__(self, exc_type, exc_value, traceback):
+                pass
+
+        return Proxy(self.value)
 
 
 class Iterate(Action):
@@ -278,7 +332,7 @@ class YieldAsync(Iterate):
         from mockify._compat import asyncio
         asyncio.run(test_fetch())
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.12
     """
 
     def __call__(self, actual_call):

@@ -1,10 +1,11 @@
-(unreleased)
-------------
+0.12.0 (2020-11-29)
+-------------------
 
 **Added**
 
   * New action added: :class:`mockify.actions.YieldAsync`
   * New action added: :class:`mockify.actions.ReturnContext`
+  * New action added: :class:`mockify.actions.ReturnAsyncContext`
 
 0.11.0 (2020-11-24)
 -------------------
