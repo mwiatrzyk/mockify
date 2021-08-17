@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tests/unit/mock/test_mock.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -16,6 +16,7 @@ import pytest
 from mockify import exc
 from mockify.actions import Return
 from mockify.core import MockInfo, satisfied
+from mockify.expect import expect_call
 from mockify.mock import Mock
 
 
@@ -212,3 +213,8 @@ class TestMock:
         second = self.uut.expect_call()
         self.uut.foo.expect_call()
         assert set(MockInfo(self.uut).expectations()) == set([first, second])
+
+    def test_record_expectation_with_expect_call_function(self):
+        expect_call(self.uut, Mock.foo.bar, 1, 2, 3).will_once(Return(123))
+        with satisfied(self.uut):
+            assert self.uut.foo.bar(1, 2, 3) == 123

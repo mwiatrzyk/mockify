@@ -1,3 +1,23 @@
+(unreleased)
+------------
+
+**Added**
+
+  * Use of ABC classes as Mockify base interface (:mod:`mockify.interface`)
+  * Introducting new :mod:`mockify.expect` module containing set
+    of **expect_**-prefixed functions for recording expectations on mock
+    objects.
+
+    Current way of recording expectations (i.e.
+    ``mock.method.expect_call(...)``) will be deprecated once development of
+    this new module is done.
+
+    This is due to the fact that implementing public **expect_call()** method
+    on nested mocks is problematic and with separate module it will be easy to
+    properly document functions, have one common set of **expect_**-prefixed
+    functions for all mocks, and to hide actual mock expectation recording
+    logic behind the scenes.
+
 0.12.0 (2020-11-29)
 -------------------
 

@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api/mockify/exc.rst
+.. docs/source/api/mockify/interface.rst
 ..
 .. Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
@@ -10,9 +10,17 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.exc** - Library exceptions
-====================================
+**mockify.interface** - ABC classes for Mockify
+===============================================
 
-.. automodule:: mockify.exc
+.. versionadded:: 0.13
+
+.. testsetup::
+
+    from mockify.interface import IMock, MockAttr
+
+.. automodule:: mockify.interface
     :members:
+    :special-members: __call__, __getattr__
     :show-inheritance:
+

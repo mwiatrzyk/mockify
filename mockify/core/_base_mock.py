@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/core/_base_mock.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -14,11 +14,13 @@
 import abc
 import warnings
 
+from mockify.interface import IMock, MockAttr
+
 from .. import _utils
 from ._session import Session
 
 
-class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
+class BaseMock(IMock):  # pylint: disable=too-few-public-methods
     """Abstract base class for all mock classes.
 
     In Mockify, mocks are composed in a tree-like structure. For example, to
@@ -157,6 +159,9 @@ class BaseMock(abc.ABC):  # pylint: disable=too-few-public-methods
                 yield from walk(child)
 
         yield from walk(self)
+
+    def __m_get_method__(self, attr: MockAttr) -> 'BaseMock':
+        pass  # TODO: make this abstract
 
     @abc.abstractmethod
     def __m_expectations__(self):

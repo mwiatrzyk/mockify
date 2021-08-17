@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/_utils.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -15,6 +15,7 @@
 import functools
 import itertools
 import keyword
+import warnings
 import weakref
 
 
@@ -164,3 +165,32 @@ class DictEqualityMixin:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+def mark_deprecated(cls_or_func, old, new, since):
+    """Decorator for marking class or function as deprecated.
+
+    It will issue a warning once old import is used instead of a new
+    alternative.
+
+    :param cls_or_func:
+        Class or function object
+
+    :param old:
+        Name of old import
+
+    :param new:
+        Name of new import
+
+    :param since:
+        Version since wrapped class or function is marked as deprecated
+    """
+
+    @functools.wraps(cls_or_func)
+    def factory(*args, **kwargs):
+        message = "{old!r} is deprecated since {since} and will be completely "\
+            "removed in next major release - please use {new!r} instead".format(old=old, new=new, since=since)
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        return cls_or_func(*args, **kwargs)
+
+    return factory

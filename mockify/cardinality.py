@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/cardinality.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -13,6 +13,8 @@ calls."""
 
 import abc
 from functools import total_ordering
+
+from mockify.interface import IExpectedCallCount
 
 from . import _utils
 
@@ -69,7 +71,7 @@ class ActualCallCount:
         return self._value
 
 
-class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
+class ExpectedCallCount(IExpectedCallCount, _utils.DictEqualityMixin):
     """Abstract base class for classes used to set expected call count on
     mock objects.
 

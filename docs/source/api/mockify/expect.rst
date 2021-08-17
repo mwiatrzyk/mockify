@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api/mockify/exc.rst
+.. docs/source/api/mockify/expect.rst
 ..
 .. Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
@@ -10,9 +10,10 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.exc** - Library exceptions
-====================================
+**mockify.expect** - Functions for recording expectations
+=========================================================
 
-.. automodule:: mockify.exc
+.. versionadded:: 0.13
+
+.. automodule:: mockify.expect
     :members:
-    :show-inheritance:

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/core/_expectation.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -14,6 +14,8 @@
 import collections
 from enum import Enum
 
+from mockify.interface import IExpectation
+
 from .. import exc
 from ..actions import Return
 from ..cardinality import ActualCallCount, AtLeast, Exactly
@@ -25,7 +27,7 @@ class _ActionType(Enum):
     REPEATED = 'repeated'
 
 
-class Expectation:
+class Expectation(IExpectation):
     """An class representing single expectation.
 
     Instances of this class are created and returned by factory
@@ -283,14 +285,14 @@ class Expectation:
         def __repr__(self):
             return repr(self._expectation)
 
-    class _Times(_Mutation):
+    class _Times(_Mutation, IExpectation.ITimesMutation):
         # pylint: disable=too-few-public-methods
 
         def __init__(self, expectation, cardinality):
             self._expectation = expectation
             expectation._action_store[0].times(cardinality)
 
-    class _WillOnce(_Mutation):
+    class _WillOnce(_Mutation, IExpectation.IWillOnceMutation):
         # pylint: disable=missing-function-docstring
 
         def __init__(self, expectation, action):
@@ -308,7 +310,7 @@ class Expectation:
         def will_repeatedly(self, action):
             return self._expectation.will_repeatedly(action)
 
-    class _WillRepeatedly(_Mutation):
+    class _WillRepeatedly(_Mutation, IExpectation.IWillRepeatedlyMutation):
         # pylint: disable=missing-function-docstring
         # pylint: disable=too-few-public-methods
 
