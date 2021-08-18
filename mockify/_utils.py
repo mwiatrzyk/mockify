@@ -91,7 +91,7 @@ class ArgsKwargsFormatter:
     :param skip_kwarg_if:
         A function to be used to test each keyword argument.
 
-        If the function evaluates to true, that keyword argument will be
+        If the function evaluates to True, that keyword argument will be
         removed from string representation.
     """
 

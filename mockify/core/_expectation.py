@@ -285,7 +285,7 @@ class Expectation(IExpectation):
         def __repr__(self):
             return repr(self._expectation)
 
-    class _Times(_Mutation, IExpectation.ITimesMutation):
+    class _Times(_Mutation):
         # pylint: disable=too-few-public-methods
 
         def __init__(self, expectation, cardinality):

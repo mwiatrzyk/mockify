@@ -22,6 +22,8 @@ from contextlib import contextmanager
 
 from . import _utils
 
+from mockify.interface import IAction
+
 
 def _format_str(obj, *args, **kwargs):
     return "{}({})".format(
@@ -30,7 +32,7 @@ def _format_str(obj, *args, **kwargs):
     )
 
 
-class Action(abc.ABC, _utils.DictEqualityMixin):
+class Action(IAction, _utils.DictEqualityMixin):
     """Abstract base class for actions.
 
     This is common base class for all actions defined in this module. Custom

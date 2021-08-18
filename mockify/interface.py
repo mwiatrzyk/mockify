@@ -137,55 +137,110 @@ class ICall(abc.ABC):
 
 
 class IAction(abc.ABC):
-    pass
+    """An interface to be implemented by mock actions.
+
+    Actions are registered on mocks with a help of
+    :meth:`IExpectation.will_once` and :meth:`IExpectation.will_repeatedly`
+    methods and are used to set what the mock must do once called by code being
+    under test. The most trivial action is to set a mock return value, or force
+    it to raise given exception. Please proceed to :mod:`mockify.actions` to
+    get familiar with a bulk of built-in implementations.
+    """
+
+    @abc.abstractmethod
+    def __call__(self, actual_call: ICall) -> typing.Optional[typing.Any]:
+        """Action body.
+
+        This is the place where actual action execution takes place.
+
+        :param actual_call:
+            Mock call params wrapped with :class:`ICall` object.
+
+            Use this to get access to parameters passed to mock when it was
+            called by code being under test.
+        """
 
 
 class IExpectedCallCount(abc.ABC):
-    pass
+    """An interface to be implemented by classes that set expected call count
+    ranges.
+
+    Instances of this class are used by :meth:`IExpectation.times` and
+    :meth:`IExpectation.IWillRepeatedlyMutation.times` methods to set how many
+    times the mock is expected to be called. You can find built-in
+    implementations of this interface in :mod:`mockify.cardinality` module.
+    """
+
+    @abc.abstractmethod
+    def match(self, actual_call_count: int) -> bool:
+        """Check if actual number of calls matches expected number of calls."""
 
 
 class IExpectation(abc.ABC):
+    """Represents single expectation recorded on a mock.
 
-    class ITimesMutation(abc.ABC):
-        pass
+    Instances of this class are created by mock's **expect_call()** method or
+    by using functions from :mod:`mockify.expect` module.
+    """
 
     class IWillRepeatedlyMutation(abc.ABC):
+        """Provides return value annotation and interface for
+        **will_repeatedly()** methods."""
 
         @abc.abstractmethod
         def times(
             self, cardinality: IExpectedCallCount
-        ) -> 'IExpectation.ITimesMutation':
-            pass
+        ):
+            """Used to configure how many times repeated action is expected to
+            be called by mock."""
 
     class IWillOnceMutation(abc.ABC):
+        """Provides return value annotation and interface for **will_once()**
+        methods."""
 
         @abc.abstractmethod
         def will_once(
             self, action: IAction
         ) -> 'IExpectation.IWillOnceMutation':
-            pass
+            """Attach next one-time action to the action chain of current
+            expectation."""
 
         @abc.abstractmethod
         def will_repeatedly(
             self, action: IAction
         ) -> 'IExpectation.IWillRepeatedlyMutation':
-            pass
+            """Finalize action chain with a repeated action.
+
+            Repeated actions can by default be invoked indefinitely by mock,
+            unless expected call count is set explicitly with
+            :meth:`IExpectation.IWillRepeatedlyMutation.times` method on a
+            returned object. This is also a good way to set mock's default
+            action.
+
+            Since repeated actions act in a different way than one-time
+            actions, there is currently not possible to record one-time actions
+            after repeated action is set.
+            """
 
     @abc.abstractmethod
-    def __call__(self, actual_call: ICall) -> typing.Optional[typing.Any]:
-        pass
+    def times(self, value: typing.Union[int, IExpectedCallCount]):
+        """Set expected call count of this expectation object.
 
-    @abc.abstractmethod
-    def times(self, cardinality: IExpectedCallCount) -> ITimesMutation:
-        pass
+        :param value:
+            Expected call count value.
+
+            This can be either a positive integer number (for a fixed expected
+            call count), or an instance of :class:`IExpectedCallCount` class
+            (for a more sophisticated expected call counts, like ranges etc.)
+        """
 
     @abc.abstractmethod
     def will_once(self, action: IAction) -> IWillOnceMutation:
-        pass
+        """See :meth:`IExpectation.IWillOnceMutation.will_once`."""
 
     @abc.abstractmethod
     def will_repeatedly(self, action: IAction) -> IWillRepeatedlyMutation:
-        pass
+        """See :meth:`IExpectation.IWillOnceMutation.will_repeatedly`."""
 
 
 class _IMockMeta(abc.ABCMeta):
@@ -198,4 +253,4 @@ class _IMockMeta(abc.ABCMeta):
 
 
 class IMock(abc.ABC, metaclass=_IMockMeta):
-    pass
+    """An interface to be implemented by all mock classes."""
