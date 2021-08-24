@@ -8,12 +8,11 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-from .interface import IExpectation, IMock, MockAttr
+from .interface import IExpectation, IMock
 
 
 def expect_call(
     __mock__: IMock,
-    __attr__: MockAttr = None,
     *args,
     **kwargs
 ) -> IExpectation:
@@ -36,4 +35,4 @@ def expect_call(
     :param ``**kwargs``:
         Named args the mock is expected to be called with
     """
-    return __mock__.__m_get_method__(__attr__).expect_call(*args, **kwargs)
+    return __mock__.expect_call(*args, **kwargs)

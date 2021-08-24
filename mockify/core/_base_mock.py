@@ -14,7 +14,7 @@
 import abc
 import warnings
 
-from mockify.interface import IMock, MockAttr
+from mockify.interface import IMock, ISession
 
 from .. import _utils
 from ._session import Session
@@ -78,60 +78,26 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
             self.__session = Session()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self.__m_name__!r})>".format(
+        return "<{self.__module__}.{self.__class__.__qualname__}({self.__m_name__!r})>".format(
             self=self
         )
 
     @property
-    def __m_name__(self) -> str:
-        """Name of this mock."""
+    def __m_name__(self):
+        """See :meth:`mockify.interface.IMock.__m_name__`."""
         return self.__name
 
     @property
-    def __m_session__(self) -> Session:
-        """Instance of :class:`mockify.core.Session` used by this mock.
-
-        This should always be the same object for mock and all its children.
-        """
+    def __m_session__(self):
+        """See :meth:`mockify.interface.IMock.__m_session__`."""
         return self.__session
 
     @property
-    def __m_parent__(self) -> 'BaseMock':
-        """Weak reference to :class:`BaseMock` that is a parent of this
-        mock.
-
-        If mock has no parent, this should be set to ``None``.
-
-        .. note::
-            Make sure this property is always set in subclass to either
-            parent object or ``None`` - otherwise you may get errors.
-        """
+    def __m_parent__(self):
+        """See :meth:`mockify.interface.IMock.__m_parent__`."""
         if self.__parent is not None:
             return self.__parent()
         return None
-
-    @property
-    def __m_fullname__(self):
-        """Full name of this mock.
-
-        It is composed of parent's :attr:`__m_fullname__` and current
-        :attr:`__m_name__`. If mock has no parent, then this will be same as
-        :attr:`__m_name__`.
-
-        .. deprecated:: 0.11
-            This is now deprecated and will be removed in one of upcoming
-            releases.
-
-            To access mock's fullname, use :attr:`MockInfo.fullname`
-        """
-        warnings.warn(
-            'Deprecated since 0.11 - use MockInfo(mock).fullname instead',
-            DeprecationWarning
-        )
-        parent = self.__m_parent__
-        if parent is None or parent.__m_fullname__ is None:
-            return self.__m_name__
-        return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
 
     def __m_walk__(self):
         """Recursively iterate over :class:`BaseMock` object yielded by
@@ -159,26 +125,6 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
                 yield from walk(child)
 
         yield from walk(self)
-
-    def __m_get_method__(self, attr: MockAttr) -> 'BaseMock':
-        pass  # TODO: make this abstract
-
-    @abc.abstractmethod
-    def __m_expectations__(self):
-        """Iterator over :class:`mockify.core.Expectation` objects recorded for
-        this mock.
-
-        It should not include expectations recorded on mock's children. To
-        get all expectations (including children), use :meth:`__m_walk__`.
-        """
-
-    @abc.abstractmethod
-    def __m_children__(self):
-        """Iterator over :class:`BaseMock` objects representing direct
-        children of this mock.
-
-        This should not include grandchildren.
-        """
 
 
 class MockInfo:

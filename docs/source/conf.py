@@ -210,4 +210,4 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 doctest_default_flags = doctest.ELLIPSIS | doctest.DONT_ACCEPT_TRUE_FOR_1
 
 # Autodoc
-autodoc_member_order = 'bysource'  # Order as in source files
+autodoc_member_order = 'groupwise'  # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html

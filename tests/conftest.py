@@ -10,6 +10,8 @@
 # ---------------------------------------------------------------------------
 import pytest
 
+from mockify.interface import ICall
+
 
 @pytest.fixture
 def assert_that():
@@ -17,8 +19,14 @@ def assert_that():
 
     class AssertThat:
 
-        def object_attr_match(self, obj, **attrs):
+        @staticmethod
+        def object_attr_match(obj, **attrs):
             for name, expected_value in attrs.items():
                 assert getattr(obj, name) == expected_value
 
-    return AssertThat()
+        @staticmethod
+        def call_params_match(call: ICall, *expected_args, **expected_kwargs):
+            assert call.args == expected_args
+            assert call.kwargs == expected_kwargs
+
+    return AssertThat

@@ -77,6 +77,35 @@ def make_weak(value):
     return value
 
 
+def mark_deprecated(cls_or_func, old, new, since):
+    """Decorator for marking class or function as deprecated.
+
+    It will issue a warning once old import is used instead of a new
+    alternative.
+
+    :param cls_or_func:
+        Class or function object
+
+    :param old:
+        Name of old import
+
+    :param new:
+        Name of new import
+
+    :param since:
+        Version since wrapped class or function is marked as deprecated
+    """
+
+    @functools.wraps(cls_or_func)
+    def factory(*args, **kwargs):
+        message = "{old!r} is deprecated since {since} and will be completely "\
+            "removed in next major release - please use {new!r} instead".format(old=old, new=new, since=since)
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        return cls_or_func(*args, **kwargs)
+
+    return factory
+
+
 class ArgsKwargsFormatter:
     """A helper to return string representation of given args and kwargs.
 
@@ -167,30 +196,16 @@ class DictEqualityMixin:
         return not self.__eq__(other)
 
 
-def mark_deprecated(cls_or_func, old, new, since):
-    """Decorator for marking class or function as deprecated.
+class memoized_property:
+    """A read-only property that is only evaluated once."""
 
-    It will issue a warning once old import is used instead of a new
-    alternative.
+    def __init__(self, fget):
+        self.fget = fget
+        self.__annotations__ = fget.__annotations__
+        self.__doc__ = fget.__doc__
 
-    :param cls_or_func:
-        Class or function object
-
-    :param old:
-        Name of old import
-
-    :param new:
-        Name of new import
-
-    :param since:
-        Version since wrapped class or function is marked as deprecated
-    """
-
-    @functools.wraps(cls_or_func)
-    def factory(*args, **kwargs):
-        message = "{old!r} is deprecated since {since} and will be completely "\
-            "removed in next major release - please use {new!r} instead".format(old=old, new=new, since=since)
-        warnings.warn(message, DeprecationWarning, stacklevel=2)
-        return cls_or_func(*args, **kwargs)
-
-    return factory
+    def __get__(self, obj, objtype):
+        if obj is None:
+            return self
+        obj.__dict__[self.fget.__name__] = tmp = self.fget(obj)
+        return tmp

@@ -18,5 +18,6 @@ from ._abc_mock import ABCMock
 from ._factory import MockFactory
 from ._function import FunctionMock
 from ._mock import Mock
+from ._object import ObjectMock
 
-__all__ = ['Mock', 'FunctionMock', 'MockFactory', 'ABCMock']
+__all__ = ['Mock', 'ObjectMock', 'FunctionMock', 'MockFactory', 'ABCMock']

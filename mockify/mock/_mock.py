@@ -10,8 +10,6 @@
 # ---------------------------------------------------------------------------
 from typing import Callable, Dict
 
-from mockify.interface import MockAttr
-
 from .. import _utils
 from ..core import BaseMock, Call, MockInfo
 
@@ -74,13 +72,6 @@ class Mock(BaseMock):
     @property
     def _info(self):
         return MockInfo(self)
-
-    def __m_get_method__(self, attr: MockAttr) -> 'BaseMock':
-        path = attr.path()
-        mock = getattr(self, next(path))
-        for name in path:
-            mock = getattr(mock, name)
-        return mock
 
     def __m_children__(self):
         for obj in self.__dict__.values():

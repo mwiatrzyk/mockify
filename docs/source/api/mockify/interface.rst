@@ -15,12 +15,9 @@
 
 .. versionadded:: 0.13
 
-.. testsetup::
-
-    from mockify.interface import IMock, MockAttr
-
 .. automodule:: mockify.interface
     :members:
-    :special-members: __call__, __getattr__
+    :special-members:
+        __call__, __getattr__, __m_name__, __m_fullname__, __m_session__,
+        __m_parent__, __m_expectations__, __m_children__
     :show-inheritance:
-

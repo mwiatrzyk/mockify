@@ -17,7 +17,13 @@ import mockify
 @invoke.task
 def test_unit(ctx):
     """Run unit tests."""
-    ctx.run('pytest tests/')
+    ctx.run('pytest tests/unit')
+
+
+@invoke.task
+def test_functional(ctx):
+    """Run functional tests."""
+    ctx.run('pytest tests/functional')
 
 
 @invoke.task
@@ -26,7 +32,7 @@ def test_docs(ctx):
     ctx.run('sphinx-build -M doctest docs/source docs/build')
 
 
-@invoke.task(test_unit, test_docs)
+@invoke.task(test_unit, test_functional, test_docs)
 def test(_):
     """Run all tests."""
 

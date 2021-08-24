@@ -13,11 +13,8 @@
 **mockify.mock** - Classes for creating and inspecting mocks
 ============================================================
 
-.. testsetup::
-
-    from mockify.interface import IMock, MockAttr
-
 .. automodule:: mockify.mock
     :members:
     :special-members:
     :no-undoc-members:
+    :show-inheritance:

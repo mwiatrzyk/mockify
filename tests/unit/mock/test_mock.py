@@ -213,8 +213,3 @@ class TestMock:
         second = self.uut.expect_call()
         self.uut.foo.expect_call()
         assert set(MockInfo(self.uut).expectations()) == set([first, second])
-
-    def test_record_expectation_with_expect_call_function(self):
-        expect_call(self.uut, Mock.foo.bar, 1, 2, 3).will_once(Return(123))
-        with satisfied(self.uut):
-            assert self.uut.foo.bar(1, 2, 3) == 123

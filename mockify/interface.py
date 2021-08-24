@@ -11,81 +11,9 @@
 """ABC classes for Mockify."""
 
 import abc
-import collections
 import typing
 
-
-class MockAttr:
-    """Mock attribute wrapper/factory class.
-
-    This is used to generate names of nested mocks out of identifier names when
-    recording expectations with new functional API provided by
-    :mod:`mockify.expect`. Instances of this class are returned by
-    :class:`IMock` when you get attributes via class object, f.e:
-
-    .. doctest::
-
-        >>> IMock.foo.bar
-        <MockAttr('foo.bar')>
-
-    .. note::
-
-        To avoid conflicts with Python's internals it is not possible to
-        generate mock name by getting private attributes in a way presented
-        above. Instead, you have to create :class:`MockAttr` instance
-        explicitly, passing name (or path) as a string:
-
-        .. doctest::
-
-            >>> MockAttr('foo.bar._private')
-            <MockAttr('foo.bar._private')>
-    """
-
-    def __init__(self, name: str, parent: 'MockAttr' = None):
-        self._name = name
-        self._parent = parent
-
-    def __repr__(self):
-        return "<{self.__class__.__qualname__}({path!r})>".format(
-            self=self, path='.'.join(self.path())
-        )
-
-    def __getattr__(self, name: str) -> 'MockAttr':
-        """Create and return new :class:`MockAttr` instance with given name and
-        *self* as parent, effectively making a path to a nested mock
-        attribute."""
-        if not name.startswith('_'):
-            return self.__class__(name, parent=self)
-        else:
-            raise AttributeError(name)
-
-    def path(self) -> typing.Iterator[str]:
-        """Return iterator over mock's attribute path components.
-
-        An attrbute path is created when using identifier-based API, where one
-        attribute is a parent for another:
-
-        .. doctest::
-
-            >>> attr = IMock.foo.bar.baz
-            >>> list(attr.path())
-            ['foo', 'bar', 'baz']
-
-        Or explicitly, when path is given via :class:`MockAttr` constructor:
-
-        .. doctest::
-
-            >>> attr = MockAttr('foo.bar._private')
-            >>> list(attr.path())
-            ['foo', 'bar', '_private']
-
-        """
-        names = collections.deque(self._name.split('.'))
-        current = self
-        while current._parent is not None:
-            current = current._parent
-            names.appendleft(current._name)
-        yield from names
+from . import _utils
 
 
 class ICallLocation(abc.ABC):
@@ -111,8 +39,9 @@ class ICallLocation(abc.ABC):
 class ICall(abc.ABC):
     """Contains mock call information.
 
-    This can be either actual call (made by production code being under test),
-    or an expected call (made by user in tests).
+    This can be either actual call (it then points to a location in production
+    code where mock was called), or an expected call (it then points to test
+    file where expectation was created).
     """
 
     @property
@@ -243,14 +172,91 @@ class IExpectation(abc.ABC):
         """See :meth:`IExpectation.IWillOnceMutation.will_repeatedly`."""
 
 
-class _IMockMeta(abc.ABCMeta):
+class ISession(abc.ABC):
+    """An interface to be implemented by session classes.
 
-    def __getattr__(cls, name: str) -> MockAttr:
-        if not name.startswith('_'):
-            return MockAttr(name)
-        else:
-            raise AttributeError(name)
+    In Mockify, sessions are used to keep track of recorded and consumed
+    expectations of each mock sharing one session object. Every created
+    :class:`IExpectation` object is stored in the session attached to a mock
+    being used and every call made to that mock is reported in that session.
+    Thanks to this, Mockify can tell (at the end of each test) which
+    expectations were consumed, and which were not.
+    """
 
 
-class IMock(abc.ABC, metaclass=_IMockMeta):
-    """An interface to be implemented by all mock classes."""
+class IMock(abc.ABC):
+    """An interface to be implemented by mock classes.
+
+    In Mockify, mocks are organized in a tree-like structure. For example, to
+    mock object with a methods we compose a root mock representing object and
+    then supply it with leafs (or children), each representing single mocked
+    method of that object.
+    """
+
+    @property
+    def __m_fullname__(self) -> str:
+        """Full name of this mock.
+
+        Full mock names are calculated using this mock's parent's
+        :attr:`__m_fullname__`, and this mock's :attr:`__m_name__` value by
+        concatenating both with a period sign.
+
+        If this mock has no parent, or this mock's parent does not have a name,
+        then this will be the same as :attr:`__m_name__`.
+
+        Full mock names are unique across session this mock belongs to.
+        """
+        return self.__m_fullname_impl
+
+    @_utils.memoized_property
+    def __m_fullname_impl(self):
+        parent = self.__m_parent__
+        if parent is None or parent.__m_fullname__ is None:
+            return self.__m_name__
+        return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
+
+    @property
+    @abc.abstractmethod
+    def __m_name__(self) -> str:
+        """Name of this mock."""
+
+    @property
+    @abc.abstractmethod
+    def __m_session__(self) -> ISession:
+        """Instance of :class:`ISession` to be used by this mock.
+
+        Value returned by this property MUST meet following condition::
+
+            if self.__m_parent__ is not None:
+                assert self.__m_session__ is self.__m_parent__.__m_session__
+
+        In other words, if this mock has a parent, than it MUST be attached to
+        same session object as its parent.
+        """
+
+    @property
+    @abc.abstractmethod
+    def __m_parent__(self) -> typing.Optional['IMock']:
+        """A weak reference to :class:`IMock` object being a parent for this
+        mock.
+
+        If mock has no parent (i.e. if it's a root mock), then this should
+        return ``None``.
+        """
+
+    @abc.abstractmethod
+    def __m_expectations__(self) -> typing.Iterator[IExpectation]:
+        """An iterator over :class:`IExpectation` objects recorded for
+        this mock.
+
+        This SHOULD NOT include expectations recorded on this mock's children
+        (if any).
+        """
+
+    @abc.abstractmethod
+    def __m_children__(self) -> typing.Iterator['IMock']:
+        """An iterator over :class:`IMock` objects representing direct
+        children of this mock.
+
+        This SHOULD NOT include grandchildren.
+        """
