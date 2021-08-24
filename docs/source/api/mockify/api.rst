@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api.rst
+.. docs/source/api/mockify/exc.rst
 ..
 .. Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
@@ -10,19 +10,9 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-API Reference
-=============
+**mockify.api** - Proxy module for accessing most commonly used public classes and functions
+============================================================================================
 
-.. toctree::
-    :maxdepth: 3
-
-    api/mockify
-    api/mockify/core
-    api/mockify/mock
-    api/mockify/actions
-    api/mockify/cardinality
-    api/mockify/matchers
-    api/mockify/exc
-    api/mockify/expect
-    api/mockify/interface
-    api/mockify/api
+.. automodule:: mockify.api
+    :members:
+    :show-inheritance:
