@@ -72,6 +72,12 @@ def test_expect_unary_neg_to_be_used_and_use_it(uut):
         assert -uut == -1
 
 
+def test_expect_abs_to_be_called_on_mock_and_call_it(uut):
+    uut.__abs__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert abs(uut) == 123
+
+
 def test_expect_hash_to_be_called_and_call_it(uut):
     uut.__hash__.expect_call().will_once(Return(123))
     with satisfied(uut):

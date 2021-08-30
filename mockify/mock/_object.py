@@ -152,6 +152,9 @@ class ObjectMock(FunctionMock):
     def __neg__(self):
         return self._get_mock_or_super('__neg__')()
 
+    def __abs__(self):
+        return self._get_mock_or_super('__abs__')()
+
     def __hash__(self):
         return self._get_mock_or_super('__hash__')()
 
@@ -301,6 +304,7 @@ class _CmpMethodMock(FunctionMock):
 
 @ObjectMock._m_register_builtin_mock('__pos__')
 @ObjectMock._m_register_builtin_mock('__neg__')
+@ObjectMock._m_register_builtin_mock('__abs__')
 class _UnaryMethodMock(FunctionMock):
 
     def __call__(self):
