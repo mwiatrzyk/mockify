@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from mockify.core import satisfied
@@ -20,6 +22,74 @@ def test_expect_object_to_be_called_like_a_function_and_call_it(uut):
     uut.expect_call(1, 2, 3).will_once(Return(123))
     with satisfied(uut):
         assert uut(1, 2, 3) == 123
+
+
+def test_expect_equals_to_operator_to_be_used_and_use_it(uut):
+    uut.__eq__.expect_call(123).will_once(Return(True))
+    with satisfied(uut):
+        assert uut == 123
+
+
+def test_expect_not_equals_to_operator_to_be_used_and_use_it(uut):
+    uut.__ne__.expect_call(123).will_once(Return(True))
+    with satisfied(uut):
+        assert uut != 123
+
+
+def test_expect_less_than_operator_to_be_used_and_use_it(uut):
+    uut.__lt__.expect_call(123).will_once(Return(True))
+    with satisfied(uut):
+        assert uut < 123
+
+
+def test_expect_greater_than_operator_to_be_used_and_use_it(uut):
+    uut.__gt__.expect_call(123).will_once(Return(True))
+    with satisfied(uut):
+        assert uut > 123
+
+
+def test_expect_greater_or_equal_operator_to_be_used_and_use_it(uut):
+    uut.__ge__.expect_call(123).will_once(Return(True))
+    with satisfied(uut):
+        assert uut >= 123
+
+
+def test_expect_less_or_equal_operator_to_be_used_and_use_it(uut):
+    uut.__le__.expect_call(123).will_once(Return(True))
+    with satisfied(uut):
+        assert uut <= 1234
+
+
+def test_expect_hash_to_be_called_and_call_it(uut):
+    uut.__hash__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert hash(uut) == 123
+
+
+def test_expect_sizeof_to_be_called_and_call_it(uut):
+    uut.__sizeof__.expect_call().will_once(Return(0))
+    with satisfied(uut):
+        assert sys.getsizeof(uut) == 24  # GC padding; can't find docs, just StackOverflow...
+
+
+def test_expect_str_call_and_then_call_str_on_mock(uut):
+    uut.__str__.expect_call().will_once(Return('dummy'))
+    with satisfied(uut):
+        assert str(uut) == 'dummy'
+
+
+def test_if_str_is_called_without_expectation_set_then_return_mocks_repr(uut):
+    assert str(uut) == "<mockify.mock._object.ObjectMock('uut')>"
+
+
+def test_expect_repr_call_and_call_it(uut):
+    uut.__repr__.expect_call().will_once(Return('uut'))
+    with satisfied(uut):
+        assert repr(uut) == 'uut'
+
+
+def test_if_repr_is_called_without_expectation_set_then_return_default_mock_repr(uut):
+    assert repr(uut) == "<mockify.mock._object.ObjectMock('uut')>"
 
 
 def test_expect_getattr_to_be_called_and_call_it(uut):
@@ -104,13 +174,3 @@ async def test_expect_async_context_enter_and_enter_async_context(uut):
     with satisfied(uut):
         async with uut as foo:
             assert foo == 123
-
-
-def test_expect_str_call_and_then_call_str_on_mock(uut):
-    uut.__str__.expect_call().will_once(Return('dummy'))
-    with satisfied(uut):
-        assert str(uut) == 'dummy'
-
-
-def test_if_str_is_called_without_expectation_set_then_return_mocks_repr(uut):
-    assert str(uut) == "<mockify.mock._object.ObjectMock('uut')>"

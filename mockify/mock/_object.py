@@ -1,4 +1,3 @@
-import typing
 from mockify.interface import IMock
 
 from ._function import FunctionMock
@@ -11,17 +10,17 @@ from ._function import FunctionMock
 class ObjectMock(FunctionMock):
     """A class for mocking Python objects.
 
-    With this class you will be able to mock:
+    With this class you will be able to mock any Python object containing
+    user-defined methods, magic methods (see the list of supported below) or
+    both.
 
-        * object's method calls,
-        * object's dunder (or magic) method calls (see the list of currently
-          supported below)
-        * object's property access (done via dunder ``__getattr__`` and
-          ``__setattr__`` methods)
+    Currently supported magic methods are:
 
-    Currently available dunder methods are::
+        * Comparison operators: ``__eq__``, ``__ne__``, ``__lt__``, ``__gt__``, ``__le__``, ``__ge__``
 
-        __iter__, __contains__, __enter__, __aenter__, __str__, __getattr__,
+        * ``__hash__``, ``__sizeof__``, ``__str__`` and ``__repr__``
+
+        __iter__, __contains__, __enter__, __aenter__, __getattr__,
         __setattr__, __delattr__, __getitem__, __setitem__, __delitem__
 
     Here are some examples of how to use this class:
@@ -103,13 +102,7 @@ class ObjectMock(FunctionMock):
     _m_builtin_mocks = {}
 
     @classmethod
-    def _m_register_builtin_mock(cls, name: str):  # TODO: maybe hide this one?
-        """Decorate custom mock class or mock factory function to be used when
-        mocking method named *name*.
-
-        :param name:
-            Name of a method to be mocked
-        """
+    def _m_register_builtin_mock(cls, name: str):
 
         def decorator(mock_factory):
             cls._m_builtin_mocks[name] = mock_factory
@@ -129,6 +122,42 @@ class ObjectMock(FunctionMock):
         dct[name] = tmp = method_mocks[name](name, parent=self)
         return tmp
 
+    def _get_mock_or_super(self, name):
+        d = self.__dict__
+        if name in d:
+            return d[name]
+        return getattr(super(), name)
+
+    def __eq__(self, other):
+        return self._get_mock_or_super('__eq__')(other)
+
+    def __ne__(self, other):
+        return self._get_mock_or_super('__ne__')(other)
+
+    def __lt__(self, other):
+        return self._get_mock_or_super('__lt__')(other)
+
+    def __gt__(self, other):
+        return self._get_mock_or_super('__gt__')(other)
+
+    def __le__(self, other):
+        return self._get_mock_or_super('__le__')(other)
+
+    def __ge__(self, other):
+        return self._get_mock_or_super('__ge__')(other)
+
+    def __hash__(self):
+        return self._get_mock_or_super('__hash__')()
+
+    def __sizeof__(self):
+        return self._get_mock_or_super('__sizeof__')()
+
+    def __str__(self):
+        return self._get_mock_or_super('__str__')()
+
+    def __repr__(self):
+        return self._get_mock_or_super('__repr__')()
+
     def __iter__(self):
         return getattr(self, '__iter__')()
 
@@ -146,11 +175,6 @@ class ObjectMock(FunctionMock):
 
     async def __aexit__(self, exc_type, exc, tb):
         pass
-
-    def __str__(self):
-        if '__str__' in self.__dict__:
-            return self.__dict__['__str__']()
-        return super().__str__()
 
     def __getattr__(self, name):
         dct = self.__dict__
@@ -242,10 +266,28 @@ class _SetItemMock(FunctionMock):
 @ObjectMock._m_register_builtin_mock('__enter__')
 @ObjectMock._m_register_builtin_mock('__aenter__')
 @ObjectMock._m_register_builtin_mock('__str__')
-class _IterEnterStrMock(FunctionMock):
+@ObjectMock._m_register_builtin_mock('__repr__')
+@ObjectMock._m_register_builtin_mock('__hash__')
+@ObjectMock._m_register_builtin_mock('__sizeof__')
+class _NoArgMethodMock(FunctionMock):
 
     def __call__(self):
         return super().__call__()
 
     def expect_call(self):
         return super().expect_call()
+
+
+@ObjectMock._m_register_builtin_mock('__eq__')
+@ObjectMock._m_register_builtin_mock('__ne__')
+@ObjectMock._m_register_builtin_mock('__lt__')
+@ObjectMock._m_register_builtin_mock('__gt__')
+@ObjectMock._m_register_builtin_mock('__le__')
+@ObjectMock._m_register_builtin_mock('__ge__')
+class _CmpMethodMock(FunctionMock):
+
+    def __call__(self, other):
+        return super().__call__(other)
+
+    def expect_call(self, other):
+        return super().expect_call(other)
