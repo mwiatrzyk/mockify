@@ -57,7 +57,19 @@ def test_expect_greater_or_equal_operator_to_be_used_and_use_it(uut):
 def test_expect_less_or_equal_operator_to_be_used_and_use_it(uut):
     uut.__le__.expect_call(123).will_once(Return(True))
     with satisfied(uut):
-        assert uut <= 1234
+        assert uut <= 123
+
+
+def test_expect_unary_pos_to_be_used_and_use_it(uut):
+    uut.__pos__.expect_call().will_once(Return(1))
+    with satisfied(uut):
+        assert +uut == 1
+
+
+def test_expect_unary_neg_to_be_used_and_use_it(uut):
+    uut.__neg__.expect_call().will_once(Return(-1))
+    with satisfied(uut):
+        assert -uut == -1
 
 
 def test_expect_hash_to_be_called_and_call_it(uut):

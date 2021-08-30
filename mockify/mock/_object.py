@@ -146,6 +146,12 @@ class ObjectMock(FunctionMock):
     def __ge__(self, other):
         return self._get_mock_or_super('__ge__')(other)
 
+    def __pos__(self):
+        return self._get_mock_or_super('__pos__')()
+
+    def __neg__(self):
+        return self._get_mock_or_super('__neg__')()
+
     def __hash__(self):
         return self._get_mock_or_super('__hash__')()
 
@@ -291,3 +297,14 @@ class _CmpMethodMock(FunctionMock):
 
     def expect_call(self, other):
         return super().expect_call(other)
+
+
+@ObjectMock._m_register_builtin_mock('__pos__')
+@ObjectMock._m_register_builtin_mock('__neg__')
+class _UnaryMethodMock(FunctionMock):
+
+    def __call__(self):
+        return super().__call__()
+
+    def expect_call(self):
+        return super().expect_call()
