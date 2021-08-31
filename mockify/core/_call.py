@@ -110,7 +110,8 @@ class Call:
         )
 
     def __eq__(self, other):
-        return self._name == other._name and\
+        return isinstance(other, self.__class__) and\
+            self._name == other._name and\
             self._args == other._args and\
             self._kwargs == other._kwargs
 

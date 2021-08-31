@@ -16,12 +16,24 @@ class ObjectMock(FunctionMock):
 
     Currently supported magic methods are:
 
-        * Comparison operators: ``__eq__``, ``__ne__``, ``__lt__``, ``__gt__``, ``__le__``, ``__ge__``
+        * Comparison operators:
 
-        * ``__hash__``, ``__sizeof__``, ``__str__`` and ``__repr__``
+            - ``__eq__(self, other)``, i.e. **==**
+            - ``__ne__(self, other)``, i.e. **!=**
+            - ``__lt__(self, other)``, i.e. **<**
+            - ``__gt__(self, other)``, i.e. **>**
+            - ``__le__(self, other)``, i.e. **<=**
+            - ``__ge__(self, other)``, i.e. **>=**
 
-        __iter__, __contains__, __enter__, __aenter__, __getattr__,
-        __setattr__, __delattr__, __getitem__, __setitem__, __delitem__
+        * Unary arythmethic operators:
+
+            - ``__pos__(self)``, f.e. **+foo**
+            - ``__neg__(self)``, f.e. **-foo**
+            - ``__abs__(self)``, f.e. **abs(foo)**
+            - ``__invert__(self)``, f.e. **~foo**
+            - ``__round__(self, ndigits=None)``, f.e. **round(foo)** or **round(foo, ndigits)**
+            - ``__floor__(self)``, f.e. **floor(foo)**
+            - ``__ceil__(self)``, f.e. **ceil(foo)**
 
     Here are some examples of how to use this class:
 
@@ -102,7 +114,7 @@ class ObjectMock(FunctionMock):
     _m_builtin_mocks = {}
 
     @classmethod
-    def _m_register_builtin_mock(cls, name: str):
+    def _register_builtin_mock(cls, name: str):
 
         def decorator(mock_factory):
             cls._m_builtin_mocks[name] = mock_factory
@@ -126,7 +138,10 @@ class ObjectMock(FunctionMock):
         d = self.__dict__
         if name in d:
             return d[name]
-        return getattr(super(), name)
+        super_method = getattr(super(), name, None)
+        if super_method is None:
+            return getattr(self, name)
+        return super_method
 
     def __eq__(self, other):
         return self._get_mock_or_super('__eq__')(other)
@@ -157,6 +172,18 @@ class ObjectMock(FunctionMock):
 
     def __invert__(self):
         return self._get_mock_or_super('__invert__')()
+
+    def __round__(self, ndigits=None):
+        return self._get_mock_or_super('__round__')(ndigits=ndigits)
+
+    def __floor__(self):
+        return self._get_mock_or_super('__floor__')()
+
+    def __ceil__(self):
+        return self._get_mock_or_super('__ceil__')()
+
+    def __trunc__(self):
+        return self._get_mock_or_super('__trunc__')()
 
     def __hash__(self):
         return self._get_mock_or_super('__hash__')()
@@ -231,8 +258,8 @@ class ObjectMock(FunctionMock):
                 yield item
 
 
-@ObjectMock._m_register_builtin_mock('__getattr__')
-@ObjectMock._m_register_builtin_mock('__delattr__')
+@ObjectMock._register_builtin_mock('__getattr__')
+@ObjectMock._register_builtin_mock('__delattr__')
 class _GetDelAttrMock(FunctionMock):
 
     def __call__(self, name):
@@ -242,9 +269,9 @@ class _GetDelAttrMock(FunctionMock):
         return super().expect_call(name)
 
 
-@ObjectMock._m_register_builtin_mock('__getitem__')
-@ObjectMock._m_register_builtin_mock('__delitem__')
-@ObjectMock._m_register_builtin_mock('__contains__')
+@ObjectMock._register_builtin_mock('__getitem__')
+@ObjectMock._register_builtin_mock('__delitem__')
+@ObjectMock._register_builtin_mock('__contains__')
 class _GetDelContainsItemMock(FunctionMock):
 
     def __call__(self, key):
@@ -254,7 +281,7 @@ class _GetDelContainsItemMock(FunctionMock):
         return super().expect_call(key)
 
 
-@ObjectMock._m_register_builtin_mock('__setattr__')
+@ObjectMock._register_builtin_mock('__setattr__')
 class _SetAttrMock(FunctionMock):
 
     def __call__(self, name, value):
@@ -264,7 +291,7 @@ class _SetAttrMock(FunctionMock):
         return super().expect_call(name, value)
 
 
-@ObjectMock._m_register_builtin_mock('__setitem__')
+@ObjectMock._register_builtin_mock('__setitem__')
 class _SetItemMock(FunctionMock):
 
     def __call__(self, key, value):
@@ -274,13 +301,13 @@ class _SetItemMock(FunctionMock):
         return super().expect_call(key, value)
 
 
-@ObjectMock._m_register_builtin_mock('__iter__')
-@ObjectMock._m_register_builtin_mock('__enter__')
-@ObjectMock._m_register_builtin_mock('__aenter__')
-@ObjectMock._m_register_builtin_mock('__str__')
-@ObjectMock._m_register_builtin_mock('__repr__')
-@ObjectMock._m_register_builtin_mock('__hash__')
-@ObjectMock._m_register_builtin_mock('__sizeof__')
+@ObjectMock._register_builtin_mock('__iter__')
+@ObjectMock._register_builtin_mock('__enter__')
+@ObjectMock._register_builtin_mock('__aenter__')
+@ObjectMock._register_builtin_mock('__str__')
+@ObjectMock._register_builtin_mock('__repr__')
+@ObjectMock._register_builtin_mock('__hash__')
+@ObjectMock._register_builtin_mock('__sizeof__')
 class _NoArgMethodMock(FunctionMock):
 
     def __call__(self):
@@ -290,12 +317,12 @@ class _NoArgMethodMock(FunctionMock):
         return super().expect_call()
 
 
-@ObjectMock._m_register_builtin_mock('__eq__')
-@ObjectMock._m_register_builtin_mock('__ne__')
-@ObjectMock._m_register_builtin_mock('__lt__')
-@ObjectMock._m_register_builtin_mock('__gt__')
-@ObjectMock._m_register_builtin_mock('__le__')
-@ObjectMock._m_register_builtin_mock('__ge__')
+@ObjectMock._register_builtin_mock('__eq__')
+@ObjectMock._register_builtin_mock('__ne__')
+@ObjectMock._register_builtin_mock('__lt__')
+@ObjectMock._register_builtin_mock('__gt__')
+@ObjectMock._register_builtin_mock('__le__')
+@ObjectMock._register_builtin_mock('__ge__')
 class _CmpMethodMock(FunctionMock):
 
     def __call__(self, other):
@@ -305,10 +332,13 @@ class _CmpMethodMock(FunctionMock):
         return super().expect_call(other)
 
 
-@ObjectMock._m_register_builtin_mock('__pos__')
-@ObjectMock._m_register_builtin_mock('__neg__')
-@ObjectMock._m_register_builtin_mock('__abs__')
-@ObjectMock._m_register_builtin_mock('__invert__')
+@ObjectMock._register_builtin_mock('__pos__')
+@ObjectMock._register_builtin_mock('__neg__')
+@ObjectMock._register_builtin_mock('__abs__')
+@ObjectMock._register_builtin_mock('__invert__')
+@ObjectMock._register_builtin_mock('__floor__')
+@ObjectMock._register_builtin_mock('__ceil__')
+@ObjectMock._register_builtin_mock('__trunc__')
 class _UnaryMethodMock(FunctionMock):
 
     def __call__(self):
@@ -316,3 +346,13 @@ class _UnaryMethodMock(FunctionMock):
 
     def expect_call(self):
         return super().expect_call()
+
+
+@ObjectMock._register_builtin_mock('__round__')
+class _RoundMethodMock(FunctionMock):
+
+    def __call__(self, ndigits=None):
+        return super().__call__(ndigits=ndigits)
+
+    def expect_call(self, ndigits=None):
+        return super().expect_call(ndigits=ndigits)

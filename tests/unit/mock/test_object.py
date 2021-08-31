@@ -1,7 +1,8 @@
-import sys
+import math
 
 import pytest
 
+from mockify import exc
 from mockify.core import satisfied
 from mockify.mock import ObjectMock, FunctionMock
 from mockify.actions import Return, Iterate
@@ -22,6 +23,20 @@ def test_expect_object_to_be_called_like_a_function_and_call_it(uut):
     uut.expect_call(1, 2, 3).will_once(Return(123))
     with satisfied(uut):
         assert uut(1, 2, 3) == 123
+
+
+def test_if_magic_method_does_not_have_expectation_set_and_does_not_exist_in_base_class_then_issue_uninterested_call_instead(uut, assert_that):
+    with pytest.raises(exc.UninterestedCall) as excinfo:
+        math.floor(uut)
+    actual_call = excinfo.value.actual_call
+    assert actual_call.name == 'uut.__floor__'
+    assert_that.call_params_match(actual_call)  # called without params
+
+
+def test_if_magic_method_does_not_have_expectation_set_and_exists_in_base_class_then_call_existing_implementation(uut):
+    uut_hash = hash(uut)
+    assert isinstance(uut_hash, int)
+    assert uut_hash > 0
 
 
 def test_expect_equals_to_operator_to_be_used_and_use_it(uut):
@@ -84,6 +99,36 @@ def test_expect_invert_to_be_called_on_mock_and_call_it(uut):
         assert ~uut == 123
 
 
+def test_expect_round_to_be_called_without_args_and_call_it_without_args(uut):
+    uut.__round__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert round(uut) == 123
+
+
+def test_expect_round_to_be_called_with_args_and_call_it_with_args(uut):
+    uut.__round__.expect_call(2).will_once(Return(123))
+    with satisfied(uut):
+        assert round(uut, 2) == 123
+
+
+def test_expect_floor_to_be_called_on_mock_and_call_it(uut):
+    uut.__floor__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert math.floor(uut) == 123
+
+
+def test_expect_ceil_to_be_called_on_mock_and_call_it(uut):
+    uut.__ceil__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert math.ceil(uut) == 123
+
+
+def test_expect_trunc_to_be_called_on_mock_and_call_it(uut):
+    uut.__trunc__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert math.trunc(uut) == 123
+
+
 def test_expect_hash_to_be_called_and_call_it(uut):
     uut.__hash__.expect_call().will_once(Return(123))
     with satisfied(uut):
@@ -91,9 +136,9 @@ def test_expect_hash_to_be_called_and_call_it(uut):
 
 
 def test_expect_sizeof_to_be_called_and_call_it(uut):
-    uut.__sizeof__.expect_call().will_once(Return(0))
+    uut.__sizeof__.expect_call().will_once(Return(32))
     with satisfied(uut):
-        assert sys.getsizeof(uut) == 24  # GC padding; can't find docs, just StackOverflow...
+        assert uut.__sizeof__() == 32
 
 
 def test_expect_str_call_and_then_call_str_on_mock(uut):
