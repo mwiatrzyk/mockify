@@ -36,7 +36,6 @@ def test_if_magic_method_does_not_have_expectation_set_and_does_not_exist_in_bas
 def test_if_magic_method_does_not_have_expectation_set_and_exists_in_base_class_then_call_existing_implementation(uut):
     uut_hash = hash(uut)
     assert isinstance(uut_hash, int)
-    assert uut_hash > 0
 
 
 def test_expect_equals_to_operator_to_be_used_and_use_it(uut):
@@ -375,6 +374,66 @@ def test_when_expectation_is_recorded_on_idiv_magic_method_then_it_is_equivalent
         uut /= 2
 
 
+def test_expect_int_conversion_to_be_called_and_call_it(uut):
+    uut.__int__.expect_call().will_once(Return(3))
+    with satisfied(uut):
+        assert int(uut) == 3
+
+
+def test_expect_float_conversion_to_be_called_and_call_it(uut):
+    uut.__float__.expect_call().will_once(Return(3.14))
+    with satisfied(uut):
+        assert float(uut) == 3.14
+
+
+def test_expect_complex_conversion_to_be_called_and_call_it(uut):
+    uut.__complex__.expect_call().will_once(Return(complex(1, 2)))
+    with satisfied(uut):
+        assert complex(uut) == complex(1, 2)
+
+
+def test_expect_bool_conversion_to_be_called_and_call_it(uut):
+    uut.__bool__.expect_call().will_once(Return(False))
+    with satisfied(uut):
+        assert not uut
+
+
+def test_expect_oct_conversion_to_be_called_and_call_it(uut):
+    uut.__index__.expect_call().will_once(Return(8))
+    with satisfied(uut):
+        assert oct(uut) == '0o10'
+
+
+def test_expect_hex_conversion_to_be_called_and_call_it(uut):
+    uut.__index__.expect_call().will_once(Return(8))
+    with satisfied(uut):
+        assert hex(uut) == '0x8'
+
+
+def test_expect_format_to_be_called_and_call_it(uut):
+    uut.__format__.expect_call("abc").will_once(Return('World!'))
+    with satisfied(uut):
+        assert "Hello, {0:abc}".format(uut) == 'Hello, World!'
+
+
+def test_expect_format_with_empty_params_to_be_called_and_call_it(uut):
+    uut.__format__.expect_call("").will_once(Return('World!'))
+    with satisfied(uut):
+        assert "Hello, {}".format(uut) == 'Hello, World!'
+
+
+def test_expect_dir_to_be_called_and_call_it(uut):
+    uut.__dir__.expect_call().will_once(Return(['foo', 'bar']))
+    with satisfied(uut):
+        assert dir(uut) == ['bar', 'foo']
+
+
+def test_calling_dir_with_no_expectation_set_falls_back_to_default_dir(uut):
+    result = dir(uut)
+    assert isinstance(result, list)
+    assert len(result) > 0
+
+
 def test_expect_hash_to_be_called_and_call_it(uut):
     uut.__hash__.expect_call().will_once(Return(123))
     with satisfied(uut):
@@ -423,6 +482,12 @@ def test_expect_delattr_to_be_called_and_call_it(uut):
     uut.__delattr__.expect_call('foo').times(1)
     with satisfied(uut):
         del uut.foo
+
+
+def test_expect_len_to_be_called_and_call_it(uut):
+    uut.__len__.expect_call().will_once(Return(123))
+    with satisfied(uut):
+        assert len(uut) == 123
 
 
 def test_expect_getitem_to_be_called_and_call_it(uut):

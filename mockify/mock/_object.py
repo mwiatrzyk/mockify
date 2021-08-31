@@ -352,17 +352,61 @@ class ObjectMock(FunctionMock):
     def __ixor__(self, other):
         return self._get_mock_or_super('__ixor__')(other)
 
-    def __hash__(self):
-        return self._get_mock_or_super('__hash__')()
+    def __int__(self):
+        return self._get_mock_or_super('__int__')()
 
-    def __sizeof__(self):
-        return self._get_mock_or_super('__sizeof__')()
+    def __float__(self):
+        return self._get_mock_or_super('__float__')()
+
+    def __complex__(self):
+        return self._get_mock_or_super('__complex__')()
+
+    def __bool__(self):
+        return self._get_mock_or_super('__bool__')()
+
+    def __index__(self):
+        return self._get_mock_or_super('__index__')()
 
     def __str__(self):
         return self._get_mock_or_super('__str__')()
 
     def __repr__(self):
         return self._get_mock_or_super('__repr__')()
+
+    def __format__(self, formatstr):
+        return self._get_mock_or_super('__format__')(formatstr)
+
+    def __hash__(self):
+        return self._get_mock_or_super('__hash__')()
+
+    def __dir__(self):
+        return self._get_mock_or_super('__dir__')()
+
+    def __sizeof__(self):
+        return self._get_mock_or_super('__sizeof__')()
+
+    def __getattr__(self, name):
+        d = self.__dict__
+        getattr_mock = d.get('__getattr__')
+        if getattr_mock is not None:
+            return getattr_mock(name)
+        d[name] = tmp = FunctionMock(name, parent=self)
+        return tmp
+
+    def __setattr__(self, name, value):
+        return self._get_mock_or_super('__setattr__')(name, value)
+
+    def __delattr__(self, name):
+        return self._get_mock_or_super('__delattr__')(name)
+
+    def __len__(self):
+        d = self.__dict__
+        if '__len__' in d:
+            return d['__len__']()
+        super_method = getattr(super(), '__len__', None)
+        if super_method is not None:
+            return super_method()
+        return NotImplemented
 
     def __iter__(self):
         return getattr(self, '__iter__')()
@@ -381,26 +425,6 @@ class ObjectMock(FunctionMock):
 
     async def __aexit__(self, exc_type, exc, tb):
         pass
-
-    def __getattr__(self, name):
-        dct = self.__dict__
-        getattr_mock = dct.get('__getattr__')
-        if getattr_mock is not None:
-            return getattr_mock(name)
-        dct[name] = tmp = FunctionMock(name, parent=self)
-        return tmp
-
-    def __setattr__(self, name, value):
-        if '__setattr__' in self.__dict__:
-            self.__dict__['__setattr__'](name, value)
-        else:
-            super().__setattr__(name, value)
-
-    def __delattr__(self, name):
-        if '__delattr__' in self.__dict__:
-            self.__dict__['__delattr__'](name)
-        else:
-            super().__delattr__(name)
 
     def __getitem__(self, name):
         if '__getitem__' in self.__dict__:
@@ -470,6 +494,13 @@ class ObjectMock(FunctionMock):
     @_m_builtin_mocks.register('__repr__')
     @_m_builtin_mocks.register('__hash__')
     @_m_builtin_mocks.register('__sizeof__')
+    @_m_builtin_mocks.register('__int__')
+    @_m_builtin_mocks.register('__float__')
+    @_m_builtin_mocks.register('__complex__')
+    @_m_builtin_mocks.register('__bool__')
+    @_m_builtin_mocks.register('__index__')
+    @_m_builtin_mocks.register('__dir__')
+    @_m_builtin_mocks.register('__len__')
     class _NoArgMethodMock(FunctionMock):
 
         def __call__(self):
@@ -556,3 +587,12 @@ class ObjectMock(FunctionMock):
 
         def expect_call(self, ndigits=None):
             return super().expect_call(ndigits=ndigits)
+
+    @_m_builtin_mocks.register('__format__')
+    class _FormatMock(FunctionMock):
+
+        def __call__(self, formatstr):
+            return super().__call__(formatstr)
+
+        def expect_call(self, formatstr):
+            return super().expect_call(formatstr)
