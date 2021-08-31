@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+
 from mockify.interface import IMock
 
 from ._function import FunctionMock
@@ -111,16 +113,30 @@ class ObjectMock(FunctionMock):
 
     .. versionadded:: (unreleased)
     """
-    _m_builtin_mocks = {}
 
-    @classmethod
-    def _register_builtin_mock(cls, name: str):
+    class _MockClassRegistry(Mapping):
 
-        def decorator(mock_factory):
-            cls._m_builtin_mocks[name] = mock_factory
-            return mock_factory
+        def __init__(self):
+            self._storage = {}
 
-        return decorator
+        def __getitem__(self, key):
+            return self._storage[key]
+
+        def __iter__(self):
+            return iter(self._storage)
+
+        def __len__(self):
+            return len(self._storage)
+
+        def register(self, name):
+
+            def decorator(mock_factory):
+                self._storage[name] = mock_factory
+                return mock_factory
+
+            return decorator
+
+    _m_builtin_mocks = _MockClassRegistry()
 
     def __getattribute__(self, name):
         if name == '_m_builtin_mocks':
@@ -257,102 +273,94 @@ class ObjectMock(FunctionMock):
             if isinstance(item, IMock):
                 yield item
 
+    @_m_builtin_mocks.register('__getattr__')
+    @_m_builtin_mocks.register('__delattr__')
+    class _GetDelAttrMock(FunctionMock):
 
-@ObjectMock._register_builtin_mock('__getattr__')
-@ObjectMock._register_builtin_mock('__delattr__')
-class _GetDelAttrMock(FunctionMock):
+        def __call__(self, name):
+            return super().__call__(name)
 
-    def __call__(self, name):
-        return super().__call__(name)
+        def expect_call(self, name):
+            return super().expect_call(name)
 
-    def expect_call(self, name):
-        return super().expect_call(name)
+    @_m_builtin_mocks.register('__getitem__')
+    @_m_builtin_mocks.register('__delitem__')
+    @_m_builtin_mocks.register('__contains__')
+    class _GetDelContainsItemMock(FunctionMock):
 
+        def __call__(self, key):
+            return super().__call__(key)
 
-@ObjectMock._register_builtin_mock('__getitem__')
-@ObjectMock._register_builtin_mock('__delitem__')
-@ObjectMock._register_builtin_mock('__contains__')
-class _GetDelContainsItemMock(FunctionMock):
+        def expect_call(self, key):
+            return super().expect_call(key)
 
-    def __call__(self, key):
-        return super().__call__(key)
+    @_m_builtin_mocks.register('__setattr__')
+    class _SetAttrMock(FunctionMock):
 
-    def expect_call(self, key):
-        return super().expect_call(key)
+        def __call__(self, name, value):
+            return super().__call__(name, value)
 
+        def expect_call(self, name, value):
+            return super().expect_call(name, value)
 
-@ObjectMock._register_builtin_mock('__setattr__')
-class _SetAttrMock(FunctionMock):
+    @_m_builtin_mocks.register('__setitem__')
+    class _SetItemMock(FunctionMock):
 
-    def __call__(self, name, value):
-        return super().__call__(name, value)
+        def __call__(self, key, value):
+            return super().__call__(key, value)
 
-    def expect_call(self, name, value):
-        return super().expect_call(name, value)
+        def expect_call(self, key, value):
+            return super().expect_call(key, value)
 
+    @_m_builtin_mocks.register('__iter__')
+    @_m_builtin_mocks.register('__enter__')
+    @_m_builtin_mocks.register('__aenter__')
+    @_m_builtin_mocks.register('__str__')
+    @_m_builtin_mocks.register('__repr__')
+    @_m_builtin_mocks.register('__hash__')
+    @_m_builtin_mocks.register('__sizeof__')
+    class _NoArgMethodMock(FunctionMock):
 
-@ObjectMock._register_builtin_mock('__setitem__')
-class _SetItemMock(FunctionMock):
+        def __call__(self):
+            return super().__call__()
 
-    def __call__(self, key, value):
-        return super().__call__(key, value)
+        def expect_call(self):
+            return super().expect_call()
 
-    def expect_call(self, key, value):
-        return super().expect_call(key, value)
+    @_m_builtin_mocks.register('__eq__')
+    @_m_builtin_mocks.register('__ne__')
+    @_m_builtin_mocks.register('__lt__')
+    @_m_builtin_mocks.register('__gt__')
+    @_m_builtin_mocks.register('__le__')
+    @_m_builtin_mocks.register('__ge__')
+    class _CmpMethodMock(FunctionMock):
 
+        def __call__(self, other):
+            return super().__call__(other)
 
-@ObjectMock._register_builtin_mock('__iter__')
-@ObjectMock._register_builtin_mock('__enter__')
-@ObjectMock._register_builtin_mock('__aenter__')
-@ObjectMock._register_builtin_mock('__str__')
-@ObjectMock._register_builtin_mock('__repr__')
-@ObjectMock._register_builtin_mock('__hash__')
-@ObjectMock._register_builtin_mock('__sizeof__')
-class _NoArgMethodMock(FunctionMock):
+        def expect_call(self, other):
+            return super().expect_call(other)
 
-    def __call__(self):
-        return super().__call__()
+    @_m_builtin_mocks.register('__pos__')
+    @_m_builtin_mocks.register('__neg__')
+    @_m_builtin_mocks.register('__abs__')
+    @_m_builtin_mocks.register('__invert__')
+    @_m_builtin_mocks.register('__floor__')
+    @_m_builtin_mocks.register('__ceil__')
+    @_m_builtin_mocks.register('__trunc__')
+    class _UnaryMethodMock(FunctionMock):
 
-    def expect_call(self):
-        return super().expect_call()
+        def __call__(self):
+            return super().__call__()
 
+        def expect_call(self):
+            return super().expect_call()
 
-@ObjectMock._register_builtin_mock('__eq__')
-@ObjectMock._register_builtin_mock('__ne__')
-@ObjectMock._register_builtin_mock('__lt__')
-@ObjectMock._register_builtin_mock('__gt__')
-@ObjectMock._register_builtin_mock('__le__')
-@ObjectMock._register_builtin_mock('__ge__')
-class _CmpMethodMock(FunctionMock):
+    @_m_builtin_mocks.register('__round__')
+    class _RoundMethodMock(FunctionMock):
 
-    def __call__(self, other):
-        return super().__call__(other)
+        def __call__(self, ndigits=None):
+            return super().__call__(ndigits=ndigits)
 
-    def expect_call(self, other):
-        return super().expect_call(other)
-
-
-@ObjectMock._register_builtin_mock('__pos__')
-@ObjectMock._register_builtin_mock('__neg__')
-@ObjectMock._register_builtin_mock('__abs__')
-@ObjectMock._register_builtin_mock('__invert__')
-@ObjectMock._register_builtin_mock('__floor__')
-@ObjectMock._register_builtin_mock('__ceil__')
-@ObjectMock._register_builtin_mock('__trunc__')
-class _UnaryMethodMock(FunctionMock):
-
-    def __call__(self):
-        return super().__call__()
-
-    def expect_call(self):
-        return super().expect_call()
-
-
-@ObjectMock._register_builtin_mock('__round__')
-class _RoundMethodMock(FunctionMock):
-
-    def __call__(self, ndigits=None):
-        return super().__call__(ndigits=ndigits)
-
-    def expect_call(self, ndigits=None):
-        return super().expect_call(ndigits=ndigits)
+        def expect_call(self, ndigits=None):
+            return super().expect_call(ndigits=ndigits)
