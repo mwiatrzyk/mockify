@@ -27,7 +27,7 @@ class ObjectMock(FunctionMock):
             - ``__le__(self, other)``, i.e. **<=**
             - ``__ge__(self, other)``, i.e. **>=**
 
-        * Unary arythmethic operators:
+        * Unary arithmethic operators:
 
             - ``__pos__(self)``, f.e. **+foo**
             - ``__neg__(self)``, f.e. **-foo**
@@ -36,6 +36,40 @@ class ObjectMock(FunctionMock):
             - ``__round__(self, ndigits=None)``, f.e. **round(foo)** or **round(foo, ndigits)**
             - ``__floor__(self)``, f.e. **floor(foo)**
             - ``__ceil__(self)``, f.e. **ceil(foo)**
+
+        * Normal arithmethic operators, including reflected versions for all
+          listed below (f.e.  ``__radd__`` for ``__add__``, which will be
+          called in **other + foo** statement, as opposed to typical **foo +
+          other**):
+
+            - ``__add__(self, other)__``, f.e. **foo + other**
+            - ``__sub__(self, other)__``, f.e. **foo - other**
+            - ``__mul__(self, other)__``, f.e. **foo * other**
+            - ``__floordiv__(self, other)__``, f.e. **foo // other**
+            - ``__div__`` and ``__truediv__``, f.e. **foo / other**
+            - ``__mod__(self, other)__``, f.e. **foo % other**
+            - ``__divmod__(self, other)__``, f.e. **divmod(foo, other)**
+            - ``__pow__(self, other)__``, f.e. ``foo ** other``
+            - ``__lshift__(self, other)``, f.e. **foo << other**
+            - ``__rshift__(self, other)``, f.e. **foo >> other**
+            - ``__and__(self, other)``, f.e. **foo & other**
+            - ``__or__(self, other)``, f.e. **foo | other**
+            - ``__xor__(self, other)``, f.e. **foo ^ other**
+
+        * In-place arithmethic operators:
+
+            - ``__iadd__(self, other)__``, f.e. **foo += other**
+            - ``__isub__(self, other)__``, f.e. **foo -= other**
+            - ``__imul__(self, other)__``, f.e. **foo *= other**
+            - ``__ifloordiv__(self, other)__``, f.e. **foo //= other**
+            - ``__idiv__`` and ``__itruediv__``, f.e. **foo /= other**
+            - ``__imod__(self, other)__``, f.e. **foo %= other**
+            - ``__ipow__(self, other)__``, f.e. ``foo **= other``
+            - ``__ilshift__(self, other)``, f.e. **foo <<= other**
+            - ``__irshift__(self, other)``, f.e. **foo >>= other**
+            - ``__iand__(self, other)``, f.e. **foo &= other**
+            - ``__ior__(self, other)``, f.e. **foo |= other**
+            - ``__ixor__(self, other)``, f.e. **foo ^= other**
 
     Here are some examples of how to use this class:
 
@@ -150,13 +184,16 @@ class ObjectMock(FunctionMock):
         dct[name] = tmp = method_mocks[name](name, parent=self)
         return tmp
 
-    def _get_mock_or_super(self, name):
+    def _get_mock_or_super(self, name, aliases=None):
         d = self.__dict__
         if name in d:
             return d[name]
+        for alias in (aliases or []):
+            if alias in d:
+                return d[alias]
         super_method = getattr(super(), name, None)
         if super_method is None:
-            return getattr(self, name)
+            return self.__getattribute__(name)
         return super_method
 
     def __eq__(self, other):
@@ -200,6 +237,120 @@ class ObjectMock(FunctionMock):
 
     def __trunc__(self):
         return self._get_mock_or_super('__trunc__')()
+
+    def __add__(self, other):
+        return self._get_mock_or_super('__add__')(other)
+
+    def __sub__(self, other):
+        return self._get_mock_or_super('__sub__')(other)
+
+    def __mul__(self, other):
+        return self._get_mock_or_super('__mul__')(other)
+
+    def __floordiv__(self, other):
+        return self._get_mock_or_super('__floordiv__')(other)
+
+    def __truediv__(self, other):
+        return self._get_mock_or_super('__truediv__', aliases=['__div__'])(other)
+
+    def __mod__(self, other):
+        return self._get_mock_or_super('__mod__')(other)
+
+    def __divmod__(self, other):
+        return self._get_mock_or_super('__divmod__')(other)
+
+    def __pow__(self, other):
+        return self._get_mock_or_super('__pow__')(other)
+
+    def __lshift__(self, other):
+        return self._get_mock_or_super('__lshift__')(other)
+
+    def __rshift__(self, other):
+        return self._get_mock_or_super('__rshift__')(other)
+
+    def __and__(self, other):
+        return self._get_mock_or_super('__and__')(other)
+
+    def __or__(self, other):
+        return self._get_mock_or_super('__or__')(other)
+
+    def __xor__(self, other):
+        return self._get_mock_or_super('__xor__')(other)
+
+    def __radd__(self, other):
+        return self._get_mock_or_super('__radd__')(other)
+
+    def __rsub__(self, other):
+        return self._get_mock_or_super('__rsub__')(other)
+
+    def __rmul__(self, other):
+        return self._get_mock_or_super('__rmul__')(other)
+
+    def __rfloordiv__(self, other):
+        return self._get_mock_or_super('__rfloordiv__')(other)
+
+    def __rtruediv__(self, other):
+        return self._get_mock_or_super('__rtruediv__', aliases=['__rdiv__'])(other)
+
+    def __rmod__(self, other):
+        return self._get_mock_or_super('__rmod__')(other)
+
+    def __rdivmod__(self, other):
+        return self._get_mock_or_super('__rdivmod__')(other)
+
+    def __rpow__(self, other):
+        return self._get_mock_or_super('__rpow__')(other)
+
+    def __rlshift__(self, other):
+        return self._get_mock_or_super('__rlshift__')(other)
+
+    def __rrshift__(self, other):
+        return self._get_mock_or_super('__rrshift__')(other)
+
+    def __rand__(self, other):
+        return self._get_mock_or_super('__rand__')(other)
+
+    def __ror__(self, other):
+        return self._get_mock_or_super('__ror__')(other)
+
+    def __rxor__(self, other):
+        return self._get_mock_or_super('__rxor__')(other)
+
+    def __iadd__(self, other):
+        return self._get_mock_or_super('__iadd__')(other)
+
+    def __isub__(self, other):
+        return self._get_mock_or_super('__isub__')(other)
+
+    def __imul__(self, other):
+        return self._get_mock_or_super('__imul__')(other)
+
+    def __ifloordiv__(self, other):
+        return self._get_mock_or_super('__ifloordiv__')(other)
+
+    def __itruediv__(self, other):
+        return self._get_mock_or_super('__itruediv__', aliases=['__idiv__'])(other)
+
+    def __imod__(self, other):
+        return self._get_mock_or_super('__imod__')(other)
+
+    def __ipow__(self, other):
+        return self._get_mock_or_super('__ipow__')(other)
+
+    def __ilshift__(self, other):
+        return self._get_mock_or_super('__ilshift__')(other)
+
+    def __irshift__(self, other):
+        return self._get_mock_or_super('__irshift__')(other)
+
+    def __iand__(self, other):
+        return self._get_mock_or_super('__iand__')(other)
+
+    def __ior__(self, other):
+        return self._get_mock_or_super('__ior__')(other)
+
+    def __ixor__(self, other):
+        return self._get_mock_or_super('__ixor__')(other)
 
     def __hash__(self):
         return self._get_mock_or_super('__hash__')()
@@ -333,7 +484,48 @@ class ObjectMock(FunctionMock):
     @_m_builtin_mocks.register('__gt__')
     @_m_builtin_mocks.register('__le__')
     @_m_builtin_mocks.register('__ge__')
-    class _CmpMethodMock(FunctionMock):
+    @_m_builtin_mocks.register('__add__')
+    @_m_builtin_mocks.register('__sub__')
+    @_m_builtin_mocks.register('__mul__')
+    @_m_builtin_mocks.register('__floordiv__')
+    @_m_builtin_mocks.register('__div__')
+    @_m_builtin_mocks.register('__truediv__')
+    @_m_builtin_mocks.register('__mod__')
+    @_m_builtin_mocks.register('__divmod__')
+    @_m_builtin_mocks.register('__pow__')
+    @_m_builtin_mocks.register('__lshift__')
+    @_m_builtin_mocks.register('__rshift__')
+    @_m_builtin_mocks.register('__and__')
+    @_m_builtin_mocks.register('__or__')
+    @_m_builtin_mocks.register('__xor__')
+    @_m_builtin_mocks.register('__radd__')
+    @_m_builtin_mocks.register('__rsub__')
+    @_m_builtin_mocks.register('__rmul__')
+    @_m_builtin_mocks.register('__rfloordiv__')
+    @_m_builtin_mocks.register('__rdiv__')
+    @_m_builtin_mocks.register('__rtruediv__')
+    @_m_builtin_mocks.register('__rmod__')
+    @_m_builtin_mocks.register('__rdivmod__')
+    @_m_builtin_mocks.register('__rpow__')
+    @_m_builtin_mocks.register('__rlshift__')
+    @_m_builtin_mocks.register('__rrshift__')
+    @_m_builtin_mocks.register('__rand__')
+    @_m_builtin_mocks.register('__ror__')
+    @_m_builtin_mocks.register('__rxor__')
+    @_m_builtin_mocks.register('__iadd__')
+    @_m_builtin_mocks.register('__isub__')
+    @_m_builtin_mocks.register('__imul__')
+    @_m_builtin_mocks.register('__ifloordiv__')
+    @_m_builtin_mocks.register('__idiv__')
+    @_m_builtin_mocks.register('__itruediv__')
+    @_m_builtin_mocks.register('__imod__')
+    @_m_builtin_mocks.register('__ipow__')
+    @_m_builtin_mocks.register('__ilshift__')
+    @_m_builtin_mocks.register('__irshift__')
+    @_m_builtin_mocks.register('__iand__')
+    @_m_builtin_mocks.register('__ior__')
+    @_m_builtin_mocks.register('__ixor__')
+    class _BinaryOperatorMock(FunctionMock):
 
         def __call__(self, other):
             return super().__call__(other)
@@ -348,7 +540,7 @@ class ObjectMock(FunctionMock):
     @_m_builtin_mocks.register('__floor__')
     @_m_builtin_mocks.register('__ceil__')
     @_m_builtin_mocks.register('__trunc__')
-    class _UnaryMethodMock(FunctionMock):
+    class _UnaryOperatorMock(FunctionMock):
 
         def __call__(self):
             return super().__call__()
@@ -357,7 +549,7 @@ class ObjectMock(FunctionMock):
             return super().expect_call()
 
     @_m_builtin_mocks.register('__round__')
-    class _RoundMethodMock(FunctionMock):
+    class _RoundOperatorMock(FunctionMock):
 
         def __call__(self, ndigits=None):
             return super().__call__(ndigits=ndigits)

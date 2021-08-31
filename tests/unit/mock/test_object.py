@@ -129,6 +129,252 @@ def test_expect_trunc_to_be_called_on_mock_and_call_it(uut):
         assert math.trunc(uut) == 123
 
 
+def test_expect_add_to_be_called_and_call_it(uut):
+    uut.__add__.expect_call(1).will_once(Return(3))
+    with satisfied(uut):
+        assert uut + 1 == 3
+
+
+def test_expect_sub_to_be_called_and_call_it(uut):
+    uut.__sub__.expect_call(1).will_once(Return(1))
+    with satisfied(uut):
+        assert uut - 1 == 1
+
+
+def test_expect_mul_to_be_called_and_call_it(uut):
+    uut.__mul__.expect_call(2).will_once(Return(4))
+    with satisfied(uut):
+        assert uut * 2 == 4
+
+
+def test_expect_floordiv_to_be_called_and_call_it(uut):
+    uut.__floordiv__.expect_call(2).will_once(Return(2))
+    with satisfied(uut):
+        assert uut // 2 == 2
+
+
+def test_expect_truediv_to_be_called_and_call_it(uut):
+    uut.__truediv__.expect_call(2).will_once(Return(2.5))
+    with satisfied(uut):
+        assert uut / 2 == 2.5
+
+
+def test_expect_mod_to_be_called_and_call_it(uut):
+    uut.__mod__.expect_call(3).will_once(Return(2))
+    with satisfied(uut):
+        assert uut % 3 == 2
+
+
+def test_expect_divmod_to_be_called_and_call_it(uut):
+    uut.__divmod__.expect_call(3).will_once(Return((2, 0)))
+    with satisfied(uut):
+        assert divmod(uut, 3) == (2, 0)
+
+
+def test_expect_pow_to_be_called_and_call_it(uut):
+    uut.__pow__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert uut ** 2 == 16
+
+
+def test_expect_lshift_to_be_called_and_call_it(uut):
+    uut.__lshift__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert uut << 2 == 16
+
+
+def test_expect_rshift_to_be_called_and_call_it(uut):
+    uut.__rshift__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert uut >> 2 == 16
+
+
+def test_expect_and_to_be_called_and_call_it(uut):
+    uut.__and__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert uut & 2 == 16
+
+
+def test_expect_or_to_be_called_and_call_it(uut):
+    uut.__or__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert uut | 2 == 16
+
+
+def test_expect_xor_to_be_called_and_call_it(uut):
+    uut.__xor__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert uut ^ 2 == 16
+
+
+def test_expect_radd_to_be_called_and_call_it(uut):
+    uut.__radd__.expect_call(1).will_once(Return(3))
+    with satisfied(uut):
+        assert 1 + uut == 3
+
+
+def test_expect_rsub_to_be_called_and_call_it(uut):
+    uut.__rsub__.expect_call(1).will_once(Return(1))
+    with satisfied(uut):
+        assert 1 - uut == 1
+
+
+def test_expect_rmul_to_be_called_and_call_it(uut):
+    uut.__rmul__.expect_call(2).will_once(Return(4))
+    with satisfied(uut):
+        assert 2 * uut == 4
+
+
+def test_expect_rfloordiv_to_be_called_and_call_it(uut):
+    uut.__rfloordiv__.expect_call(2).will_once(Return(2))
+    with satisfied(uut):
+        assert 2 // uut == 2
+
+
+def test_expect_rtruediv_to_be_called_and_call_it(uut):
+    uut.__rtruediv__.expect_call(2).will_once(Return(2.5))
+    with satisfied(uut):
+        assert 2 / uut == 2.5
+
+
+def test_expect_rmod_to_be_called_and_call_it(uut):
+    uut.__rmod__.expect_call(3).will_once(Return(2))
+    with satisfied(uut):
+        assert 3 % uut == 2
+
+
+def test_expect_rdivmod_to_be_called_and_call_it(uut):
+    uut.__rdivmod__.expect_call(3).will_once(Return((2, 0)))
+    with satisfied(uut):
+        assert divmod(3, uut) == (2, 0)
+
+
+def test_expect_rpow_to_be_called_and_call_it(uut):
+    uut.__rpow__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert 2 ** uut == 16
+
+
+def test_expect_rlshift_to_be_called_and_call_it(uut):
+    uut.__rlshift__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert 2 << uut == 16
+
+
+def test_expect_rrshift_to_be_called_and_call_it(uut):
+    uut.__rrshift__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert 2 >> uut == 16
+
+
+def test_expect_rand_to_be_called_and_call_it(uut):
+    uut.__rand__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert 2 & uut == 16
+
+
+def test_expect_ror_to_be_called_and_call_it(uut):
+    uut.__ror__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert 2 | uut == 16
+
+
+def test_expect_rxor_to_be_called_and_call_it(uut):
+    uut.__rxor__.expect_call(2).will_once(Return(16))
+    with satisfied(uut):
+        assert 2 ^ uut == 16
+
+
+def test_expect_iadd_to_be_called_and_call_it(uut):
+    uut.__iadd__.expect_call(1)
+    with satisfied(uut):
+        uut += 1
+
+
+def test_expect_isub_to_be_called_and_call_it(uut):
+    uut.__isub__.expect_call(1)
+    with satisfied(uut):
+        uut -= 1
+
+
+def test_expect_imul_to_be_called_and_call_it(uut):
+    uut.__imul__.expect_call(2)
+    with satisfied(uut):
+        uut *= 2
+
+
+def test_expect_ifloordiv_to_be_called_and_call_it(uut):
+    uut.__ifloordiv__.expect_call(2)
+    with satisfied(uut):
+        uut //= 2
+
+
+def test_expect_itruediv_to_be_called_and_call_it(uut):
+    uut.__itruediv__.expect_call(2)
+    with satisfied(uut):
+        uut /= 2
+
+
+def test_expect_imod_to_be_called_and_call_it(uut):
+    uut.__imod__.expect_call(3)
+    with satisfied(uut):
+        uut %= 3
+
+
+def test_expect_ipow_to_be_called_and_call_it(uut):
+    uut.__ipow__.expect_call(2)
+    with satisfied(uut):
+        uut **= 2
+
+
+def test_expect_ilshift_to_be_called_and_call_it(uut):
+    uut.__ilshift__.expect_call(2)
+    with satisfied(uut):
+        uut <<= 2
+
+
+def test_expect_irshift_to_be_called_and_call_it(uut):
+    uut.__irshift__.expect_call(2)
+    with satisfied(uut):
+        uut >>= 2
+
+
+def test_expect_iand_to_be_called_and_call_it(uut):
+    uut.__iand__.expect_call(2)
+    with satisfied(uut):
+        uut &= 2
+
+
+def test_expect_ior_to_be_called_and_call_it(uut):
+    uut.__ior__.expect_call(2)
+    with satisfied(uut):
+        uut |= 2
+
+
+def test_expect_ixor_to_be_called_and_call_it(uut):
+    uut.__ixor__.expect_call(2)
+    with satisfied(uut):
+        uut ^= 2
+
+
+def test_when_expectation_is_recorded_on_div_magic_method_then_it_is_equivalent_to_recording_on_truediv_magic_method(uut):
+    uut.__div__.expect_call(2).will_once(Return(2.5))
+    with satisfied(uut):
+        assert uut / 2 == 2.5
+
+
+def test_when_expectation_is_recorded_on_rdiv_magic_method_then_it_is_equivalent_to_recording_on_rtruediv_magic_method(uut):
+    uut.__rdiv__.expect_call(2).will_once(Return(2.5))
+    with satisfied(uut):
+        assert 2 / uut == 2.5
+
+
+def test_when_expectation_is_recorded_on_idiv_magic_method_then_it_is_equivalent_to_recording_on_itruediv_magic_method(uut):
+    uut.__idiv__.expect_call(2)
+    with satisfied(uut):
+        uut /= 2
+
+
 def test_expect_hash_to_be_called_and_call_it(uut):
     uut.__hash__.expect_call().will_once(Return(123))
     with satisfied(uut):
