@@ -30,7 +30,7 @@ you are free to use multiline imports if you prefer.
 """
 
 from mockify.core import ordered, satisfied, assert_satisfied, Session
-from mockify.mock import ABCMock, Mock, FunctionMock, MockFactory, ObjectMock
+from mockify.mock import ABCMock, Mock, BaseFunctionMock, FunctionMock, MockFactory, ObjectMock
 from mockify.actions import Return, ReturnAsync, Raise, RaiseAsync, Iterate
 from mockify.expect import expect_call
 from mockify.cardinality import Exactly, AtLeast, AtMost, Between
@@ -38,6 +38,7 @@ from mockify.matchers import _
 
 __all__ = [
     'ordered', 'satisfied', 'assert_satisfied', 'Session', 'ABCMock', 'Mock',
-    'FunctionMock', 'MockFactory', 'ObjectMock', 'Return', 'Iterate', 'ReturnAsync', 'Raise',
-    'RaiseAsync', 'expect_call', 'Exactly', 'AtLeast', 'AtMost', 'Between', '_'
+    'FunctionMock', 'BaseFunctionMock', 'MockFactory', 'ObjectMock', 'Return',
+    'Iterate', 'ReturnAsync', 'Raise', 'RaiseAsync', 'expect_call', 'Exactly',
+    'AtLeast', 'AtMost', 'Between', '_'
 ]
