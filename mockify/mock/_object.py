@@ -1,5 +1,6 @@
 from collections.abc import Mapping
 
+from mockify.core import BaseMock
 from mockify.interface import IMock
 
 from ._function import FunctionMock
@@ -70,6 +71,111 @@ class ObjectMock(FunctionMock):
             - ``__iand__(self, other)``, f.e. **foo &= other**
             - ``__ior__(self, other)``, f.e. **foo |= other**
             - ``__ixor__(self, other)``, f.e. **foo ^= other**
+
+        * Type conversion operators:
+
+            - ``__str__(self)``, f.e. **str(foo)**
+            - ``__int__(self)``, f.e. **int(foo)**
+            - ``__float__(self)``, f.e. **float(foo)**
+            - ``__complex__(self)``, f.e. **complex(foo)**
+            - ``__index__(self)``, f.e. **oct(foo)**, **hex(foo)** or when used
+              in slice expression
+
+        * Class representation methods:
+
+            - ``__repr__(self)``, f.e. **repr(foo)**
+            - ``__format__(self, formatstr)``, used when :meth:`str.format` is
+              given an instance of a mock (*formatstr* is then passed from
+              formatting options, f.e. ``"{:abc}".format(foo)`` will pass
+              **abc** as *formatstr*)
+            - ``__hash__(self)``, called by built-in :func:`hash`
+            - ``__dir__(self)``, called by built-in :func:`dir`
+            - ``__sizeof__(self)``, called by :func:`sys.getsizeof`
+
+        * Attribute access methods:
+
+            - ``__getattr__(self, name)``, used by :func:`getattr` or when
+              attribute is being get (f.e. ``spam = foo.spam``)
+            - ``__setattr__(self, name, value)``, used by :func:`setattr` or
+              when attribute is being set (f.e. ``foo.spam = 123``)
+            - ``__delattr__(self, name)``, used by :func:`delattr` or  when
+              when attrbute is being deleted (f.e. ``del foo.spam``)
+
+            .. note::
+
+                If the methods above are not mocked, default implementations
+                will be used, allowing to set/get/delete a user-defined
+                attributes:
+
+                .. testcode::
+                    :hide:
+
+                    from mockify.api import ObjectMock, Return, satisfied
+
+                .. doctest::
+
+                    >>> foo = ObjectMock('foo')
+                    >>> foo.spam = 123
+                    >>> foo.spam
+                    123
+                    >>> del foo.spam
+
+                However, if explicit expectation is set, the behaviour from
+                above will be replaced with calling adequate mock object:
+
+                .. testcode::
+
+                    foo = ObjectMock('foo')
+                    foo.__getattr__.expect_call('spam').will_once(Return(123))
+                    with satisfied(foo):
+                        assert foo.spam == 123
+
+        * Container methods:
+
+            - ``__len__(self)``, called by :func:`len`
+            - ``__getitem__(self, key)``, called when item is being get (f.e.
+              ``spam = foo['spam']``)
+            - ``__setitem__(self, key, value)``, called when item is being set
+              (f.e. ``foo['spam'] = 123``)
+            - ``__delitem__(self, key)``, called when item is being deleted
+              (f.e. ``del foo['spam']``)
+            - ``__iter__(self)``, called by :func:`iter` or when iterating over
+              mock object
+            - ``__reversed__(self)``, called by :func:`reversed`
+            - ``__contains__(self, key)``, called when mock is tested for
+              presence of given item (f.e. ``if 'spam' in foo:``)
+
+        * **__call__** method:
+
+            - ``__call__(self, *args, **kwargs)``
+
+            .. note::
+
+                Recording expectation explicitly on :meth:`object.__call__`
+                magic method is equivalent to recording call expectation
+                directly on a mock object:
+
+                .. testcode::
+
+                    foo = ObjectMock('foo')
+                    foo.__call__.expect_call('one').will_once(Return(1))
+                    foo.expect_call('two').will_once(Return(2))
+                    with satisfied(foo):
+                        assert foo('one') == 1
+                        assert foo('two') == 2
+
+        * Context management methods:
+
+            - ``__enter__(self)``
+            - ``__aenter__(self)``
+            - ``__exit__(self, exc, exc_type, tb)``
+            - ``__aexit__(self, exc, exc_type, tb)``
+
+        * Descriptor methods:
+
+            - ``__get__(self, obj, obj_type)``
+            - ``__set__(self, obj, value)``
+            - ``__delete__(self, obj)``
 
     Here are some examples of how to use this class:
 
@@ -178,13 +284,13 @@ class ObjectMock(FunctionMock):
         method_mocks = self._m_builtin_mocks
         if name not in method_mocks:
             return super().__getattribute__(name)
-        dct = self.__dict__
-        if name in dct:
-            return dct[name]
-        dct[name] = tmp = method_mocks[name](name, parent=self)
+        d = self.__dict__
+        if name in d:
+            return d[name]
+        d[name] = tmp = method_mocks[name](name, parent=self)
         return tmp
 
-    def _get_mock_or_super(self, name, aliases=None):
+    def _get_mock_or_super(self, name, aliases=None, create_if_missing=True):
         d = self.__dict__
         if name in d:
             return d[name]
@@ -192,15 +298,21 @@ class ObjectMock(FunctionMock):
             if alias in d:
                 return d[alias]
         super_method = getattr(super(), name, None)
-        if super_method is None:
+        if super_method is None and create_if_missing:
             return self.__getattribute__(name)
         return super_method
 
     def __eq__(self, other):
-        return self._get_mock_or_super('__eq__')(other)
+        method = self._get_mock_or_super('__eq__', create_if_missing=False)
+        if method is not None:
+            return method(other)
+        return False
 
     def __ne__(self, other):
-        return self._get_mock_or_super('__ne__')(other)
+        method = self._get_mock_or_super('__ne__', create_if_missing=False)
+        if method is not None:
+            return method(other)
+        return True
 
     def __lt__(self, other):
         return self._get_mock_or_super('__lt__')(other)
@@ -380,16 +492,25 @@ class ObjectMock(FunctionMock):
         return self._get_mock_or_super('__hash__')()
 
     def __dir__(self):
-        return self._get_mock_or_super('__dir__')()
+        d = self.__dict__
+        if '__dir__' in d:
+            return d['__dir__']()
+
+        def is_built_in(k):
+            # TODO: replace hardcoded list from below with something more reliable
+            return k.startswith('_BaseMock') or\
+                k.startswith('__m_') or\
+                k.startswith('_m_')
+
+        return [k for k in d.keys() if not is_built_in(k)]
 
     def __sizeof__(self):
         return self._get_mock_or_super('__sizeof__')()
 
     def __getattr__(self, name):
         d = self.__dict__
-        getattr_mock = d.get('__getattr__')
-        if getattr_mock is not None:
-            return getattr_mock(name)
+        if '__getattr__' in d:
+            return d['__getattr__'](name)
         d[name] = tmp = FunctionMock(name, parent=self)
         return tmp
 
@@ -400,53 +521,102 @@ class ObjectMock(FunctionMock):
         return self._get_mock_or_super('__delattr__')(name)
 
     def __len__(self):
-        d = self.__dict__
-        if '__len__' in d:
-            return d['__len__']()
-        super_method = getattr(super(), '__len__', None)
-        if super_method is not None:
-            return super_method()
-        return NotImplemented
-
-    def __iter__(self):
-        return getattr(self, '__iter__')()
-
-    def __contains__(self, key):
-        return getattr(self, '__contains__')(key)
-
-    def __enter__(self):
-        return getattr(self, '__enter__')()
-
-    async def __aenter__(self):
-        return getattr(self, '__aenter__')()
-
-    def __exit__(self, exc_type, exc, tb):
-        pass
-
-    async def __aexit__(self, exc_type, exc, tb):
-        pass
+        method = self._get_mock_or_super('__len__', create_if_missing=False)
+        if method is None:
+            return NotImplemented
+        return method()
 
     def __getitem__(self, name):
-        if '__getitem__' in self.__dict__:
-            return getattr(self, '__getitem__')(name)
-        return self.__dict__.setdefault('__m_items', {})[name]
+        d = self.__dict__
+        if '__getitem__' in d:
+            return d['__getitem__'](name)
+        return d.get('__m_items', {})[name]
 
     def __setitem__(self, name, value):
-        if '__setitem__' in self.__dict__:
-            self.__dict__['__setitem__'](name, value)
+        d = self.__dict__
+        if '__setitem__' in d:
+            d['__setitem__'](name, value)
         else:
-            self.__dict__.setdefault('__m_items', {})[name] = value
+            d.setdefault('__m_items', {})[name] = value
 
     def __delitem__(self, name):
-        if '__delitem__' in self.__dict__:
-            getattr(self, '__delitem__')(name)
+        d = self.__dict__
+        if '__delitem__' in d:
+            d['__delitem__'](name)
         else:
-            del self.__dict__.setdefault('__m_items', {})[name]
+            del d.get('__m_items', {})[name]
+
+    def __iter__(self):
+        return self._get_mock_or_super('__iter__')()
+
+    def __reversed__(self):
+        return self._get_mock_or_super('__reversed__')()
+
+    def __contains__(self, key):
+        return self._get_mock_or_super('__contains__')(key)
+
+    def __enter__(self):
+        method = self._get_mock_or_super('__enter__', create_if_missing=False)
+        if method is not None:
+            return method()
+
+    async def __aenter__(self):
+        method = self._get_mock_or_super('__aenter__', create_if_missing=False)
+        if method is not None:
+            return method()
+
+    def __exit__(self, exc_type, exc, tb):
+        method = self._get_mock_or_super('__exit__', create_if_missing=False)
+        if method is None:
+            return False
+        return method(exc_type, exc, tb)
+
+    async def __aexit__(self, exc_type, exc, tb):
+        method = self._get_mock_or_super('__aexit__', create_if_missing=False)
+        if method is None:
+            return False
+        return method(exc_type, exc, tb)
+
+    def __get__(self, obj, obj_type):
+        return self._get_mock_or_super('__get__')(obj, obj_type)
+
+    def __set__(self, obj, value):
+        return self._get_mock_or_super('__set__')(obj, value)
+
+    def __delete__(self, obj):
+        return self._get_mock_or_super('__delete__')(obj)
 
     def __m_children__(self):
         for item in self.__dict__.values():
             if isinstance(item, IMock):
                 yield item
+
+    @_m_builtin_mocks.register('__get__')
+    class _GetDescriptorMock(FunctionMock):
+
+        def __call__(self, obj, obj_type):
+            return super().__call__(obj, obj_type)
+
+        def expect_call(self, obj, obj_type):
+            return super().expect_call(obj, obj_type)
+
+    @_m_builtin_mocks.register('__set__')
+    class _SetDescriptorMock(FunctionMock):
+
+        def __call__(self, obj, value):
+            return super().__call__(obj, value)
+
+        def expect_call(self, obj, value):
+            return super().expect_call(obj, value)
+
+    @_m_builtin_mocks.register('__delete__')
+    class _DelDescriptorMock(FunctionMock):
+
+        def __call__(self, obj):
+            return super().__call__(obj)
+
+        def expect_call(self, obj):
+            return super().expect_call(obj)
 
     @_m_builtin_mocks.register('__getattr__')
     @_m_builtin_mocks.register('__delattr__')
@@ -501,6 +671,7 @@ class ObjectMock(FunctionMock):
     @_m_builtin_mocks.register('__index__')
     @_m_builtin_mocks.register('__dir__')
     @_m_builtin_mocks.register('__len__')
+    @_m_builtin_mocks.register('__reversed__')
     class _NoArgMethodMock(FunctionMock):
 
         def __call__(self):
@@ -596,3 +767,30 @@ class ObjectMock(FunctionMock):
 
         def expect_call(self, formatstr):
             return super().expect_call(formatstr)
+
+    @_m_builtin_mocks.register('__call__')
+    class _CallMock(BaseMock):
+
+        def __m_children__(self):
+            return
+            yield
+
+        def __m_expectations__(self):
+            return
+            yield
+
+        def __call__(self, *args, **kwargs):
+            return self.__m_parent__(*args, **kwargs)
+
+        def expect_call(self, *args, **kwargs):
+            return self.__m_parent__.expect_call(*args, **kwargs)
+
+    @_m_builtin_mocks.register('__exit__')
+    @_m_builtin_mocks.register('__aexit__')
+    class _ContextExitMock(FunctionMock):
+
+        def __call__(self, exc_type, exc, tb):
+            return super().__call__(exc_type, exc, tb)
+
+        def expect_call(self, exc_type, exc, tb):
+            return super().expect_call(exc_type, exc, tb)

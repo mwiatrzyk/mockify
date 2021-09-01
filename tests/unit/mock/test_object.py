@@ -3,9 +3,8 @@ import math
 import pytest
 
 from mockify import exc
-from mockify.core import satisfied
-from mockify.mock import ObjectMock, FunctionMock
-from mockify.actions import Return, Iterate
+from mockify.api import satisfied, ObjectMock, Return, Iterate, _
+from mockify.matchers import Type
 
 
 @pytest.fixture
@@ -428,12 +427,6 @@ def test_expect_dir_to_be_called_and_call_it(uut):
         assert dir(uut) == ['bar', 'foo']
 
 
-def test_calling_dir_with_no_expectation_set_falls_back_to_default_dir(uut):
-    result = dir(uut)
-    assert isinstance(result, list)
-    assert len(result) > 0
-
-
 def test_expect_hash_to_be_called_and_call_it(uut):
     uut.__hash__.expect_call().will_once(Return(123))
     with satisfied(uut):
@@ -508,13 +501,13 @@ def test_expect_delitem_to_be_called_and_call_it(uut):
         del uut['foo']
 
 
-def test_object_mock_allows_to_set_and_get_properties(uut):
+def test_object_mock_allows_to_set_and_get_custom_properties(uut):
     uut.foo = 123
     assert uut.foo == 123
     del uut.foo
 
 
-def test_object_mock_allows_to_set_and_get_items(uut):
+def test_object_mock_allows_to_set_and_get_custom_items(uut):
     uut['foo'] = 123
     assert uut['foo'] == 123
     del uut['foo']
@@ -533,12 +526,24 @@ def test_expect_iter_to_be_called_and_call_it(uut):
         assert list(uut) == [1, 2, 3]
 
 
+def test_expect_reversed_to_be_called_and_call_it(uut):
+    uut.__reversed__.expect_call().will_once(Return([1, 2, 3]))
+    with satisfied(uut):
+        assert reversed(uut) == [1, 2, 3]
+
+
 def test_expect_contains_to_be_called_and_call_it(uut):
     uut.__contains__.expect_call('foo').will_once(Return(True))
     uut.__contains__.expect_call('bar').will_once(Return(False))
     with satisfied(uut):
         assert 'foo' in uut
         assert 'bar' not in uut
+
+
+def test_when_call_is_expected_to_be_called_then_it_is_the_same_as_directly_expecting_mock_to_be_called(uut):
+    uut.__call__.expect_call(1, 2).will_once(Return(3))
+    with satisfied(uut):
+        assert uut(1, 2) == 3
 
 
 def test_expect_context_enter_and_enter_context(uut):
@@ -548,9 +553,129 @@ def test_expect_context_enter_and_enter_context(uut):
             assert foo == 123
 
 
+def test_expect_context_exit_and_run_context_without_errors(uut):
+    uut.__exit__.expect_call(None, None, None)
+    with satisfied(uut):
+        with uut:
+            pass
+
+
+def test_expect_context_exit_and_run_context_with_raising_exception_that_is_handled(uut):
+    uut.__exit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(True))
+    with satisfied(uut):
+        with uut:
+            raise ValueError('dummy')
+
+
+def test_expect_context_exit_and_run_context_with_raising_exception_that_is_passed_through(uut):
+    uut.__exit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(False))
+    with satisfied(uut):
+        with pytest.raises(ValueError):
+            with uut:
+                raise ValueError('dummy')
+
+
+def test_when_context_having_no_expectations_is_left_with_exception_being_raised_then_pass_it_through(uut):
+    with pytest.raises(ValueError):
+        with uut:
+            raise ValueError('dummy')
+
+
 @pytest.mark.asyncio
 async def test_expect_async_context_enter_and_enter_async_context(uut):
     uut.__aenter__.expect_call().will_once(Return(123))
     with satisfied(uut):
         async with uut as foo:
             assert foo == 123
+
+
+@pytest.mark.asyncio
+async def test_expect_async_context_exit_and_run_context_without_errors(uut):
+    uut.__aexit__.expect_call(None, None, None)
+    with satisfied(uut):
+        async with uut:
+            pass
+
+
+@pytest.mark.asyncio
+async def test_expect_async_context_exit_and_run_context_with_raising_exception_that_is_handled(uut):
+    uut.__aexit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(True))
+    with satisfied(uut):
+        async with uut:
+            raise ValueError('dummy')
+
+
+@pytest.mark.asyncio
+async def test_expect_async_context_exit_and_run_context_with_raising_exception_that_is_passed_through(uut):
+    uut.__aexit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(False))
+    with satisfied(uut):
+        with pytest.raises(ValueError):
+            async with uut:
+                raise ValueError('dummy')
+
+
+@pytest.mark.asyncio
+async def test_when_async_context_having_no_expectations_is_left_with_exception_being_raised_then_pass_it_through(uut):
+    with pytest.raises(ValueError):
+        async with uut:
+            raise ValueError('dummy')
+
+
+def test_dir_returns_user_defined_methods_and_properties_if_not_mocked(uut):
+    assert dir(uut) == []
+    uut.foo.expect_call()
+    assert dir(uut) == ['foo']
+    uut.__enter__.expect_call()
+    assert dir(uut) == ['__enter__', 'foo']
+    uut.spam = 123
+    assert dir(uut) == ['__enter__', 'foo', 'spam']
+    del uut.spam
+    assert dir(uut) == ['__enter__', 'foo']
+    uut.__getattr__.expect_call('bar')
+    assert dir(uut) == ['__enter__', '__getattr__', 'foo']
+
+
+def test_expect_get_descriptor_to_be_called_via_instance_and_call_it(uut):
+
+    class Dummy:
+        foo = uut
+
+    d = Dummy()
+
+    uut.__get__.expect_call(d, Dummy).will_once(Return('spam'))
+    with satisfied(uut):
+        assert d.foo == 'spam'
+
+
+def test_expect_get_descriptor_to_be_called_via_class_and_call_it(uut):
+
+    class Dummy:
+        foo = uut
+
+    uut.__get__.expect_call(None, Dummy).will_once(Return('spam'))
+    with satisfied(uut):
+        assert Dummy.foo == 'spam'
+
+
+def test_expect_set_descriptor_to_be_called_and_call_it(uut):
+
+    class Dummy:
+        foo = uut
+
+    d = Dummy()
+
+    uut.__set__.expect_call(d, 123)
+    with satisfied(uut):
+        d.foo = 123
+
+
+def test_expect_del_descriptor_to_be_called_and_call_it(uut):
+
+    class Dummy:
+        foo = uut
+
+    d = Dummy()
+
+    uut.__delete__.expect_call(d)
+    with satisfied(uut):
+        del d.foo

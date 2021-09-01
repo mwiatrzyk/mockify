@@ -218,8 +218,10 @@ class TestYieldAsync:
         mock = Mock('mock')
         mock.expect_call().will_once(YieldAsync('abc'))
         with satisfied(mock):
+            items = []
             async for item in mock():
-                print(item)
+                items.append(item)
+            assert items == ['a', 'b', 'c']
 
 
 class TestRaiseBase:
