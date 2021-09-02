@@ -1,7 +1,8 @@
 from collections.abc import Mapping
+from mockify.matchers import Func
 
 from mockify import _utils
-from mockify.core import BaseMock
+from mockify.core import BaseMock, Call
 from mockify.interface import IMock
 
 from ._function import BaseFunctionMock, FunctionMock
@@ -605,6 +606,33 @@ class ObjectMock(FunctionMock):
         for item in self.__dict__.values():
             if isinstance(item, IMock):
                 yield item
+
+    def expect_call(self, *args, **kwargs):
+        d = self.__dict__
+        if 'expect_call' in d:
+            return d['expect_call'](*args, **kwargs)
+        return super().expect_call(*args, **kwargs)
+
+    @_register_builtin_mock('expect_call')
+    class _ExpectCallMock(BaseFunctionMock):
+
+        def __call__(self, *args, **kwargs):
+            fullname = self.__m_fullname__
+            query = _utils.IterableQuery(self.__m_session__.expectations())
+            if query.exists(lambda x: x.expected_call.name == fullname):
+                return self._call(*args, **kwargs)
+            return self._expect_call(*args, **kwargs)
+
+        def expect_call(self, *args, **kwargs):
+            return self.__m_expect_call__(*args, **kwargs)
+
+        def _call(self, *args, **kwargs):
+            actual_call = Call(self.__m_fullname__, *args, **kwargs)
+            return self.__m_session__(actual_call)
+
+        def _expect_call(self, *args, **kwargs):
+            expected_call = Call(self.__m_parent__.__m_fullname__, *args, **kwargs)
+            return self.__m_session__.expect_call(expected_call)
 
     @_register_builtin_mock('__get__')
     class _GetDescriptorMock(BaseFunctionMock):

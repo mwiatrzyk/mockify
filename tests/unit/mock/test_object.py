@@ -718,3 +718,9 @@ def test_expect_del_descriptor_to_be_called_and_call_it(uut):
     uut.__delete__.expect_call(d)
     with satisfied(uut):
         del d.foo
+
+
+def test_expect_call_method_can_also_be_expected_to_be_called(uut):
+    uut.expect_call.expect_call(1, 2, 3)
+    with satisfied(uut):
+        uut.expect_call(1, 2, 3)
