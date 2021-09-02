@@ -151,11 +151,18 @@ class ObjectMock(FunctionMock):
               (f.e. ``foo['spam'] = 123``)
             - ``__delitem__(self, key)``, called when item is being deleted
               (f.e. ``del foo['spam']``)
-            - ``__iter__(self)``, called by :func:`iter` or when iterating over
-              mock object
             - ``__reversed__(self)``, called by :func:`reversed`
             - ``__contains__(self, key)``, called when mock is tested for
               presence of given item (f.e. ``if 'spam' in foo:``)
+
+        * Generator methods:
+
+            - ``__iter__(self)``, called by :func:`iter` or when iterating over
+              mock object
+            - ``__next__(self)``, called by :func:`next`
+            - ``__aiter__(self)``, called when *asynchronous generator* is
+              created, f.e. used by ``async for`` statement
+            - ``__anext__(self)``, called to advance an *asynchronous generator*
 
         * **__call__** method:
 
@@ -543,14 +550,23 @@ class ObjectMock(FunctionMock):
         else:
             del d.get('__m_items', {})[name]
 
-    def __iter__(self):
-        return self._get_mock_or_super('__iter__')()
-
     def __reversed__(self):
         return self._get_mock_or_super('__reversed__')()
 
     def __contains__(self, key):
         return self._get_mock_or_super('__contains__')(key)
+
+    def __iter__(self):
+        return self._get_mock_or_super('__iter__')()
+
+    def __next__(self):
+        return self._get_mock_or_super('__next__')()
+
+    def __aiter__(self):
+        return self._get_mock_or_super('__aiter__')()
+
+    async def __anext__(self):
+        return self._get_mock_or_super('__anext__')()
 
     def __enter__(self):
         method = self._get_mock_or_super('__enter__', create_if_missing=False)
@@ -657,6 +673,9 @@ class ObjectMock(FunctionMock):
             return self.__m_expect_call__(key, value)
 
     @_register_builtin_mock('__iter__')
+    @_register_builtin_mock('__next__')
+    @_register_builtin_mock('__aiter__')
+    @_register_builtin_mock('__anext__')
     @_register_builtin_mock('__enter__')
     @_register_builtin_mock('__aenter__')
     @_register_builtin_mock('__str__')

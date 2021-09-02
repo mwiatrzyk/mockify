@@ -3,7 +3,7 @@ import math
 import pytest
 
 from mockify import exc
-from mockify.api import satisfied, ObjectMock, Return, Iterate, _
+from mockify.api import satisfied, ObjectMock, Return, Raise, Iterate, _
 from mockify.matchers import Type
 
 
@@ -520,12 +520,6 @@ def test_object_mock_allows_to_set_and_get_both_items_and_attrs_allowing_name_re
     assert uut['foo'] == 'spam'
 
 
-def test_expect_iter_to_be_called_and_call_it(uut):
-    uut.__iter__.expect_call().will_once(Iterate([1, 2, 3]))
-    with satisfied(uut):
-        assert list(uut) == [1, 2, 3]
-
-
 def test_expect_reversed_to_be_called_and_call_it(uut):
     uut.__reversed__.expect_call().will_once(Return([1, 2, 3]))
     with satisfied(uut):
@@ -538,6 +532,51 @@ def test_expect_contains_to_be_called_and_call_it(uut):
     with satisfied(uut):
         assert 'foo' in uut
         assert 'bar' not in uut
+
+
+def test_expect_iter_to_be_called_and_call_it(uut):
+    uut.__iter__.expect_call().will_repeatedly(Iterate([1, 2, 3])).times(2)
+    with satisfied(uut):
+        assert list(uut) == [1, 2, 3]
+        assert list(iter(uut)) == [1, 2, 3]
+
+
+def test_expect_next_to_be_called_and_call_it(uut):
+    uut.__next__.expect_call().will_once(Return(1)).will_once(Return(2))
+    with satisfied(uut):
+        assert next(uut) == 1
+        assert next(uut) == 2
+
+
+def test_expect_generator_to_be_called_and_call_it(uut):
+
+    def gen():
+        for item in uut:
+            yield item
+
+    uut.__iter__.expect_call().will_once(Return(uut))
+    uut.__next__.expect_call().\
+        will_once(Return(1)).\
+        will_once(Return(2)).\
+        will_once(Raise(StopIteration()))
+    with satisfied(uut):
+        assert list(gen()) == [1, 2]
+
+
+@pytest.mark.asyncio
+async def test_expect_async_generator_to_be_called_and_call_it(uut):
+
+    async def gen():
+        async for item in uut:
+            yield item
+
+    uut.__aiter__.expect_call().will_once(Return(uut))
+    uut.__anext__.expect_call().\
+        will_once(Return(1)).\
+        will_once(Return(2)).\
+        will_once(Raise(StopAsyncIteration()))
+    with satisfied(uut):
+        assert [x async for x in gen()] == [1, 2]
 
 
 def test_when_call_is_expected_to_be_called_then_it_is_the_same_as_directly_expecting_mock_to_be_called(uut):
