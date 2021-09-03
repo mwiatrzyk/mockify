@@ -12,9 +12,10 @@ from typing import Callable, Dict
 
 from .. import _utils
 from ..core import BaseMock, Call, MockInfo
+from ._object import ObjectMock
 
 
-class Mock(BaseMock):
+class Mock:
     """General purpose mock class.
 
     This class is used to:
@@ -63,124 +64,7 @@ class Mock(BaseMock):
 
     .. versionadded:: 0.6
     """
-    _mocked_properties = {
-        '__getattr__': lambda: _GetAttrMock,
-        '__setattr__': lambda: _SetAttrMock,
-        'expect_call': lambda: _ExpectCallMock,
-    }
 
-    @property
-    def _info(self):
-        return MockInfo(self)
-
-    def __m_children__(self):
-        for obj in self.__dict__.values():
-            if isinstance(obj, Mock):
-                yield obj
-
-    def __m_expectations__(self):
-        fullname = self._info.fullname
-        return filter(
-            lambda x: x.expected_call.name == fullname,
-            self.__m_session__.expectations()
-        )
-
-    def __setattr__(self, name, value):
-        if '__setattr__' in self.__dict__:
-            return self.__dict__['__setattr__'](name, value)
-        return super().__setattr__(name, value)
-
-    def __getattr__(self, name):
-        if '__getattr__' in self.__dict__:
-            return self.__dict__['__getattr__'](name)
-        self.__dict__[name] = tmp = Mock(name, parent=self)
-        return tmp
-
-    def __getattribute__(self, name):
-        if name == '_mocked_properties':
-            return super().__getattribute__(name)
-        if name not in self._mocked_properties:
-            return super().__getattribute__(name)
-        if name in self.__dict__:
-            return self.__dict__[name]
-        mock_class = self._mocked_properties[name]()
-        self.__dict__[name] = tmp = mock_class(self)
-        return tmp
-
-    def __call__(self, *args, **kwargs):
-        actual_call = Call(self._info.fullname, *args, **kwargs)
-        return self.__m_session__(actual_call)
-
-    def expect_call(self, *args, **kwargs):
-        expected_call = Call(self._info.fullname, *args, **kwargs)
-        return self.__m_session__.expect_call(expected_call)
-
-
-class _GetAttrMock(Mock):
-    _mocked_properties: Dict[str, Callable] = {}
-
-    def __init__(self, parent):
-        super().__init__('__getattr__', parent=parent)
-
-    def __call__(self, name):
-        actual_call = Call(self._info.fullname, name)
-        return self.__m_session__(actual_call)
-
-    def expect_call(self, name):
-        if not _utils.is_identifier(name):
-            raise TypeError(
-                "__getattr__.expect_call() must be called with valid Python property name, got {!r}"
-                .format(name)
-            )
-        if name in self.__m_parent__.__dict__:
-            raise TypeError(
-                "__getattr__.expect_call() must be called with a non existing property name, "
-                "got {!r} which already exists".format(name)
-            )
-        expected_call = Call(self._info.fullname, name)
-        return self.__m_session__.expect_call(expected_call)
-
-
-class _SetAttrMock(Mock):
-    _mocked_properties: Dict[str, Callable] = {}
-
-    def __init__(self, parent):
-        super().__init__('__setattr__', parent=parent)
-
-    def __call__(self, name, value):
-        actual_call = Call(self._info.fullname, name, value)
-        return self.__m_session__(actual_call)
-
-    def expect_call(self, name, value):
-        if not _utils.is_identifier(name):
-            raise TypeError(
-                "__setattr__.expect_call() must be called with valid Python property name, got {!r}"
-                .format(name)
-            )
-        if name in self.__m_parent__.__dict__:
-            raise TypeError(
-                "__setattr__.expect_call() must be called with a non existing property name, "
-                "got {!r} which already exists".format(name)
-            )
-        expected_call = Call(self._info.fullname, name, value)
-        return self.__m_session__.expect_call(expected_call)
-
-
-class _ExpectCallMock(Mock):
-
-    def __init__(self, parent):
-        super().__init__('expect_call', parent=parent)
-
-    def __call__(self, *args, **kwargs):
-        query = _utils.IterableQuery(self.__m_session__.expectations())
-        if query.exists(lambda x: x.expected_call.name == self._info.fullname):
-            return self._call(*args, **kwargs)
-        return self._expect_call(*args, **kwargs)
-
-    def _call(self, *args, **kwargs):
-        actual_call = Call(self._info.fullname, *args, **kwargs)
-        return self.__m_session__(actual_call)
-
-    def _expect_call(self, *args, **kwargs):
-        expected_call = Call(self._info.parent.fullname, *args, **kwargs)
-        return self.__m_session__.expect_call(expected_call)
+    def __new__(cls, *args, **kwargs):
+        kwargs['max_depth'] = -1
+        return ObjectMock(*args, **kwargs)

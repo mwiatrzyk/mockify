@@ -15,6 +15,7 @@
 import functools
 import itertools
 import keyword
+import typing
 import warnings
 import weakref
 
@@ -28,7 +29,11 @@ def format_call_count(count):
 
 
 def validate_mock_name(name):
-    """Check if *name* can be used as a mock name."""
+    """Check if *name* can be used as a mock name.
+
+    If name is not valid, this function will raise :exc:`InvalidMockName`
+    exception.
+    """
     parts = name.split('.') if isinstance(name, str) else [name]
     for part in parts:
         if not is_identifier(part):
@@ -38,11 +43,11 @@ def validate_mock_name(name):
             )
 
 
-def is_identifier(name):
-    """Check if given name is a valid Python identifier."""
-    return isinstance(name, str) and\
-        name.isidentifier() and\
-        not keyword.iskeyword(name)
+def is_identifier(candidate: typing.Any) -> bool:
+    """Check if a *candidate* is a valid Python identifier name."""
+    return isinstance(candidate, str) and\
+        candidate.isidentifier() and\
+        not keyword.iskeyword(candidate)
 
 
 def log_unhandled_exceptions(logger):

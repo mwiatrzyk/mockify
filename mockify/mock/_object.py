@@ -274,6 +274,16 @@ class ObjectMock(FunctionMock):
     .. versionadded:: (unreleased)
     """
 
+    def __new__(cls, name, max_depth=1, **kwargs):
+        if max_depth == 0:
+            return FunctionMock(name, **kwargs)
+        else:
+            return super().__new__(cls)
+
+    def __init__(self, name, max_depth=1, **kwargs):
+        super().__init__(name, **kwargs)
+        self._m_max_depth = max_depth
+
     @_utils.memoized_property
     def _m_builtin_mocks(self):
         result = {}
@@ -516,8 +526,17 @@ class ObjectMock(FunctionMock):
         d = self.__dict__
         if '__getattr__' in d:
             return d['__getattr__'](name)
-        d[name] = tmp = FunctionMock(name, parent=self)
+        d[name] = tmp = self.__make_leaf_node(name)
         return tmp
+
+    def __make_leaf_node(self, name):
+        max_depth = self._m_max_depth
+        if max_depth < 0:
+            return ObjectMock(name, max_depth=self._m_max_depth, parent=self)
+        elif max_depth == 0:
+            return FunctionMock(name, parent=self)
+        else:
+            return ObjectMock(name, max_depth=max_depth-1, parent=self)
 
     def __setattr__(self, name, value):
         return self._get_mock_or_super('__setattr__')(name, value)
@@ -669,6 +688,9 @@ class ObjectMock(FunctionMock):
             return self.__m_call__(name)
 
         def expect_call(self, name):
+            parent_dict = self.__m_parent__.__dict__
+            if name in parent_dict:
+                del parent_dict[name]
             return self.__m_expect_call__(name)
 
     @_register_builtin_mock('__getitem__')

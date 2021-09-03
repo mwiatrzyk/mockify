@@ -74,30 +74,10 @@ class TestMock:
         with satisfied(self.uut):
             assert self.uut.foo == 1
 
-    def test_when_property_already_exists__it_is_not_possible_to_record_get_expectation(
-        self
-    ):
-        _ = self.uut.foo
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.__getattr__.expect_call('foo').will_once(Return(1))
-        assert str(excinfo.value) ==\
-            "__getattr__.expect_call() must be called with a non existing "\
-            "property name, got 'foo' which already exists"
-
     def test_expect_namespaced_property_get_and_get_it(self):
         self.uut.foo.__getattr__.expect_call('bar').will_once(Return(1))
         with satisfied(self.uut):
             assert self.uut.foo.bar == 1
-
-    def test_when_namespaced_property_already_exists__it_is_not_possible_to_record_get_expectation(
-        self
-    ):
-        _ = self.uut.foo.bar
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.foo.__getattr__.expect_call('bar').will_once(Return(1))
-        assert str(excinfo.value) ==\
-            "__getattr__.expect_call() must be called with a non existing "\
-            "property name, got 'bar' which already exists"
 
     def test_when_property_get_expectation_is_recorded_with_invalid_number_of_params__then_raise_type_error(
         self
@@ -107,15 +87,6 @@ class TestMock:
         assert str(
             excinfo.value
         ) == "expect_call() takes 2 positional arguments but 3 were given"
-
-    @pytest.mark.parametrize('invalid_name', ['123', [], '@#$', '123foo'])
-    def test_when_property_get_expectation_is_recorded_with_invalid_property_name__then_raise_type_error(
-        self, invalid_name
-    ):
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.__getattr__.expect_call(invalid_name)
-        assert str(excinfo.value) ==\
-            "__getattr__.expect_call() must be called with valid Python property name, got {!r}".format(invalid_name)
 
     def test_when_property_is_expected_to_be_get_and_is_never_get__then_raise_unsatisfied_error(
         self
@@ -143,16 +114,6 @@ class TestMock:
         with satisfied(self.uut):
             self.uut.foo = 123
 
-    def test_when_property_already_exists__it_is_not_possible_to_record_set_expectation(
-        self
-    ):
-        self.uut.foo = 1
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.__setattr__.expect_call('foo', 2)
-        assert str(excinfo.value) ==\
-            "__setattr__.expect_call() must be called with a non existing "\
-            "property name, got 'foo' which already exists"
-
     def test_when_property_set_expectation_is_recorded_with_invalid_number_of_params__then_raise_type_error(
         self
     ):
@@ -161,15 +122,6 @@ class TestMock:
         assert str(
             excinfo.value
         ) == "expect_call() takes 3 positional arguments but 4 were given"
-
-    @pytest.mark.parametrize('invalid_name', ['123', [], '@#$', '123foo'])
-    def test_when_property_set_expectation_is_recorded_with_invalid_property_name__then_raise_type_error(
-        self, invalid_name
-    ):
-        with pytest.raises(TypeError) as excinfo:
-            self.uut.__setattr__.expect_call(invalid_name, 123)
-        assert str(excinfo.value) ==\
-            "__setattr__.expect_call() must be called with valid Python property name, got {!r}".format(invalid_name)
 
     def test_when_property_is_expected_to_be_set_and_is_never_set__then_raise_unsatisfied_error(
         self

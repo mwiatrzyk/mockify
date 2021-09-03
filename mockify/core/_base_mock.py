@@ -12,6 +12,7 @@
 # pylint: disable=missing-module-docstring
 
 import abc
+import keyword
 import warnings
 
 from mockify.interface import IMock, ISession
