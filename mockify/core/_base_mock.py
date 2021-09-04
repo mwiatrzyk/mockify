@@ -139,6 +139,11 @@ class MockInfo:
 
     :param target:
         Instance of :class:`BaseMock` object to be inspected
+
+    .. deprecated:: (unreleased)
+        This will be removed in one of upcoming releases. I've decided to go
+        with a Mockify-defined special methods provided by
+        :class:`mockify.abc.IMock` interface, therefore this class is obsolete.
     """
 
     def __init__(self, target: BaseMock):

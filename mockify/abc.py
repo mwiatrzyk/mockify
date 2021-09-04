@@ -188,23 +188,31 @@ class IMock(abc.ABC):
     """An interface to be implemented by mock classes.
 
     In Mockify, mocks are organized in a tree-like structure. For example, to
-    mock object with a methods we compose a root mock representing object and
-    then supply it with leafs (or children), each representing single mocked
-    method of that object.
+    mock object with methods, Mockify is first creating a "root" mock
+    representing object, and then supplies it with child nodes, each pointing to
+    "root" as a parent, and each representing single mocked method of that
+    object.
     """
 
     @property
     def __m_fullname__(self) -> str:
         """Full name of this mock.
 
-        Full mock names are calculated using this mock's parent's
-        :attr:`__m_fullname__`, and this mock's :attr:`__m_name__` value by
-        concatenating both with a period sign.
+        This is calculated by prefixing :attr:`__m_name__` of this mock with a
+        :attr:`__m_fullname__` property of this mock's parent, using ``.`` as a
+        separator.
 
-        If this mock has no parent, or this mock's parent does not have a name,
-        then this will be the same as :attr:`__m_name__`.
+        Roughly equivalent to:
 
-        Full mock names are unique across session this mock belongs to.
+        .. codeblock::
+
+            def __m_fullname__(self):
+                if self.__m_parent__ is None:
+                    return self.__m_name__
+                prefix = self.__m_parent__.__m_fullname__
+                if prefix:
+                    return prefix + "." + self.__m_name__
+                return self.__m_name__
         """
         return self.__m_fullname_impl
 
@@ -215,10 +223,39 @@ class IMock(abc.ABC):
             return self.__m_name__
         return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
 
+    def __m_walk__(self) -> typing.Iterator['IMock']:
+        """Recursively iterate over mock subtree, from root to leafs, using
+        *self* as a root.
+
+        This method does that by recursively iterating over
+        :meth:`__m_children__` iterator.
+
+        It always yields *self* as first element.
+        """
+
+        def walk(mock):
+            yield mock
+            for child in mock.__m_children__():
+                yield from walk(child)
+
+        yield from walk(self)
+
     @property
     @abc.abstractmethod
     def __m_name__(self) -> str:
-        """Name of this mock."""
+        """Name of this mock.
+
+        This MUST BE a valid Python identifier, or a sequence of valid Python
+        identifiers concatenated with a single ``.`` character.
+
+        For example, valid names are::
+
+            foo
+            bar
+            foobar123
+            _foo_bar_123
+            foo.bar.baz
+        """
 
     @property
     @abc.abstractmethod
@@ -237,8 +274,7 @@ class IMock(abc.ABC):
     @property
     @abc.abstractmethod
     def __m_parent__(self) -> typing.Optional['IMock']:
-        """A weak reference to :class:`IMock` object being a parent for this
-        mock.
+        """A reference to :class:`IMock` object that is a parent of this mock.
 
         If mock has no parent (i.e. if it's a root mock), then this should
         return ``None``.
@@ -249,8 +285,7 @@ class IMock(abc.ABC):
         """An iterator over :class:`IExpectation` objects recorded for
         this mock.
 
-        This SHOULD NOT include expectations recorded on this mock's children
-        (if any).
+        This SHOULD NOT include expectations recorded for children of this mock.
         """
 
     @abc.abstractmethod
