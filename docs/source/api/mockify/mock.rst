@@ -15,6 +15,6 @@
 
 .. automodule:: mockify.mock
     :members:
-    :special-members:
+    :special-members: __call__
     :no-undoc-members:
     :show-inheritance:

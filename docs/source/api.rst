@@ -24,5 +24,5 @@ API Reference
     api/mockify/matchers
     api/mockify/exc
     api/mockify/expect
-    api/mockify/interface
+    api/mockify/abc
     api/mockify/api

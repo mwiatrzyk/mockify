@@ -8,7 +8,7 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-from .interface import IExpectation, IMock
+from .abc import IExpectation, IMock
 
 
 def expect_call(

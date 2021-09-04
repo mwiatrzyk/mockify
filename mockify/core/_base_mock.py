@@ -15,7 +15,7 @@ import abc
 import keyword
 import warnings
 
-from mockify.interface import IMock, ISession
+from mockify.abc import IMock, ISession
 
 from .. import _utils
 from ._session import Session
@@ -85,17 +85,17 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
 
     @property
     def __m_name__(self):
-        """See :meth:`mockify.interface.IMock.__m_name__`."""
+        """See :meth:`mockify.abc.IMock.__m_name__`."""
         return self.__name
 
     @property
     def __m_session__(self):
-        """See :meth:`mockify.interface.IMock.__m_session__`."""
+        """See :meth:`mockify.abc.IMock.__m_session__`."""
         return self.__session
 
     @property
     def __m_parent__(self):
-        """See :meth:`mockify.interface.IMock.__m_parent__`."""
+        """See :meth:`mockify.abc.IMock.__m_parent__`."""
         if self.__parent is not None:
             return self.__parent()
         return None

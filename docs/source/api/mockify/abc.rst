@@ -10,14 +10,12 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.interface** - ABC classes for Mockify
-===============================================
+**mockify.abc** - ABC classes for Mockify
+=========================================
 
 .. versionadded:: 0.13
 
-.. automodule:: mockify.interface
+.. automodule:: mockify.abc
     :members:
-    :special-members:
-        __call__, __getattr__, __m_name__, __m_fullname__, __m_session__,
-        __m_parent__, __m_expectations__, __m_children__
+    :special-members: __call__, __getattr__
     :show-inheritance:

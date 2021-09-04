@@ -14,7 +14,7 @@
 import collections
 from enum import Enum
 
-from mockify.interface import IExpectation
+from mockify.abc import IExpectation
 
 from .. import exc
 from ..actions import Return

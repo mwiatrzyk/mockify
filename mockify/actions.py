@@ -22,7 +22,7 @@ from contextlib import contextmanager
 
 from . import _utils
 
-from mockify.interface import IAction
+from mockify.abc import IAction
 
 
 def _format_str(obj, *args, **kwargs):

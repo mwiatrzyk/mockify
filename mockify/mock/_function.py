@@ -11,8 +11,8 @@
 
 import typing
 
+from ..abc import IExpectation
 from ..core import BaseMock, Call
-from ..interface import IExpectation
 
 
 class BaseFunctionMock(BaseMock):
@@ -62,11 +62,11 @@ class BaseFunctionMock(BaseMock):
     """
 
     def __m_children__(self):
-        """See :meth:`mockify.interface.IMock.__m_children__`."""
+        """See :meth:`mockify.abc.IMock.__m_children__`."""
         return iter([])  # Function mock has no children
 
     def __m_expectations__(self):
-        """See :meth:`mockify.interface.IMock.__m_expectations__`"""
+        """See :meth:`mockify.abc.IMock.__m_expectations__`"""
         fullname = self.__m_fullname__
         return filter(
             lambda x: x.expected_call.name == fullname,

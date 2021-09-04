@@ -211,3 +211,14 @@ doctest_default_flags = doctest.ELLIPSIS | doctest.DONT_ACCEPT_TRUE_FOR_1
 
 # Autodoc
 autodoc_member_order = 'groupwise'  # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+
+# -- Extension hooks ----------------------------------------------------------
+
+def setup(app):
+
+    def autodoc_skip_member(app, what, name, obj, skip, options):
+        if name.startswith('__m_') and name.endswith('__'):  # all Mockify-defined special members are not skipped
+            return False
+        return skip
+
+    app.connect('autodoc-skip-member', autodoc_skip_member)

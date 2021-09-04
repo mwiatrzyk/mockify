@@ -3,7 +3,7 @@ from mockify.matchers import Func
 
 from mockify import _utils
 from mockify.core import BaseMock, Call
-from mockify.interface import IMock
+from mockify.abc import IMock
 
 from ._function import BaseFunctionMock, FunctionMock
 
@@ -235,9 +235,14 @@ class Mock(FunctionMock):
     See :ref:`creating-mocks` for more details.
 
     .. versionchanged:: (unreleased)
+
+        Changelog:
+
         * Now :class:`Mock` inherits from :class:`mockify.mock.FunctionMock` to
           avoid code duplication
+
         * Added *max_depth* parameter
+
         * Added support for (almost) all magic methods
 
     .. versionchanged:: 0.8

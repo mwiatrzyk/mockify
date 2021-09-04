@@ -3,7 +3,7 @@
 
 **Added**
 
-  * Use of ABC classes as Mockify base interface (:mod:`mockify.interface`)
+  * Use of ABC classes as Mockify base interface (:mod:`mockify.abc`)
   * Introducting new :mod:`mockify.expect` module containing set
     of **expect_**-prefixed functions for recording expectations on mock
     objects.

@@ -14,7 +14,7 @@ calls."""
 import abc
 from functools import total_ordering
 
-from mockify.interface import IExpectedCallCount
+from mockify.abc import IExpectedCallCount
 
 from . import _utils
 

@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify.interface import ICall
+from mockify.abc import ICall
 
 
 @pytest.fixture
