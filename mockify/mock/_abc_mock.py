@@ -11,7 +11,7 @@
 import abc
 import inspect
 
-from ..core import BaseMock
+from ._base import BaseMock
 from ._function import FunctionMock
 
 

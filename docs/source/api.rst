@@ -23,6 +23,5 @@ API Reference
     api/mockify/cardinality
     api/mockify/matchers
     api/mockify/exc
-    api/mockify/expect
     api/mockify/abc
     api/mockify/api

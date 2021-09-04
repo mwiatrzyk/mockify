@@ -14,12 +14,46 @@
 import unittest.mock
 from contextlib import contextmanager
 
-from ._assert import assert_satisfied
-from ._base_mock import MockInfo
+from mockify import exc, _utils
+from mockify.abc import IMock
+
+__all__ = export = _utils.ExportList()
 
 
+@export
+def assert_satisfied(mock: IMock, *args: IMock):
+    """Check if all given mocks are **satisfied**.
+
+    This is done by collecting all :class:`mockify.abc.IExpectation` objects for
+    which :meth:`mockify.abc.IExpectation.is_satisfied` returns ``False``.
+
+    If there are unsatisfied expectations present, then
+    :exc:`mockify.exc.Unsatisfied` exception is raised and list of found
+    unsatisfied expectations is reported.
+
+    :param mock:
+        Mock to be tested
+
+    :param `*args`:
+        Additional mocks to be tested
+    """
+
+    def iter_unsatisfied_expectations(mocks):
+        for mock in mocks:
+            for child in mock.__m_walk__():
+                yield from (
+                    x for x in child.__m_expectations__() if not x.is_satisfied()
+                )
+
+    mocks = tuple([mock]) + args
+    unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))
+    if unsatisfied_expectations:
+        raise exc.Unsatisfied(unsatisfied_expectations)
+
+
+@export
 @contextmanager
-def ordered(*mocks):  # TODO: add more tests
+def ordered(mock: IMock, *args: IMock):  # TODO: add more tests
     """Context manager that checks if expectations in wrapped scope are
     consumed in same order as they were defined.
 
@@ -34,29 +68,31 @@ def ordered(*mocks):  # TODO: add more tests
         if num_mocks == 1:
             return mocks[0].__m_session__
         for i in range(num_mocks - 1):
-            first, second = MockInfo(mocks[i]), MockInfo(mocks[i + 1])
-            session = first.session
-            if session is not second.session:
+            first, second = mocks[i], mocks[i + 1]
+            session = first.__m_session__
+            if session is not second.__m_session__:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(first.fullname, second.fullname)
+                    "session object".format(first.__m_fullname__, second.__m_fullname__)
                 )
         return session
 
     def iter_expected_mock_names(mocks):
         for mock in mocks:
-            for child in MockInfo(mock).walk():
-                for expectation in child.expectations():
+            for child in mock.__m_walk__():
+                for expectation in child.__m_expectations__():
                     yield expectation.expected_call.name
 
+    mocks = tuple([mock]) + args
     session = get_session()
     session.enable_ordered(iter_expected_mock_names(mocks))
     yield
     session.disable_ordered()
 
 
+@export
 @contextmanager
-def patched(*mocks):
+def patched(mock: IMock, *args: IMock):
     """Context manager that replaces imported objects and functions with
     their mocks using mock name as a name of patched module.
 
@@ -69,25 +105,27 @@ def patched(*mocks):
 
     def iter_mocks_with_expectations(mocks):
         for mock in mocks:
-            for child in MockInfo(mock).walk():
-                next_expectation = next(child.expectations(), None)
+            for child in mock.__m_walk__():
+                next_expectation = next(child.__m_expectations__(), None)
                 if next_expectation is not None:
-                    yield child.target
+                    yield child
 
     def patch_many(mocks):
         mock = next(mocks, None)
         if mock is None:
             yield
         else:
-            full_name = MockInfo(mock).fullname
+            full_name = mock.__m_fullname__
             with unittest.mock.patch(full_name, mock):
                 yield from patch_many(mocks)
 
+    mocks = tuple([mock]) + args
     for _ in patch_many(iter_mocks_with_expectations(mocks)):
         yield
         break
 
 
+@export
 @contextmanager
 def satisfied(*mocks):
     """Context manager wrapper for :func:`assert_satisfied`."""

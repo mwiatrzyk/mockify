@@ -171,6 +171,19 @@ class IExpectation(abc.ABC):
     def will_repeatedly(self, action: IAction) -> IWillRepeatedlyMutation:
         """See :meth:`IExpectation.IWillOnceMutation.will_repeatedly`."""
 
+    @abc.abstractmethod
+    def is_satisfied(self) -> bool:
+        """Check if this expectation object is **satisfied**.
+
+        Expectations are satisfied if and only if:
+
+            * all recorded actions were consumed
+            * number of calls being made is inside expected call count range
+
+        All unsatisfied expectations will be reported as mock errors and the end
+        of each test, causing each test to fail.
+        """
+
 
 class ISession(abc.ABC):
     """An interface to be implemented by session classes.
@@ -202,17 +215,8 @@ class IMock(abc.ABC):
         :attr:`__m_fullname__` property of this mock's parent, using ``.`` as a
         separator.
 
-        Roughly equivalent to:
-
-        .. codeblock::
-
-            def __m_fullname__(self):
-                if self.__m_parent__ is None:
-                    return self.__m_name__
-                prefix = self.__m_parent__.__m_fullname__
-                if prefix:
-                    return prefix + "." + self.__m_name__
-                return self.__m_name__
+        If this mock has no parent, or parent does not have a name assigned,
+        then this will be the same as :attr:`__m_name__`.
         """
         return self.__m_fullname_impl
 
@@ -244,6 +248,11 @@ class IMock(abc.ABC):
     @abc.abstractmethod
     def __m_name__(self) -> str:
         """Name of this mock.
+
+        Mock names are used for error reporting, to precisely point to mock and
+        method that caused error. For root mocks you will have to provide names
+        manually, and for leaf mocks the names will be picked automatically,
+        using name of a method that is being mocked.
 
         This MUST BE a valid Python identifier, or a sequence of valid Python
         identifiers concatenated with a single ``.`` character.

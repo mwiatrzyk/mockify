@@ -9,7 +9,7 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from ..core import BaseMock, MockInfo
+from ._base import BaseMock, MockInfo
 from ._mock import Mock
 
 

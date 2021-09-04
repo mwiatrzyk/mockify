@@ -10,14 +10,19 @@
 # ---------------------------------------------------------------------------
 """Library core module."""
 
-from ._assert import assert_satisfied
-from ._base_mock import BaseMock, MockInfo
 from ._call import Call, LocationInfo
-from ._contextmanagers import ordered, patched, satisfied
 from ._expectation import Expectation
 from ._session import Session
 
+from ._functions import *
+
+from mockify import _utils
+from mockify.mock import _base
+
+MockInfo = _utils.mark_import_deprecated(_base.MockInfo, 'mockify.core.MockInfo', 'mockify.mock.MockInfo', '(unreleased)')
+BaseMock = _utils.mark_import_deprecated(_base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock', '(unreleased)')
+
 __all__ = [
     'assert_satisfied', 'Call', 'LocationInfo', 'satisfied', 'ordered',
-    'patched', 'Expectation', 'Session', 'BaseMock', 'MockInfo'
+    'patched', 'Expectation', 'Session'
 ]

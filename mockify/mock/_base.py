@@ -11,51 +11,52 @@
 
 # pylint: disable=missing-module-docstring
 
-import abc
-import keyword
-import warnings
-
+from mockify import _utils
 from mockify.abc import IMock, ISession
+from mockify.core import Session
 
-from .. import _utils
-from ._session import Session
+__all__ = export = _utils.ExportList()
 
 
+@export
 class BaseMock(IMock):  # pylint: disable=too-few-public-methods
-    """Abstract base class for all mock classes.
+    """Base class for all mock classes.
 
-    In Mockify, mocks are composed in a tree-like structure. For example, to
-    mock object with a methods we compose object mock (a root) and then
-    supply it with leafs (or children), each representing single mocked
-    method of that object. This class provides methods and properties for
-    Mockify engine to walk through such defined structure.
-
-    If you need to declare your own mocks, make sure you implement this
-    interface.
+    This class provides partial implementation of :class:`mockify.abc.IMock`
+    interface and common constructor used by all mocks. If you need to create
+    custom mock, then it is better to inherit from this class at first place, as
+    it provides some basic initialization out of the box.
 
     :param name:
         Name of this mock.
 
-        This is later used in error reports and it identifies the mock in
-        Mockify's internals. The name used here must be a valid Python
-        identifier (or identifiers, concatenated with a period sign) and
-        should reflect what the mock is actually mocking.
+        This will be returned by :attr:`__m_name__` property.
+
+        See :attr:`mockify.abc.IMock.__m_name__` for more information about
+        naming mocks.
 
     :param session:
-        Instance of :class:`mockify.core.Session` to be used.
+        Instance of :class:`mockify.abc.ISession` to be used.
 
-        If not given, parent's session will be used if parent is set.
-        Otherwise, a new session will be created.
+        If not given, parent's session will be used (if parent exist) or a
+        default :class:`mockify.core.Session` session object will be created and
+        used.
+
+        .. note::
+            This option is self-exclusive with *parent* parameter.
 
     :param parent:
-        Instance of :class:`BaseMock` representing parent for this mock.
+        Instance of :class:`mockify.abc.IMock` representing parent for this
+        mock.
 
         When this parameter is given, mock implicitly uses paren't session
         object.
 
-    .. note::
-        Parameters ``session`` and ``parent`` are self-exclusive and cannot
-        be used simultaneously.
+        .. note::
+            This option is self-exclusive with *session* parameter.
+
+    .. versionchanged:: (unreleased)
+        Moved from :mod:`mockify.core` into :mod:`mockify.mock`.
 
     .. versionchanged:: 0.9
         Added ``__init__`` method, as it is basically same for all mock
@@ -64,7 +65,7 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
     .. versionadded:: 0.8
     """
 
-    def __init__(self, name, session=None, parent=None):
+    def __init__(self, name: str, session: ISession=None, parent: IMock=None):
         self.__name = name
         self.__parent = _utils.make_weak(parent)
         if name is not None:
@@ -84,50 +85,24 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
         )
 
     @property
-    def __m_name__(self):
+    def __m_name__(self) -> str:
         """See :meth:`mockify.abc.IMock.__m_name__`."""
         return self.__name
 
     @property
-    def __m_session__(self):
+    def __m_session__(self) -> ISession:
         """See :meth:`mockify.abc.IMock.__m_session__`."""
         return self.__session
 
     @property
-    def __m_parent__(self):
+    def __m_parent__(self) -> IMock:
         """See :meth:`mockify.abc.IMock.__m_parent__`."""
         if self.__parent is not None:
             return self.__parent()
         return None
 
-    def __m_walk__(self):
-        """Recursively iterate over :class:`BaseMock` object yielded by
-        :meth:`__m_children__` method.
 
-        It always yields *self* as first element.
-
-        This method is used by Mockify internals to collect all expectations
-        recorded for mock and all its children.
-
-        .. deprecated:: 0.11
-            This will be removed in one of upcoming releases.
-
-            To walk through all mock's children and grandchildren, use
-            :meth:`MockInfo.walk` instead.
-        """
-        warnings.warn(
-            'Deprecated since 0.11 - use MockInfo(mock).walk() instead',
-            DeprecationWarning
-        )
-
-        def walk(mock):
-            yield mock
-            for child in mock.__m_children__():
-                yield from walk(child)
-
-        yield from walk(self)
-
-
+@export
 class MockInfo:
     """A class for inspecting mocks.
 
@@ -141,9 +116,9 @@ class MockInfo:
         Instance of :class:`BaseMock` object to be inspected
 
     .. deprecated:: (unreleased)
-        This will be removed in one of upcoming releases. I've decided to go
-        with a Mockify-defined special methods provided by
-        :class:`mockify.abc.IMock` interface, therefore this class is obsolete.
+        This class is obsolete and will be removed in one of upcoming releases.
+        Entire functionality is currently provided by Mockify-defined special
+        methods in :class:`mockify.abc.IMock` class.
     """
 
     def __init__(self, target: BaseMock):
@@ -154,7 +129,7 @@ class MockInfo:
         self._target = target
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}: {self._target!r}>".format(
+        return "<mockify.mock.{self.__class__.__qualname__}: {self._target!r}>".format(
             self=self
         )
 

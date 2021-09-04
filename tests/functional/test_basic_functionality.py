@@ -1,7 +1,7 @@
 import pytest
 
 from mockify import exc
-from mockify.api import Mock, FunctionMock, satisfied, expect_call
+from mockify.api import Mock, FunctionMock, satisfied
 
 
 @pytest.fixture(params=[

@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify.core import BaseMock, MockInfo
+from mockify.mock import BaseMock, MockInfo
 
 
 class StubMock(BaseMock):
@@ -37,7 +37,7 @@ class TestBaseMock:
     def test_mock_repr(self):
         assert repr(
             StubMock('dummy')
-        ) == "<tests.unit.core.test_base_mock.StubMock('dummy')>"
+        ) == "<tests.unit.mock.test_base.StubMock('dummy')>"
 
 
 class TestMockInfo:
@@ -54,7 +54,7 @@ class TestMockInfo:
     def test_mock_info_repr(self):
         assert repr(
             MockInfo(self.mock)
-        ) == "<mockify.core._base_mock.MockInfo: <tests.unit.core.test_base_mock.StubMock('mock')>>"
+        ) == "<mockify.mock.MockInfo: <tests.unit.mock.test_base.StubMock('mock')>>"
 
     def test_if_invalid_object_type_given__then_fail_with_type_error(self):
         with pytest.raises(TypeError) as excinfo:

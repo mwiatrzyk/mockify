@@ -32,7 +32,6 @@ you are free to use multiline imports if you prefer.
 from mockify.core import ordered, satisfied, assert_satisfied, Session
 from mockify.mock import ABCMock, Mock, BaseFunctionMock, FunctionMock, MockFactory
 from mockify.actions import Return, ReturnAsync, Raise, RaiseAsync, Iterate
-from mockify.expect import expect_call
 from mockify.cardinality import Exactly, AtLeast, AtMost, Between
 from mockify.matchers import _
 

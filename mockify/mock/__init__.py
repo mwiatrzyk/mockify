@@ -19,4 +19,8 @@ from ._factory import MockFactory
 from ._function import FunctionMock, BaseFunctionMock
 from ._mock import Mock
 
-__all__ = ['Mock', 'ObjectMock', 'FunctionMock', 'BaseFunctionMock', 'MockFactory', 'ABCMock']
+from ._base import *
+
+from ._base import __all__ as base_exports
+
+__all__ = ['Mock', 'ObjectMock', 'FunctionMock', 'BaseFunctionMock', 'MockFactory', 'ABCMock'] + base_exports

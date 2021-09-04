@@ -11,8 +11,10 @@
 
 import typing
 
-from ..abc import IExpectation
-from ..core import BaseMock, Call
+from mockify.abc import IExpectation
+from mockify.core import Call
+
+from ._base import BaseMock
 
 
 class BaseFunctionMock(BaseMock):

@@ -82,7 +82,7 @@ def make_weak(value):
     return value
 
 
-def mark_deprecated(cls_or_func, old, new, since):
+def mark_import_deprecated(cls_or_func, old, new, since):
     """Decorator for marking class or function as deprecated.
 
     It will issue a warning once old import is used instead of a new
@@ -101,12 +101,28 @@ def mark_deprecated(cls_or_func, old, new, since):
         Version since wrapped class or function is marked as deprecated
     """
 
-    @functools.wraps(cls_or_func)
-    def factory(*args, **kwargs):
+    def emit_warning(stacklevel):
         message = "{old!r} is deprecated since {since} and will be completely "\
             "removed in next major release - please use {new!r} instead".format(old=old, new=new, since=since)
-        warnings.warn(message, DeprecationWarning, stacklevel=2)
-        return cls_or_func(*args, **kwargs)
+        warnings.warn(message, DeprecationWarning, stacklevel=stacklevel)
+
+    if isinstance(cls_or_func, type):
+
+        class factory(cls_or_func):
+
+            def __init__(self, *args, **kwargs):
+                emit_warning(3)
+                super().__init__(*args, **kwargs)
+
+        factory.__qualname__ = cls_or_func.__qualname__
+        factory.__name__ = cls_or_func.__name__
+
+    else:
+
+        @functools.wraps(cls_or_func)
+        def factory(*args, **kwargs):
+            emit_warning(2)
+            return cls_or_func(*args, **kwargs)
 
     return factory
 
@@ -199,6 +215,14 @@ class DictEqualityMixin:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+
+class ExportList(list):
+    """A helper to implement ``__all__`` in modules."""
+
+    def __call__(self, member):
+        self.append(member.__name__)
+        return member
 
 
 class memoized_property:

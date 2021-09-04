@@ -2,9 +2,10 @@ from collections.abc import Mapping
 from mockify.matchers import Func
 
 from mockify import _utils
-from mockify.core import BaseMock, Call
+from mockify.core import Call
 from mockify.abc import IMock
 
+from ._base import BaseMock
 from ._function import BaseFunctionMock, FunctionMock
 
 
