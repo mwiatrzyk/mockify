@@ -45,10 +45,12 @@ def assert_satisfied(mock: IMock, *args: IMock):
                     x for x in child.__m_expectations__() if not x.is_satisfied()
                 )
 
-    mocks = tuple([mock]) + args
-    unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))
-    if unsatisfied_expectations:
-        raise exc.Unsatisfied(unsatisfied_expectations)
+    def impl(*mocks):
+        unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))
+        if unsatisfied_expectations:
+            raise exc.Unsatisfied(unsatisfied_expectations)
+
+    impl(mock, *args)
 
 
 @export
@@ -63,7 +65,7 @@ def ordered(mock: IMock, *args: IMock):  # TODO: add more tests
     See :ref:`Recording ordered expectations` for more details.
     """
 
-    def get_session():
+    def get_session(mocks):
         num_mocks = len(mocks)
         if num_mocks == 1:
             return mocks[0].__m_session__
@@ -83,11 +85,13 @@ def ordered(mock: IMock, *args: IMock):  # TODO: add more tests
                 for expectation in child.__m_expectations__():
                     yield expectation.expected_call.name
 
-    mocks = tuple([mock]) + args
-    session = get_session()
-    session.enable_ordered(iter_expected_mock_names(mocks))
-    yield
-    session.disable_ordered()
+    def impl(*mocks):
+        session = get_session(mocks)
+        session.enable_ordered(iter_expected_mock_names(mocks))
+        yield
+        session.disable_ordered()
+
+    yield from impl(mock, *args)
 
 
 @export
@@ -119,15 +123,17 @@ def patched(mock: IMock, *args: IMock):
             with unittest.mock.patch(full_name, mock):
                 yield from patch_many(mocks)
 
-    mocks = tuple([mock]) + args
-    for _ in patch_many(iter_mocks_with_expectations(mocks)):
-        yield
-        break
+    def impl(*mocks):
+        for _ in patch_many(iter_mocks_with_expectations(mocks)):
+            yield
+            break
+
+    yield from impl(mock, *args)
 
 
 @export
 @contextmanager
-def satisfied(*mocks):
+def satisfied(mock: IMock, *mocks: IMock):
     """Context manager wrapper for :func:`assert_satisfied`."""
     yield
-    assert_satisfied(*mocks)
+    assert_satisfied(mock, *mocks)
