@@ -12,9 +12,11 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
 
+import traceback
 import functools
 import itertools
 import keyword
+import types
 import typing
 import warnings
 import weakref
@@ -232,32 +234,36 @@ class DictEqualityMixin:
 class ExportList(list):
     """A helper to implement ``__all__`` in modules."""
 
+    def __init__(self, defaults=None):
+        super().__init__(defaults or [])
+
     def __call__(self, member):
         self.append(member.__name__)
         return member
 
 
-def merge_export_lists(*modules):
-    """Merge export lists (i.e. ``__all__`` property) from one or more modules
-    and produce new list.
+def make_alias(cls_or_func):
+    """For given class or function object return an alias proxy class or
+    function (accordingly).
 
-    This is used as a helper for providing ``__all__`` property to modules that
-    are split into several private inner submodules.
-
-    If this function finds an exported name that is duplicated, than
-    :exc:`ImportError` will be raised, as manual adjustments are needed.
+    This is used to create new name, with changed docstring, when an alias
+    modules are created.
     """
-
-    def gen():
-        memo = set()
-        for module in modules:
-            for name in module.__all__:
-                if name in memo:
-                    raise ImportError('dupa')
-                memo.add(name)
-                yield name
-
-    return [x for x in gen()]
+    if isinstance(cls_or_func, type):
+        class alias(cls_or_func):
+            """An alias for :class:`{cls.__module__}.{cls.__qualname__}` class.""".format(cls=cls_or_func)
+            def __new__(cls, *args, **kwargs):
+                return cls_or_func(*args, **kwargs)
+        alias.__name__ = cls_or_func.__name__
+        alias.__qualname__ = cls_or_func.__qualname__
+        return alias
+    elif not isinstance(cls_or_func, types.FunctionType):
+        return cls_or_func
+    @functools.wraps(cls_or_func)
+    def alias(*args, **kwargs):
+        return cls_or_func(*args, **kwargs)
+    alias.__doc__ = "An alias for :func:`{func.__module__}.{func.__qualname__}` function.".format(func=cls_or_func)
+    return alias
 
 
 class memoized_property:

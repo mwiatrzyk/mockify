@@ -15,9 +15,12 @@ import typing
 
 from . import _utils
 
+__all__ = export = _utils.ExportList()
+
 logger = logging.getLogger('mockify')
 
 
+@export
 class MockifyWarning(Warning):
     """Common base class for Mockify warnings.
 
@@ -25,6 +28,7 @@ class MockifyWarning(Warning):
     """
 
 
+@export
 class UninterestedCallWarning(MockifyWarning):
     """This warning is used to inform about uninterested call being made.
 
@@ -35,6 +39,7 @@ class UninterestedCallWarning(MockifyWarning):
     """
 
 
+@export
 class MockifyError(Exception):
     """Common base class for all Mockify exceptions.
 
@@ -42,6 +47,7 @@ class MockifyError(Exception):
     """
 
 
+@export
 class MockifyAssertion(MockifyError, AssertionError):
     """Common base class for all Mockify assertion errors.
 
@@ -52,6 +58,7 @@ class MockifyAssertion(MockifyError, AssertionError):
     """
 
 
+@export
 class UnexpectedCall(MockifyAssertion):
     """Raised when mock was called with parameters that couldn't been matched
     to any of existing expectations.
@@ -127,6 +134,7 @@ class UnexpectedCall(MockifyAssertion):
         return self._expected_calls
 
 
+@export
 class UnexpectedCallOrder(MockifyAssertion):
     """Raised when mock was called but another one is expected to be called
     before.
@@ -173,6 +181,7 @@ class UnexpectedCallOrder(MockifyAssertion):
         return self._expected_call
 
 
+@export
 class UninterestedCall(MockifyAssertion):
     """Raised when call is made to a mock that has no expectations set.
 
@@ -204,6 +213,7 @@ class UninterestedCall(MockifyAssertion):
         return self._actual_call
 
 
+@export
 class OversaturatedCall(MockifyAssertion):
     """Raised when mock with actions recorded using
     :meth:`mockify.core.Expectation.will_once` was called more times than
@@ -263,6 +273,7 @@ class OversaturatedCall(MockifyAssertion):
         return self._oversaturated_expectation
 
 
+@export
 class Unsatisfied(MockifyAssertion):
     """Raised when unsatisfied expectations are present.
 

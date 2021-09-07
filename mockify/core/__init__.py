@@ -8,14 +8,13 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-"""Library core module."""
 
-from ._call import *
-from ._expectation import *
-from ._session import *
-from ._functions import *
+"""Classes and functions providing Mockify's core functionality."""
 
-from . import _call, _expectation, _session, _functions
+from ._call import Call, LocationInfo
+from ._expectation import Expectation
+from ._session import Session
+from ._functions import assert_satisfied, satisfied, ordered, patched
 
 from mockify import _utils
 from mockify.mock import _base
@@ -23,5 +22,7 @@ from mockify.mock import _base
 MockInfo = _utils.mark_import_deprecated(_base.MockInfo, 'mockify.core.MockInfo', 'mockify.mock.MockInfo', '(unreleased)')
 BaseMock = _utils.mark_import_deprecated(_base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock', '(unreleased)')
 
-__all__ = ['MockInfo', 'BaseMock'] +\
-    _utils.merge_export_lists(_call, _expectation, _session, _functions)
+__all__ = [
+    'MockInfo', 'BaseMock', 'Call', 'LocationInfo', 'Expectation', 'Session',
+    'assert_satisfied', 'satisfied', 'ordered', 'patched'
+]

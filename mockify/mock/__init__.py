@@ -8,20 +8,21 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-"""Module containing types used to mock things.
 
-These can be considered as frontends on top of Mockify's core
-functionality.
+"""Classes and functions used to create mocks.
+
+Each of these can be considered as a frontend on top of
+:class:`mockify.core.Session` class, which is acting as a sort of backend for
+mock classes.
 """
 
-from mockify import _utils
+from ._base import BaseMock, MockInfo
+from ._abc_mock import ABCMock
+from ._factory import MockFactory
+from ._function import BaseFunctionMock, FunctionMock
+from ._mock import Mock
 
-from ._base import *
-from ._abc_mock import *
-from ._factory import *
-from ._function import *
-from ._mock import *
-
-from . import _base, _abc_mock, _factory, _function, _mock
-
-__all__ = _utils.merge_export_lists(_base, _abc_mock, _factory, _function, _mock)
+__all__ = [
+    'BaseMock', 'MockInfo', 'ABCMock', 'MockFactory', 'BaseFunctionMock',
+    'FunctionMock', 'Mock'
+]

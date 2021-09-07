@@ -24,6 +24,8 @@ from . import _utils
 
 from mockify.abc import IAction
 
+__all__ = export = _utils.ExportList()
+
 
 def _format_str(obj, *args, **kwargs):
     return "{}({})".format(
@@ -32,6 +34,7 @@ def _format_str(obj, *args, **kwargs):
     )
 
 
+@export
 class Action(IAction, _utils.DictEqualityMixin):
     """Abstract base class for actions.
 
@@ -69,6 +72,7 @@ class Action(IAction, _utils.DictEqualityMixin):
         """
 
 
+@export
 class Return(Action):
     """Forces mock to return *value* when called.
 
@@ -95,6 +99,7 @@ class Return(Action):
         return self.value
 
 
+@export
 class ReturnAsync(Return):
     """Similar to :class:`Return`, but to be used with asynchronous Python
     code.
@@ -133,6 +138,7 @@ class ReturnAsync(Return):
         return proxy(self.value)
 
 
+@export
 class ReturnContext(Return):
     """Similar to :class:`Return`, but returns *value* via context
     manager.
@@ -180,6 +186,7 @@ class ReturnContext(Return):
         return proxy(self.value)
 
 
+@export
 class ReturnAsyncContext(ReturnContext):
     """Similar to :class:`ReturnContext`, but returns *value* via async
     context manager.
@@ -235,6 +242,7 @@ class ReturnAsyncContext(ReturnContext):
         return Proxy(self.value)
 
 
+@export
 class Iterate(Action):
     """Similar to :class:`Return`, but returns an iterator to given
     *iterable*.
@@ -264,6 +272,7 @@ class Iterate(Action):
         return iter(self.iterable)
 
 
+@export
 class IterateAsync(Iterate):
     """Similar to :class:`Iterate`, but returns awaitable that returns an
     iterator to given *iterable*.
@@ -303,6 +312,7 @@ class IterateAsync(Iterate):
         return proxy(self.iterable)
 
 
+@export
 class YieldAsync(Iterate):
     """Similar to :class:`Iterate`, but returns async iterator to given *iterable*.
 
@@ -346,6 +356,7 @@ class YieldAsync(Iterate):
         return proxy(self.iterable)
 
 
+@export
 class Raise(Action):
     """Forces mock to raise *exc* when called.
 
@@ -374,6 +385,7 @@ class Raise(Action):
         raise self.exc
 
 
+@export
 class RaiseAsync(Raise):
     """Similar to :class:`Raise`, but to be used with asynchronous Python
     code.
@@ -415,6 +427,7 @@ class RaiseAsync(Raise):
         return proxy(self.exc)
 
 
+@export
 class Invoke(Action):
     """Forces mock to invoke *func* when called.
 
@@ -467,6 +480,7 @@ class Invoke(Action):
         return self._bound_func(*actual_call.args, **actual_call.kwargs)
 
 
+@export
 class InvokeAsync(Invoke):
     """Similar to :class:`Invoke`, but to be used with asynchronous Python
     code.

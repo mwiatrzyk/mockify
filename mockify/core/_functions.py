@@ -32,10 +32,10 @@ def assert_satisfied(mock: IMock, *args: IMock):
     unsatisfied expectations is reported.
 
     :param mock:
-        Mock to be tested
+        Mock object
 
     :param `*args`:
-        Additional mocks to be tested
+        Additional mock objects
     """
 
     def iter_unsatisfied_expectations(mocks):
@@ -63,6 +63,12 @@ def ordered(mock: IMock, *args: IMock):  # TODO: add more tests
     assertion on first found mock that is executed out of specified order.
 
     See :ref:`Recording ordered expectations` for more details.
+
+    :param mock:
+        Mock object
+
+    :param `*args`:
+        Additional mock objects
     """
 
     def get_session(mocks):
@@ -105,6 +111,12 @@ def patched(mock: IMock, *args: IMock):
     manager is used.
 
     See :ref:`Patching imported modules` for more details.
+
+    :param mock:
+        Mock object
+
+    :param `*args`:
+        Additional mock objects
     """
 
     def iter_mocks_with_expectations(mocks):
@@ -134,6 +146,13 @@ def patched(mock: IMock, *args: IMock):
 @export
 @contextmanager
 def satisfied(mock: IMock, *mocks: IMock):
-    """Context manager wrapper for :func:`assert_satisfied`."""
+    """Context manager wrapper for :func:`assert_satisfied`.
+
+    :param mock:
+        Mock object
+
+    :param `*args`:
+        Additional mock objects
+    """
     yield
     assert_satisfied(mock, *mocks)

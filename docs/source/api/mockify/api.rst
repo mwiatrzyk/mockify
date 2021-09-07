@@ -10,9 +10,7 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.api** - Proxy module for accessing most commonly used public classes and functions
-============================================================================================
+**mockify.api** - An all-in-one import module
+=============================================
 
 .. automodule:: mockify.api
-    :members:
-    :show-inheritance:

@@ -14,9 +14,10 @@ calls."""
 import abc
 from functools import total_ordering
 
+from mockify import _utils
 from mockify.abc import IExpectedCallCount
 
-from . import _utils
+__all__ = export = _utils.ExportList()
 
 
 def _format_repr(obj, *args, **kwargs):
@@ -26,6 +27,7 @@ def _format_repr(obj, *args, **kwargs):
     )
 
 
+@export
 @total_ordering
 class ActualCallCount:
     """Proxy class that is used to calculate actual mock calls.
@@ -71,6 +73,7 @@ class ActualCallCount:
         return self._value
 
 
+@export
 class ExpectedCallCount(IExpectedCallCount, _utils.DictEqualityMixin):
     """Abstract base class for classes used to set expected call count on
     mock objects.
@@ -114,6 +117,7 @@ class ExpectedCallCount(IExpectedCallCount, _utils.DictEqualityMixin):
         """
 
 
+@export
 class Exactly(ExpectedCallCount):
     """Used to set expected call count to fixed *expected* value.
 
@@ -145,6 +149,7 @@ class Exactly(ExpectedCallCount):
         return Exactly(self.expected + minimal)
 
 
+@export
 class AtLeast(ExpectedCallCount):
     """Used to set expected call count to given *minimal* value.
 
@@ -174,6 +179,7 @@ class AtLeast(ExpectedCallCount):
         return AtLeast(self.minimal + minimal)
 
 
+@export
 class AtMost(ExpectedCallCount):
     """Used to set expected call count to given *maximal* value.
 
@@ -206,6 +212,7 @@ class AtMost(ExpectedCallCount):
         return Between(minimal, self.maximal + minimal)
 
 
+@export
 class Between(ExpectedCallCount):
     """Used to set a range of expected call counts between *minimal* and
     *maximal*, both included.
