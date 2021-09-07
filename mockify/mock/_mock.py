@@ -8,6 +8,8 @@ from mockify.abc import IMock
 from ._base import BaseMock
 from ._function import BaseFunctionMock, FunctionMock
 
+__all__ = export = _utils.ExportList()
+
 
 def _register_builtin_mock(name):
 
@@ -24,6 +26,7 @@ def _register_builtin_mock(name):
 # constructor. Methods should allow the user to pass his/her own mock instance
 # as method implementation (similar to the way as built-in mocks are done)
 
+@export
 class Mock(FunctionMock):
     """General purpose mocking class.
 

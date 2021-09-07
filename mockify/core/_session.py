@@ -15,11 +15,14 @@ import collections
 import itertools
 import warnings
 
-from .. import exc
+from mockify import exc, _utils
 from . import _config
 from ._expectation import Expectation
 
+__all__ = export = _utils.ExportList()
 
+
+@export
 class Session:
     """A class providing core logic of connecting mock calls with recorded
     expectations.

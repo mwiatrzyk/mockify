@@ -13,9 +13,12 @@
 
 import traceback
 
-from .. import _globals, _utils
+from mockify import _globals, _utils
+
+__all__ = export = _utils.ExportList()
 
 
+@export
 class LocationInfo:
     """A placeholder for file name and line number obtained from the stack.
 
@@ -76,6 +79,7 @@ class LocationInfo:
         return cls('unknown', -1)
 
 
+@export
 class Call:
     """An object representing mock call.
 

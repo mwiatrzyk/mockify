@@ -116,6 +116,12 @@ def mark_import_deprecated(cls_or_func, old, new, since):
 
         factory.__qualname__ = cls_or_func.__qualname__
         factory.__name__ = cls_or_func.__name__
+        factory.__doc__ = """
+        .. deprecated:: {since}
+            This class was moved and is currently available as
+            :class:`{new}` class. Old import will stop working in one of
+            upcoming releases.
+        """.format(new=new, since=since)
 
     else:
 
@@ -123,6 +129,12 @@ def mark_import_deprecated(cls_or_func, old, new, since):
         def factory(*args, **kwargs):
             emit_warning(2)
             return cls_or_func(*args, **kwargs)
+        factory.__doc__ = """
+        .. deprecated:: {since}
+            This function was moved and is currently available as
+            :func:`{new}` function. Old import will stop working in one of
+            upcoming releases.
+        """.format(new=new, since=since)
 
     return factory
 
@@ -223,6 +235,29 @@ class ExportList(list):
     def __call__(self, member):
         self.append(member.__name__)
         return member
+
+
+def merge_export_lists(*modules):
+    """Merge export lists (i.e. ``__all__`` property) from one or more modules
+    and produce new list.
+
+    This is used as a helper for providing ``__all__`` property to modules that
+    are split into several private inner submodules.
+
+    If this function finds an exported name that is duplicated, than
+    :exc:`ImportError` will be raised, as manual adjustments are needed.
+    """
+
+    def gen():
+        memo = set()
+        for module in modules:
+            for name in module.__all__:
+                if name in memo:
+                    raise ImportError('dupa')
+                memo.add(name)
+                yield name
+
+    return [x for x in gen()]
 
 
 class memoized_property:

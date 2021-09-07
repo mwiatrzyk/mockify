@@ -11,12 +11,16 @@
 
 import typing
 
+from mockify import _utils
 from mockify.abc import IExpectation
 from mockify.core import Call
 
 from ._base import BaseMock
 
+__all__ = export = _utils.ExportList()
 
+
+@export
 class BaseFunctionMock(BaseMock):
     """Foundation class for making custom function mocks, with user-defined
     fixed set of positional and/or keyword arguments.
@@ -86,6 +90,7 @@ class BaseFunctionMock(BaseMock):
         )
 
 
+@export
 class FunctionMock(BaseFunctionMock):
     """Class for mocking arbitrary Python functions.
 

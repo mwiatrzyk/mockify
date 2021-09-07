@@ -14,13 +14,14 @@ These can be considered as frontends on top of Mockify's core
 functionality.
 """
 
-from ._abc_mock import ABCMock
-from ._factory import MockFactory
-from ._function import FunctionMock, BaseFunctionMock
-from ._mock import Mock
+from mockify import _utils
 
 from ._base import *
+from ._abc_mock import *
+from ._factory import *
+from ._function import *
+from ._mock import *
 
-from ._base import __all__ as base_exports
+from . import _base, _abc_mock, _factory, _function, _mock
 
-__all__ = ['Mock', 'ObjectMock', 'FunctionMock', 'BaseFunctionMock', 'MockFactory', 'ABCMock'] + base_exports
+__all__ = _utils.merge_export_lists(_base, _abc_mock, _factory, _function, _mock)

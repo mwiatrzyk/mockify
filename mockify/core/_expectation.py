@@ -16,9 +16,11 @@ from enum import Enum
 
 from mockify.abc import IExpectation
 
-from .. import exc
-from ..actions import Return
-from ..cardinality import ActualCallCount, AtLeast, Exactly
+from mockify import exc, _utils
+from mockify.actions import Return
+from mockify.cardinality import ActualCallCount, AtLeast, Exactly
+
+__all__ = export = _utils.ExportList()
 
 
 class _ActionType(Enum):
@@ -27,6 +29,7 @@ class _ActionType(Enum):
     REPEATED = 'repeated'
 
 
+@export
 class Expectation(IExpectation):
     """An class representing single expectation.
 

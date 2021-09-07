@@ -9,10 +9,15 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+from mockify import _utils
+
 from ._base import BaseMock, MockInfo
 from ._mock import Mock
 
+__all__ = export = _utils.ExportList()
 
+
+@export
 class MockFactory(BaseMock):
     """A factory class used to create groups of related mocks.
 

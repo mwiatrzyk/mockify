@@ -11,10 +11,15 @@
 import abc
 import inspect
 
+from mockify import _utils
+
 from ._base import BaseMock
 from ._function import FunctionMock
 
+__all__ = export = _utils.ExportList()
 
+
+@export
 def ABCMock(name, abstract_base_class, **kwargs):
     """Factory function for creating mocks that implement given
     :class:`abc.ABC` subclass.

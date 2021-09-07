@@ -16,3 +16,4 @@
 .. automodule:: mockify.core
     :members:
     :special-members:
+    :no-undoc-members:
