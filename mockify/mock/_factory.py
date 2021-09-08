@@ -11,7 +11,7 @@
 
 from mockify import _utils
 
-from ._base import BaseMock, MockInfo
+from ._base import BaseMock
 from ._mock import Mock
 
 __all__ = export = _utils.ExportList()
@@ -72,8 +72,8 @@ class MockFactory(BaseMock):
             yield from mock.__m_expectations__()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self_info.fullname!r})>".format(
-            self=self, self_info=MockInfo(self)
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(
+            self=self
         )
 
     def mock(self, name):

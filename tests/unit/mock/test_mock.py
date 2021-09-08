@@ -559,7 +559,7 @@ class TestMockWithMaxDepthSetToOne:
             assert str(uut) == 'dummy'
 
     def test_if_str_is_called_without_expectation_set_then_return_mocks_repr(self, uut):
-        assert str(uut) == "<mockify.mock._mock.Mock('uut')>"
+        assert str(uut) == "<mockify.mock.Mock('uut')>"
 
     def test_expect_repr_call_and_call_it(self, uut):
         uut.__repr__.expect_call().will_once(Return('uut'))
@@ -567,7 +567,7 @@ class TestMockWithMaxDepthSetToOne:
             assert repr(uut) == 'uut'
 
     def test_if_repr_is_called_without_expectation_set_then_return_default_mock_repr(self, uut):
-        assert repr(uut) == "<mockify.mock._mock.Mock('uut')>"
+        assert repr(uut) == "<mockify.mock.Mock('uut')>"
 
     def test_expect_getattr_to_be_called_and_call_it(self, uut):
         uut.__getattr__.expect_call('foo').will_once(Return(123))

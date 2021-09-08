@@ -12,7 +12,6 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
 
-import traceback
 import functools
 import itertools
 import keyword
@@ -82,6 +81,36 @@ def make_weak(value):
     if value is not None:
         return weakref.ref(value)
     return value
+
+
+def get_attr_qualname(prefix: str, attr: typing.Any) -> str:
+    """Get qualname of given *attr*, prefixing it with *prefix* (most likely, a
+    module name).
+
+    This is a helper for making attribute rename deprecation warnings.
+    """
+    def get_name(attr):
+        if hasattr(attr, '__qualname__'):
+            return attr.__qualname__
+        if hasattr(attr, '__name__'):
+            return attr.__name__
+        if isinstance(attr, property):
+            return attr.fget.__qualname__
+        raise TypeError("cannot obtain qualname of {!r}".format(attr))
+    return "{}.{}".format(prefix, get_name(attr))
+
+
+def warn_renamed(old, new, since, stacklevel=3):
+    """Issue a :exc:`DeprecationWarning` warning when an old name is used and
+    point to the new name to be used instead."""
+    message_template =\
+        "{old!r} is deprecated since version {since} and will be removed "\
+        "in next major release - please use {new!r} instead."
+    warnings.warn(
+        message_template.format(old=old, new=new, since=since),
+        DeprecationWarning,
+        stacklevel=stacklevel
+    )
 
 
 def mark_import_deprecated(cls_or_func, old, new, since):

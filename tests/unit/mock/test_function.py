@@ -12,8 +12,8 @@ import pytest
 
 from mockify import exc
 from mockify.actions import Return
-from mockify.core import Session, assert_satisfied, satisfied
-from mockify.mock import FunctionMock, MockInfo
+from mockify.core import MockInfo, Session, assert_satisfied, satisfied
+from mockify.mock import FunctionMock
 
 
 class TestFunctionMock:

@@ -558,7 +558,10 @@ class Mock(FunctionMock):
         return self._get_mock_or_super('__contains__')(key)
 
     def __iter__(self):
-        return self._get_mock_or_super('__iter__')()
+        method = self._get_mock_or_super('__iter__', create_if_missing=False)
+        if method is not None:
+            return method()
+        return NotImplemented
 
     def __next__(self):
         return self._get_mock_or_super('__next__')()

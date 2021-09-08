@@ -16,13 +16,13 @@ Each of these can be considered as a frontend on top of
 mock classes.
 """
 
-from ._base import BaseMock, MockInfo
+from ._base import BaseMock
 from ._abc_mock import ABCMock
 from ._factory import MockFactory
 from ._function import BaseFunctionMock, FunctionMock
 from ._mock import Mock
 
 __all__ = [
-    'BaseMock', 'MockInfo', 'ABCMock', 'MockFactory', 'BaseFunctionMock',
-    'FunctionMock', 'Mock'
+    'BaseMock', 'ABCMock', 'MockFactory', 'BaseFunctionMock', 'FunctionMock',
+    'Mock'
 ]

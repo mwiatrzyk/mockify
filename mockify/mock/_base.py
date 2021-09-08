@@ -80,7 +80,11 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
             self.__session = Session()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__qualname__}({self.__m_name__!r})>".format(
+        module = self.__module__
+        if module.startswith('mockify.mock'):
+            module = 'mockify.mock'  # Hide private submodule in repr()
+        return "<{module}.{self.__class__.__qualname__}({self.__m_name__!r})>".format(
+            module=module,
             self=self
         )
 
@@ -101,126 +105,3 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
             return self.__parent()
         return None
 
-
-@export
-class MockInfo:
-    """A class for inspecting mocks.
-
-    This class simplifies and extends access to mock's special properties and
-    methods defined in :class:`BaseMock`, but wraps results (when applicable)
-    with :class:`MockInfo` instances. If you need to access mock metadata in
-    your tests, or when you build your own mocks from the scratch, then you
-    should use this class.
-
-    :param target:
-        Instance of :class:`BaseMock` object to be inspected
-
-    .. deprecated:: (unreleased)
-        This class is obsolete and will be removed in one of upcoming releases.
-        Entire functionality is currently provided by Mockify-defined special
-        methods in :class:`mockify.abc.IMock` class.
-    """
-
-    def __init__(self, target: BaseMock):
-        if not isinstance(target, BaseMock):
-            raise TypeError(
-                "__init__() got an invalid value for argument 'target'"
-            )
-        self._target = target
-
-    def __repr__(self):
-        return "<mockify.mock.{self.__class__.__qualname__}: {self._target!r}>".format(
-            self=self
-        )
-
-    @property
-    def mock(self):
-        """Target mock that is being inspected.
-
-        .. deprecated:: 0.8
-            This is deprecated since version 0.8 and will be dropped in one
-            of upcoming releases. Use :attr:`target` instead.
-        """
-        return self._target
-
-    @property
-    def target(self):
-        """Reference to :class:`BaseMock` being inspected.
-
-        .. versionadded:: 0.8
-        """
-        return self._target
-
-    @property
-    def parent(self):
-        """A proxy to access :attr:`BaseMock.__m_parent__`.
-
-        Returns ``None`` if target has no parent, or parent wrapped with
-        :class:`MockInfo` object otherwise.
-
-        .. versionadded:: 0.8
-        """
-        parent = self._target.__m_parent__
-        if parent is None:
-            return None
-        return self.__class__(parent)
-
-    @property
-    def name(self):
-        """A proxy to access :attr:`BaseMock.__m_name__` of target mock.
-
-        .. versionchanged:: 0.8
-            It is no longer full name; for that purpose use new :attr:`fullname`
-        """
-        return self._target.__m_name__
-
-    @property
-    def fullname(self):
-        """Return full name of underlying mock.
-
-        Mock's full name is calculated by concatenating :attr:`fullname` of
-        info object representing mock's parent, with :attr:`name` of this
-        info object. If there is no parent or parent has no full name, then
-        this is the same as :attr:`name`.
-
-        .. versionadded:: 0.8
-        """
-        parent = self.parent
-        if parent is None or parent.fullname is None:
-            return self.name
-        return "{}.{}".format(parent.fullname, self.name)
-
-    @property
-    def session(self):
-        """A proxy to access :attr:`BaseMock.__m_session__` of target mock."""
-        return self._target.__m_session__
-
-    def expectations(self):
-        """An iterator over results returned by :meth:`BaseMock.__m_expectations__` method."""
-        for expectation in self._target.__m_expectations__():
-            yield expectation
-
-    def children(self):
-        """An iterator over results returned by :meth:`BaseMock.__m_children__` method.
-
-        It wraps each found child with a :class:`MockInfo` object.
-        """
-        for child in self._target.__m_children__():
-            yield self.__class__(child)
-
-    def walk(self):
-        """Recursively iterate over :class:`MockInfo` instances yielded by
-        :meth:`children` generator.
-
-        It always yields *self* as first element.
-
-        This method is used by Mockify internals to collect all expectations
-        recorded for mock and all its children.
-        """
-
-        def walk(mock):
-            yield mock
-            for child in mock.children():
-                yield from walk(child)
-
-        yield from walk(self)

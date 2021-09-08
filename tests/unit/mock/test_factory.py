@@ -10,7 +10,8 @@
 # ---------------------------------------------------------------------------
 import pytest
 
-from mockify.mock import MockFactory, MockInfo
+from mockify.core import MockInfo
+from mockify.mock import MockFactory
 
 
 class TestMockFactory:

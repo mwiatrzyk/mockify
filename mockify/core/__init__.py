@@ -15,11 +15,11 @@ from ._call import Call, LocationInfo
 from ._expectation import Expectation
 from ._session import Session
 from ._functions import assert_satisfied, satisfied, ordered, patched
+from ._inspect import MockInfo
 
 from mockify import _utils
 from mockify.mock import _base
 
-MockInfo = _utils.mark_import_deprecated(_base.MockInfo, 'mockify.core.MockInfo', 'mockify.mock.MockInfo', '(unreleased)')
 BaseMock = _utils.mark_import_deprecated(_base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock', '(unreleased)')
 
 __all__ = [

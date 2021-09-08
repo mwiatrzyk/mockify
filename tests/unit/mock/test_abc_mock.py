@@ -14,8 +14,8 @@ import pytest
 
 from mockify import exc
 from mockify.actions import Return
-from mockify.core import assert_satisfied, satisfied
-from mockify.mock import ABCMock, MockInfo
+from mockify.core import assert_satisfied, satisfied, MockInfo
+from mockify.mock import ABCMock
 
 
 class IDummy(abc.ABC):
