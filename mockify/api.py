@@ -9,6 +9,8 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
+# pylint: disable=unused-wildcard-import
+
 import itertools
 
 from mockify import _utils

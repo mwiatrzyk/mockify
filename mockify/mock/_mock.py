@@ -8,6 +8,10 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
+
 from mockify import _utils
 from mockify.abc import IMock
 from mockify.core._call import Call
@@ -266,8 +270,7 @@ class Mock(FunctionMock):
     def __new__(cls, name, max_depth=-1, **kwargs):
         if max_depth == 0:
             return FunctionMock(name, **kwargs)
-        else:
-            return super().__new__(cls)
+        return super().__new__(cls)
 
     def __init__(self, name, max_depth=-1, **kwargs):
         super().__init__(name, **kwargs)
@@ -527,8 +530,7 @@ class Mock(FunctionMock):
             return Mock(name, max_depth=self._m_max_depth, parent=self)
         elif max_depth == 0:
             return FunctionMock(name, parent=self)
-        else:
-            return Mock(name, max_depth=max_depth - 1, parent=self)
+        return Mock(name, max_depth=max_depth - 1, parent=self)
 
     def __setattr__(self, name, value):
         return self._get_mock_or_super('__setattr__')(name, value)
