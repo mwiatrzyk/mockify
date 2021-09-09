@@ -93,17 +93,21 @@ class Expectation(IExpectation):
         return self._action_store(actual_call, self)
 
     def is_satisfied(self):
+        """See :meth:`mockify.abc.IExpectation.is_satisfied`."""
         return self.expected_call_count.match(self.actual_call_count)
 
     def times(self, cardinality):
+        """See :meth:`mockify.abc.IExpectation.times`."""
         return self._Times(self, cardinality)
 
     def will_once(self, action):
+        """See :meth:`mockify.abc.IExpectation.will_once`."""
         if self._action_store[0].type_ == _ActionType.DEFAULT:
             self._action_store.pop()
         return self._WillOnce(self, action)
 
     def will_repeatedly(self, action):
+        """See :meth:`mockify.abc.IExpectation.will_repeatedly`."""
         if self._action_store[0].type_ == _ActionType.DEFAULT:
             self._action_store.pop()
         return self._WillRepeatedly(self, action)

@@ -52,7 +52,7 @@ class Call(ICall):
         )
 
     def __repr__(self):
-        return "<mockify.{}({})>".format(
+        return "<mockify.core.{}({})>".format(
             self.__class__.__name__,
             self._format_params(self._name, *self._args, **self._kwargs)
         )
@@ -92,10 +92,12 @@ class Call(ICall):
 
         @property
         def filename(self):
+            """See :attr:`mockify.abc.ICallLocation.filename`."""
             return self._filename
 
         @property
         def lineno(self):
+            """See :attr:`mockify.abc.ICallLocation.lineno`."""
             return self._lineno
 
         @classmethod

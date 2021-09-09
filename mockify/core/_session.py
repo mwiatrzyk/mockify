@@ -16,6 +16,7 @@ import itertools
 import warnings
 
 from mockify import _utils, exc
+from mockify.abc import ISession
 
 from . import _config
 from ._expectation import Expectation
@@ -24,7 +25,7 @@ __all__ = export = _utils.ExportList()
 
 
 @export
-class Session:
+class Session(ISession):
     """A class providing core logic of connecting mock calls with recorded
     expectations.
 
@@ -90,16 +91,7 @@ class Session:
         return self._config
 
     def __call__(self, actual_call):
-        """Trigger expectation matching *actual_call* received from mock
-        being called.
-
-        This method is called on every mock call and basically all actual
-        call processing takes place here. Values returned or exceptions
-        raised by this method are also returned or raised by mock.
-
-        :param actual_call:
-            Instance of :class:`mockify.core.Call` class created by calling mock.
-        """
+        """See :meth:`mockify.abc.ISession.__call__`."""
         if self._is_ordered(actual_call):
             return self.__call_ordered(actual_call)
         return self.__call_unordered(actual_call)
@@ -148,28 +140,13 @@ class Session:
         raise exc.UnexpectedCall(actual_call, found_by_name)
 
     def expectations(self):
-        """An iterator over all expectations recorded in this session.
-
-        Yields :class:`mockify.core.Expectation` instances.
-        """
+        """See :meth:`mockify.abc.ISession.expectations`."""
         return itertools.chain(
             self._unordered_expectations, self._ordered_expectations
         )
 
     def expect_call(self, expected_call):
-        """Called by mock when expectation is recorded on it.
-
-        This method creates expectation object, adds it to the list of
-        expectations, and returns.
-
-        :rtype: mockify.Expectation
-
-        :param expected_call:
-            Instance of :class:`mockify.core.Call` created by mock when
-            **expect_call()** was called on it.
-
-            Represents parameters the mock is expected to be called with.
-        """
+        """See :meth:`mockify.abc.ISession.expect_call`."""
         expectation_class = self.config['expectation_class']
         expectation = expectation_class(expected_call)
         self._unordered_expectations.append(expectation)

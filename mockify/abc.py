@@ -128,7 +128,7 @@ class IAction(abc.ABC):
 
 
 @export
-class IExpectedCallCount(abc.ABC):
+class IExpectedCallCountMatcher(abc.ABC):
     """An interface to be implemented by classes that set expected call count
     ranges.
 
@@ -156,7 +156,7 @@ class IExpectation(abc.ABC):
         **will_repeatedly()** methods."""
 
         @abc.abstractmethod
-        def times(self, value: typing.Union[int, IExpectedCallCount]):
+        def times(self, value: typing.Union[int, IExpectedCallCountMatcher]):
             """Used to configure how many times repeated action is expected to
             be called by a mock.
 
@@ -187,14 +187,14 @@ class IExpectation(abc.ABC):
             """
 
     @abc.abstractmethod
-    def times(self, value: typing.Union[int, IExpectedCallCount]):
+    def times(self, value: typing.Union[int, IExpectedCallCountMatcher]):
         """Set expected call count of this expectation object.
 
         Following values are possible:
 
         * when :class:`int` parameter is used as a value, then expectation is
           expected to be called exactly *value* times,
-        * when :class:`IExpectedCallCount` object is used as a value, then
+        * when :class:`IExpectedCallCountMatcher` object is used as a value, then
           number of allowed expected calls depends on particular object that was
           used as a *value* (whether it was minimal, maximal or a range of
           expected call counts)
@@ -206,7 +206,7 @@ class IExpectation(abc.ABC):
             Expected call count value.
 
             This can be either a positive integer number (for a fixed expected
-            call count), or an instance of :class:`IExpectedCallCount` class
+            call count), or an instance of :class:`IExpectedCallCountMatcher` class
             (for a more sophisticated expected call counts, like ranges etc.)
         """
 
@@ -234,8 +234,8 @@ class IExpectation(abc.ABC):
 
         Repeated actions can by default be invoked indefinitely by mock,
         unless expected call count is set explicitly with
-        :meth:`IExpectation.IWillRepeatedlyMutation.times` method on a
-        returned object. This is also a good way to set mock's default
+        :meth:`mockify.abc.IExpectation.IWillRepeatedlyMutation.times` method
+        on a returned object. This is also a good way to set mock's default
         action.
 
         Since repeated actions act in a different way than one-time
@@ -274,6 +274,34 @@ class ISession(abc.ABC):
     Thanks to this, Mockify can tell (at the end of each test) which
     expectations were consumed, and which were not.
     """
+
+    @abc.abstractmethod
+    def __call__(self, actual_call: ICall) -> typing.Optional[typing.Any]:
+        """Called when mock is being called.
+
+        This method is called when any mock that has this session assigned is
+        being called. Values returned or exceptions raised by this method are
+        also returned or raised by a mock.
+
+        :param actual_call:
+            Actual call object forwarded by caller
+        """
+
+    @abc.abstractmethod
+    def expect_call(self, expected_call: ICall) -> IExpectation:
+        """Factory method that creates and registers expectations inside this
+        session.
+
+        This is called by any mock that has this session assigned during
+        expectation recording on that mock.
+
+        :param expected_call:
+            Expected call object forwarded by caller
+        """
+
+    @abc.abstractmethod
+    def expectations(self) -> typing.Iterator[IExpectation]:
+        """Return iterator over all registered expectations."""
 
 
 @export

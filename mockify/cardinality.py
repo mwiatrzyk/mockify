@@ -15,7 +15,7 @@ import abc
 from functools import total_ordering
 
 from mockify import _utils
-from mockify.abc import IExpectedCallCount
+from mockify.abc import IExpectedCallCountMatcher
 
 __all__ = export = _utils.ExportList()
 
@@ -74,7 +74,7 @@ class ActualCallCount:
 
 
 @export
-class ExpectedCallCount(IExpectedCallCount, _utils.DictEqualityMixin):
+class ExpectedCallCount(IExpectedCallCountMatcher, _utils.DictEqualityMixin):
     """Abstract base class for classes used to set expected call count on
     mock objects.
 

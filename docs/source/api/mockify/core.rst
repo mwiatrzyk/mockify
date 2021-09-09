@@ -16,4 +16,5 @@
 .. automodule:: mockify.core
     :members:
     :special-members:
+    :show-inheritance:
     :no-undoc-members:
