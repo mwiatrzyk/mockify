@@ -17,14 +17,15 @@ from mockify.core import Call, LocationInfo
 
 class TestLocationInfo:
 
-    def test_string_representation(self):
-        uut = LocationInfo('foo.py', 123)
-        assert str(uut) == 'foo.py:123'
-
-    def test_access_filename_and_lineno(self):
-        uut = LocationInfo('foo.py', 123)
-        assert uut.filename == 'foo.py'
-        assert uut.lineno == 123
+    def test_issue_deprecation_warning_if_location_info_is_used(self):
+        with pytest.warns(DeprecationWarning) as rec:
+            info = LocationInfo.get_external()
+        assert len(rec) == 1
+        first, = rec
+        assert str(first.message) ==\
+            "'mockify.core.LocationInfo' is deprecated since version (unreleased) "\
+            "and will completely be removed in next major release."
+        assert first.filename == __file__
 
 
 class TestCall:
@@ -84,7 +85,8 @@ class TestCall:
     def test_call_location(self):
         call = Call('foo')
         frameinfo = getframeinfo(currentframe())
-        assert call.location == LocationInfo(__file__, frameinfo.lineno - 1)
+        assert call.location.filename == __file__
+        assert call.location.lineno == frameinfo.lineno - 1
 
     @pytest.mark.parametrize(
         'invalid_name',

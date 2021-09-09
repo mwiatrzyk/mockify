@@ -87,7 +87,7 @@ error message:
     >>> from mockify.mock import Mock
     >>> foo = Mock('foo')
     >>> foo.expect_call().times(3)
-    <mockify.Expectation: foo()>
+    <mockify.core.Expectation: foo()>
     >>> assert_satisfied(foo)
     Traceback (most recent call last):
         ...

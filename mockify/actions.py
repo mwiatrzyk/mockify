@@ -84,7 +84,7 @@ class Return(Action):
         >>> from mockify.actions import Return
         >>> mock = Mock('mock')
         >>> mock.expect_call().will_once(Return('foo'))
-        <mockify.Expectation: mock()>
+        <mockify.core.Expectation: mock()>
         >>> mock()
         'foo'
     """
@@ -255,7 +255,7 @@ class Iterate(Action):
         >>> from mockify.actions import Iterate
         >>> mock = Mock('mock')
         >>> mock.expect_call().will_once(Iterate('foo'))
-        <mockify.Expectation: mock()>
+        <mockify.core.Expectation: mock()>
         >>> next(mock())
         'f'
 
@@ -368,7 +368,7 @@ class Raise(Action):
         >>> from mockify.actions import Raise
         >>> mock = Mock('mock')
         >>> mock.expect_call().will_once(Raise(ValueError('invalid value')))
-        <mockify.Expectation: mock()>
+        <mockify.core.Expectation: mock()>
         >>> mock()
         Traceback (most recent call last):
             ...
@@ -447,7 +447,7 @@ class Invoke(Action):
         >>> from mockify.actions import Invoke
         >>> mock = Mock('mock')
         >>> mock.expect_call([1, 2, 3]).will_once(Invoke(sum))
-        <mockify.Expectation: mock([1, 2, 3])>
+        <mockify.core.Expectation: mock([1, 2, 3])>
         >>> mock([1, 2, 3])
         6
 

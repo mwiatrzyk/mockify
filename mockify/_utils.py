@@ -113,6 +113,19 @@ def warn_renamed(old, new, since, stacklevel=3):
     )
 
 
+def warn_removed(old, since, stacklevel=3):
+    """Issue a :exc:`DeprecationWarning` warning to inform that given *obj*
+    will no longer be available since next major release."""
+    message_template =\
+        "{old!r} is deprecated since version {since} and will completely be "\
+        "removed in next major release."
+    warnings.warn(
+        message_template.format(old=old, since=since),
+        DeprecationWarning,
+        stacklevel=stacklevel
+    )
+
+
 def mark_import_deprecated(cls_or_func, old, new, since):
     """Decorator for marking class or function as deprecated.
 

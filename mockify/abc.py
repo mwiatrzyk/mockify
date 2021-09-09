@@ -17,13 +17,26 @@ from . import _utils
 
 
 class ICallLocation(abc.ABC):
-    """Points to the place in user's source code where some :class:`ICall`
-    object was created.
+    """An interface to be implemented by classes used to obtain call location
+    (file name and line number) from the stack.
 
-    This can point to either place in production code, where mock call was
-    made, or to a place in test code, where particular expectation (i.e.
-    *expected* call) was recorded.
+    This is used when instance of :class:`ICall` is created to find a place in
+    the code, where particular call object was created.
+
+    Instances of :class:`ICallLocation` can be checked for (in)equality. Two
+    call location objects are equal if and only if:
+
+    * :attr:`filename` in both objects is the same
+    * and :attr:`lineno` in both objects is the same
     """
+
+    def __eq__(self, other: 'ICallLocation') -> bool:
+        return isinstance(other, ICallLocation) and\
+            self.filename == other.filename and\
+            self.lineno == other.lineno
+
+    def __ne__(self, other: 'ICallLocation') -> bool:
+        return not self.__eq__(other)
 
     @property
     @abc.abstractmethod
@@ -37,17 +50,36 @@ class ICallLocation(abc.ABC):
 
 
 class ICall(abc.ABC):
-    """Contains mock call information.
+    """An interface to be implemented by objects containing mock call
+    information.
 
-    This can be either actual call (it then points to a location in production
-    code where mock was called), or an expected call (it then points to test
-    file where expectation was created).
+    This information include:
+
+    * full name of the mock
+    * positional and keyword arguments the mock was called or is expected to be
+      called with
+    * location in user's code under test that created this mock object
+
+    Call objects are created by mocks when mock receives a call from code being
+    under test (so called **actual call**), or when expectation is recorded on
+    a mock (so called **expected call**). Since call objects can be tested for
+    (in)equality, Mockify internals can easily decide if expectation was met or
+    not.
     """
+
+    def __eq__(self, other: 'ICall') -> bool:
+        return isinstance(other, ICall) and\
+            self.name == other.name and\
+            self.args == other.args and\
+            self.kwargs == other.kwargs
+
+    def __ne__(self, other: 'ICall') -> bool:
+        return not self.__eq__(other)
 
     @property
     @abc.abstractmethod
     def name(self) -> str:
-        """Full name of a mock that call was made on."""
+        """Full name of a mock for which this object was created."""
 
     @property
     @abc.abstractmethod
@@ -118,10 +150,13 @@ class IExpectation(abc.ABC):
 
         @abc.abstractmethod
         def times(
-            self, cardinality: IExpectedCallCount
+            self, value: typing.Union[int, IExpectedCallCount]
         ):
             """Used to configure how many times repeated action is expected to
-            be called by mock."""
+            be called by a mock.
+
+            See :meth:`IExpectation.times` for more details.
+            """
 
     class IWillOnceMutation(abc.ABC):
         """Provides return value annotation and interface for **will_once()**
@@ -131,8 +166,11 @@ class IExpectation(abc.ABC):
         def will_once(
             self, action: IAction
         ) -> 'IExpectation.IWillOnceMutation':
-            """Attach next one-time action to the action chain of current
-            expectation."""
+            """Attach next action to the end of action chain of current
+            expectation object.
+
+            See :meth:`IExpectation.will_once` for more details.
+            """
 
         @abc.abstractmethod
         def will_repeatedly(
@@ -140,20 +178,24 @@ class IExpectation(abc.ABC):
         ) -> 'IExpectation.IWillRepeatedlyMutation':
             """Finalize action chain with a repeated action.
 
-            Repeated actions can by default be invoked indefinitely by mock,
-            unless expected call count is set explicitly with
-            :meth:`IExpectation.IWillRepeatedlyMutation.times` method on a
-            returned object. This is also a good way to set mock's default
-            action.
-
-            Since repeated actions act in a different way than one-time
-            actions, there is currently not possible to record one-time actions
-            after repeated action is set.
+            See :meth:`IExpectation.will_repeatedly` for more details.
             """
 
     @abc.abstractmethod
     def times(self, value: typing.Union[int, IExpectedCallCount]):
         """Set expected call count of this expectation object.
+
+        Following values are possible:
+
+        * when :class:`int` parameter is used as a value, then expectation is
+          expected to be called exactly *value* times,
+        * when :class:`IExpectedCallCount` object is used as a value, then
+          number of allowed expected calls depends on particular object that was
+          used as a *value* (whether it was minimal, maximal or a range of
+          expected call counts)
+
+        See :ref:`setting-expected-call-count` tutorial section for more
+        details.
 
         :param value:
             Expected call count value.
@@ -165,11 +207,42 @@ class IExpectation(abc.ABC):
 
     @abc.abstractmethod
     def will_once(self, action: IAction) -> IWillOnceMutation:
-        """See :meth:`IExpectation.IWillOnceMutation.will_once`."""
+        """Attach next one-shot action to the end of the action chain of this
+        expectation.
+
+        When expectation is consumed, actions are consumed as well. If
+        expectation is consumed for the first time, then first action is
+        called. If it is consumed for the second time, then second action is
+        consumed and so on. If there are no more actions and mock is called
+        again, then :exc:`mockify.exc.OversaturatedCall` exception is raised.
+
+        See :ref:`recording-action-chains` for more details about **action
+        chains**.
+
+        :param action:
+            Action to be performed
+        """
 
     @abc.abstractmethod
     def will_repeatedly(self, action: IAction) -> IWillRepeatedlyMutation:
-        """See :meth:`IExpectation.IWillOnceMutation.will_repeatedly`."""
+        """Finalize action chain with a **repeated action**.
+
+        Repeated actions can by default be invoked indefinitely by mock,
+        unless expected call count is set explicitly with
+        :meth:`IExpectation.IWillRepeatedlyMutation.times` method on a
+        returned object. This is also a good way to set mock's default
+        action.
+
+        Since repeated actions act in a different way than one-time
+        actions, there is currently not possible to record one-time actions
+        after repeated action is set.
+
+        See :ref:`recording-repeated-actions` for more details about **repeated
+        actions**.
+
+        :param action:
+            Action to be performed
+        """
 
     @abc.abstractmethod
     def is_satisfied(self) -> bool:
@@ -177,11 +250,11 @@ class IExpectation(abc.ABC):
 
         Expectations are satisfied if and only if:
 
-            * all recorded actions were consumed
-            * number of calls being made is inside expected call count range
+        * all recorded one-shot actions were consumed
+        * number of calls being made is within expected call count range
 
-        All unsatisfied expectations will be reported as mock errors and the end
-        of each test, causing each test to fail.
+        This method is used by Mockify's internals to collect all unsatisfied
+        expectations and raise :exc:`mockify.exc.Unsatisfied` exception.
         """
 
 
