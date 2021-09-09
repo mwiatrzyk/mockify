@@ -21,7 +21,7 @@ from ._session import Session
 
 BaseMock = _utils.mark_import_deprecated(
     _base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock',
-    '(unreleased)'
+    '0.13'
 )
 
 __all__ = [

@@ -33,7 +33,7 @@ class Call(ICall):
     :param `**kwargs`:
         Named arguments
 
-    .. versionchanged:: (unreleased)
+    .. versionchanged:: 0.13
         Now this inherits from :class:`mockify.abc.ICall` abstract base class
     """
 
@@ -118,7 +118,7 @@ class LocationInfo(Call._CallLocation):
     Used by :class:`mockify.core.Call` objects to get their location in the
     code. That information is later used in assertion messages.
 
-    .. deprecated:: (unreleased)
+    .. deprecated:: 0.13
         This is now made private and will be completely removed in next major
         release.
 
@@ -134,12 +134,12 @@ class LocationInfo(Call._CallLocation):
 
     def __init__(self, filename: str, lineno: int):
         if self._issue_deprecation_warning:
-            _utils.warn_removed("mockify.core.LocationInfo", '(unreleased)')
+            _utils.warn_removed("mockify.core.LocationInfo", '0.13')
         super().__init__(filename, lineno)
 
     @classmethod
     def get_external(cls):
-        _utils.warn_removed("mockify.core.LocationInfo", '(unreleased)')
+        _utils.warn_removed("mockify.core.LocationInfo", '0.13')
         cls._issue_deprecation_warning = False
         obj = super().get_external()
         cls._issue_deprecation_warning = True

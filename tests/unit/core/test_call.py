@@ -23,7 +23,7 @@ class TestLocationInfo:
         assert len(rec) == 1
         first, = rec
         assert str(first.message) ==\
-            "'mockify.core.LocationInfo' is deprecated since version (unreleased) "\
+            "'mockify.core.LocationInfo' is deprecated since version 0.13 "\
             "and will completely be removed in next major release."
         assert first.filename == __file__
 

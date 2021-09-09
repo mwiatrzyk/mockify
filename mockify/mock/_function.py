@@ -64,7 +64,7 @@ class BaseFunctionMock(BaseMock):
 
         test_call_func()
 
-    .. versionadded:: (unreleased)
+    .. versionadded:: 0.13
     """
 
     def __m_children__(self):

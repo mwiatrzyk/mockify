@@ -59,5 +59,5 @@ Currently available classes and functions are:
 
 {}
 
-.. versionadded:: (unreleased)
+.. versionadded:: 0.13
 """.format('\n'.join(itertools.chain(*(_utils.render_public_members_docstring(x) for x in _submodules))))

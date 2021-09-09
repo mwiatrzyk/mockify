@@ -55,7 +55,7 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
         .. note::
             This option is self-exclusive with *session* parameter.
 
-    .. versionchanged:: (unreleased)
+    .. versionchanged:: 0.13
         Moved from :mod:`mockify.core` into :mod:`mockify.mock`.
 
     .. versionchanged:: 0.9

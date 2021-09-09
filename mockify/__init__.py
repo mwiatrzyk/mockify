@@ -20,32 +20,32 @@ from pkg_resources import DistributionNotFound, get_distribution
 from . import _utils, core
 
 Call = _utils.mark_import_deprecated(
-    core.Call, 'mockify.Call', 'mockify.core.Call', '(unreleased)'
+    core.Call, 'mockify.Call', 'mockify.core.Call', '0.13'
 )
 Expectation = _utils.mark_import_deprecated(
     core.Expectation, 'mockify.Expectation', 'mockify.core.Expectation',
-    '(unreleased)'
+    '0.13'
 )
 LocationInfo = _utils.mark_import_deprecated(
     core.LocationInfo, 'mockify.LocationInfo', 'mockify.core.LocationInfo',
-    '(unreleased)'
+    '0.13'
 )
 Session = _utils.mark_import_deprecated(
-    core.Session, 'mockify.Session', 'mockify.core.Session', '(unreleased)'
+    core.Session, 'mockify.Session', 'mockify.core.Session', '0.13'
 )
 assert_satisfied = _utils.mark_import_deprecated(
     core.assert_satisfied, 'mockify.assert_satisfied',
-    'mockify.core.assert_satisfied', '(unreleased)'
+    'mockify.core.assert_satisfied', '0.13'
 )
 ordered = _utils.mark_import_deprecated(
-    core.ordered, 'mockify.ordered', 'mockify.core.ordered', '(unreleased)'
+    core.ordered, 'mockify.ordered', 'mockify.core.ordered', '0.13'
 )
 patched = _utils.mark_import_deprecated(
-    core.patched, 'mockify.patched', 'mockify.core.patched', '(unreleased)'
+    core.patched, 'mockify.patched', 'mockify.core.patched', '0.13'
 )
 satisfied = _utils.mark_import_deprecated(
     core.satisfied, 'mockify.satisfied', 'mockify.core.satisfied',
-    '(unreleased)'
+    '0.13'
 )
 
 __author__ = 'Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>'

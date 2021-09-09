@@ -246,7 +246,7 @@ class Mock(FunctionMock):
 
     See :ref:`creating-mocks` for more details.
 
-    .. versionchanged:: (unreleased)
+    .. versionchanged:: 0.13
 
         Changelog:
 

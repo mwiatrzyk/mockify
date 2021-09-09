@@ -99,7 +99,7 @@ class MockInfo:
         This is equivalent of using :attr:`mockify.abc.IMock.__m_fullname__`
         attribute on a target mock.
 
-        .. versionchanged:: (unreleased)
+        .. versionchanged:: 0.13
             Now this is not calculating full name, but simply is calling
             :attr:`mockify.abc.IMock.__m_fullname__` on target mock.
 
@@ -146,7 +146,7 @@ class MockInfo:
 
         It always yields *self* as a first generated item.
 
-        .. versionchanged:: (unreleased)
+        .. versionchanged:: 0.13
             Now this is simply calling :meth:`mockify.abc.IMock.__m_walk__`
             behind the scenes.
         """
