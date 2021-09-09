@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/unit/core/test_base_mock.py
+# tests/unit/mock/test_base.py
 #
 # Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
@@ -8,9 +8,7 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import pytest
 
-from mockify.core import MockInfo
 from mockify.mock import BaseMock
 
 

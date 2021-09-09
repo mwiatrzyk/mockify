@@ -11,8 +11,8 @@
 
 # pylint: disable=missing-module-docstring
 
-import typing
 import traceback
+import typing
 
 from mockify import _globals, _utils
 from mockify.abc import ICall, ICallLocation
@@ -37,7 +37,9 @@ class Call(ICall):
         Now this inherits from :class:`mockify.abc.ICall` abstract base class
     """
 
-    def __init__(self, __m_fullname__: str, *args: typing.Any, **kwargs: typing.Any):
+    def __init__(
+        self, __m_fullname__: str, *args: typing.Any, **kwargs: typing.Any
+    ):
         _utils.validate_mock_name(__m_fullname__)
         self._name = __m_fullname__
         self._args = args

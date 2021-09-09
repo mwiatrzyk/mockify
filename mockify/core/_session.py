@@ -15,7 +15,8 @@ import collections
 import itertools
 import warnings
 
-from mockify import exc, _utils
+from mockify import _utils, exc
+
 from . import _config
 from ._expectation import Expectation
 

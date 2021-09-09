@@ -89,6 +89,7 @@ def get_attr_qualname(prefix: str, attr: typing.Any) -> str:
 
     This is a helper for making attribute rename deprecation warnings.
     """
+
     def get_name(attr):
         if hasattr(attr, '__qualname__'):
             return attr.__qualname__
@@ -97,6 +98,7 @@ def get_attr_qualname(prefix: str, attr: typing.Any) -> str:
         if isinstance(attr, property):
             return attr.fget.__qualname__
         raise TypeError("cannot obtain qualname of {!r}".format(attr))
+
     return "{}.{}".format(prefix, get_name(attr))
 
 
@@ -173,6 +175,7 @@ def mark_import_deprecated(cls_or_func, old, new, since):
         def factory(*args, **kwargs):
             emit_warning(2)
             return cls_or_func(*args, **kwargs)
+
         factory.__doc__ = """
         .. deprecated:: {since}
             This function was moved and is currently available as
@@ -292,19 +295,28 @@ def make_alias(cls_or_func):
     modules are created.
     """
     if isinstance(cls_or_func, type):
+
         class alias(cls_or_func):
-            """An alias for :class:`{cls.__module__}.{cls.__qualname__}` class.""".format(cls=cls_or_func)
+            """An alias for :class:`{cls.__module__}.{cls.__qualname__}` class.""".format(
+                cls=cls_or_func
+            )
+
             def __new__(cls, *args, **kwargs):
                 return cls_or_func(*args, **kwargs)
+
         alias.__name__ = cls_or_func.__name__
         alias.__qualname__ = cls_or_func.__qualname__
         return alias
     elif not isinstance(cls_or_func, types.FunctionType):
         return cls_or_func
+
     @functools.wraps(cls_or_func)
     def alias(*args, **kwargs):
         return cls_or_func(*args, **kwargs)
-    alias.__doc__ = "An alias for :func:`{func.__module__}.{func.__qualname__}` function.".format(func=cls_or_func)
+
+    alias.__doc__ = "An alias for :func:`{func.__module__}.{func.__qualname__}` function.".format(
+        func=cls_or_func
+    )
     return alias
 
 

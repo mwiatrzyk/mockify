@@ -1,13 +1,16 @@
+# ---------------------------------------------------------------------------
+# mockify/api.py
+#
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+#
+# This file is part of Mockify library and is released under the terms of the
+# MIT license: http://opensource.org/licenses/mit-license.php.
+#
+# See LICENSE for details.
+# ---------------------------------------------------------------------------
 import types
 
-from mockify.core import *
-from mockify.mock import *
-from mockify.actions import *
-from mockify.cardinality import *
-from mockify.exc import *
-from mockify.matchers import *
-
-from mockify import core, mock, actions, cardinality, exc, matchers
+from mockify import actions, cardinality, core, exc, matchers, mock
 
 _submodules = (core, mock, actions, cardinality, exc, matchers)
 
@@ -23,11 +26,17 @@ def _gen_name_list():
                 memo.add(name)
                 obj = getattr(module, name)
                 if isinstance(obj, type):
-                    yield "    * :class:`{module.__name__}.{name}`".format(module=module, name=name)
+                    yield "    * :class:`{module.__name__}.{name}`".format(
+                        module=module, name=name
+                    )
                 elif isinstance(obj, types.FunctionType):
-                    yield "    * :func:`{module.__name__}.{name}`".format(module=module, name=name)
+                    yield "    * :func:`{module.__name__}.{name}`".format(
+                        module=module, name=name
+                    )
                 else:
-                    yield "    * :obj:`{module.__name__}.{name}`".format(module=module, name=name)
+                    yield "    * :obj:`{module.__name__}.{name}`".format(
+                        module=module, name=name
+                    )
 
 __doc__ =\
 """A proxy module providing access to all publicly available classes and

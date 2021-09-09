@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api/mockify/interface.rst
+.. docs/source/api/mockify/abc.rst
 ..
 .. Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..

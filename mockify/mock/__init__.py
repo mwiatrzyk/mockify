@@ -8,7 +8,6 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Classes and functions used to create mocks.
 
 Each of these can be considered as a frontend on top of
@@ -16,8 +15,8 @@ Each of these can be considered as a frontend on top of
 mock classes.
 """
 
-from ._base import BaseMock
 from ._abc_mock import ABCMock
+from ._base import BaseMock
 from ._factory import MockFactory
 from ._function import BaseFunctionMock, FunctionMock
 from ._mock import Mock

@@ -23,7 +23,8 @@ Call = _utils.mark_import_deprecated(
     core.Call, 'mockify.Call', 'mockify.core.Call', '(unreleased)'
 )
 Expectation = _utils.mark_import_deprecated(
-    core.Expectation, 'mockify.Expectation', 'mockify.core.Expectation', '(unreleased)'
+    core.Expectation, 'mockify.Expectation', 'mockify.core.Expectation',
+    '(unreleased)'
 )
 LocationInfo = _utils.mark_import_deprecated(
     core.LocationInfo, 'mockify.LocationInfo', 'mockify.core.LocationInfo',
@@ -43,7 +44,8 @@ patched = _utils.mark_import_deprecated(
     core.patched, 'mockify.patched', 'mockify.core.patched', '(unreleased)'
 )
 satisfied = _utils.mark_import_deprecated(
-    core.satisfied, 'mockify.satisfied', 'mockify.core.satisfied', '(unreleased)'
+    core.satisfied, 'mockify.satisfied', 'mockify.core.satisfied',
+    '(unreleased)'
 )
 
 __author__ = 'Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>'

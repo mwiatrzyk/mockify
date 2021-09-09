@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api/mockify/exc.rst
+.. docs/source/api/mockify/api.rst
 ..
 .. Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..

@@ -20,9 +20,9 @@ import functools
 import inspect
 from contextlib import contextmanager
 
-from . import _utils
-
 from mockify.abc import IAction
+
+from . import _utils
 
 __all__ = export = _utils.ExportList()
 

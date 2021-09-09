@@ -1,9 +1,19 @@
+# ---------------------------------------------------------------------------
+# tests/unit/mock/test_mock.py
+#
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+#
+# This file is part of Mockify library and is released under the terms of the
+# MIT license: http://opensource.org/licenses/mit-license.php.
+#
+# See LICENSE for details.
+# ---------------------------------------------------------------------------
 import math
 
 import pytest
 
 from mockify import exc
-from mockify.api import satisfied, Mock, Return, Raise, Iterate, _
+from mockify.api import Iterate, Mock, Raise, Return, _, satisfied
 from mockify.matchers import Type
 
 
@@ -18,7 +28,9 @@ class TestMock:
         with satisfied(uut):
             uut(1, 2)
 
-    def test_expect_mock_property_to_be_called_as_a_method_and_call_it(self, uut):
+    def test_expect_mock_property_to_be_called_as_a_method_and_call_it(
+        self, uut
+    ):
         uut.foo.expect_call(1)
         with satisfied(uut):
             uut.foo(1)
@@ -142,7 +154,8 @@ class TestMock:
         uut.foo.expect_call()
         uut.bar.expect_call()
         uut.spam.more_spam.expect_call()
-        assert set(x for x in uut.__m_children__()) == set([uut.foo, uut.bar, uut.spam])
+        assert set(x for x in uut.__m_children__()
+                   ) == set([uut.foo, uut.bar, uut.spam])
 
     def test_listing_mock_expectations_does_not_include_child_mock_expectations(
         self, uut
@@ -168,7 +181,9 @@ class TestMock:
         with satisfied(uut):
             assert uut.foo.bar(1, 2) == 3
 
-    def test_expect_double_namespaced_method_to_be_called_and_call_it(self, uut):
+    def test_expect_double_namespaced_method_to_be_called_and_call_it(
+        self, uut
+    ):
         uut.foo.bar.baz.expect_call(1, 2).will_once(Return(3))
         with satisfied(uut):
             assert uut.foo.bar.baz(1, 2) == 3
@@ -188,7 +203,9 @@ class TestMockWithMaxDepthSetToZero:
     def test_when_depth_is_zero_then_mocking_methods_is_not_possible(self, uut):
         with pytest.raises(AttributeError) as excinfo:
             uut.foo.expect_call()
-        assert str(excinfo.value) == "'FunctionMock' object has no attribute 'foo'"
+        assert str(
+            excinfo.value
+        ) == "'FunctionMock' object has no attribute 'foo'"
 
 
 class TestMockWithMaxDepthSetToOne:
@@ -207,14 +224,18 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert uut(1, 2, 3) == 123
 
-    def test_if_magic_method_does_not_have_expectation_set_and_does_not_exist_in_base_class_then_issue_uninterested_call_instead(self, uut, assert_that):
+    def test_if_magic_method_does_not_have_expectation_set_and_does_not_exist_in_base_class_then_issue_uninterested_call_instead(
+        self, uut, assert_that
+    ):
         with pytest.raises(exc.UninterestedCall) as excinfo:
             math.floor(uut)
         actual_call = excinfo.value.actual_call
         assert actual_call.name == 'uut.__floor__'
         assert_that.call_params_match(actual_call)  # called without params
 
-    def test_if_magic_method_does_not_have_expectation_set_and_exists_in_base_class_then_call_existing_implementation(self, uut):
+    def test_if_magic_method_does_not_have_expectation_set_and_exists_in_base_class_then_call_existing_implementation(
+        self, uut
+    ):
         uut_hash = hash(uut)
         assert isinstance(uut_hash, int)
 
@@ -268,12 +289,16 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert ~uut == 123
 
-    def test_expect_round_to_be_called_without_args_and_call_it_without_args(self, uut):
+    def test_expect_round_to_be_called_without_args_and_call_it_without_args(
+        self, uut
+    ):
         uut.__round__.expect_call().will_once(Return(123))
         with satisfied(uut):
             assert round(uut) == 123
 
-    def test_expect_round_to_be_called_with_args_and_call_it_with_args(self, uut):
+    def test_expect_round_to_be_called_with_args_and_call_it_with_args(
+        self, uut
+    ):
         uut.__round__.expect_call(2).will_once(Return(123))
         with satisfied(uut):
             assert round(uut, 2) == 123
@@ -331,7 +356,7 @@ class TestMockWithMaxDepthSetToOne:
     def test_expect_pow_to_be_called_and_call_it(self, uut):
         uut.__pow__.expect_call(2).will_once(Return(16))
         with satisfied(uut):
-            assert uut ** 2 == 16
+            assert uut**2 == 16
 
     def test_expect_lshift_to_be_called_and_call_it(self, uut):
         uut.__lshift__.expect_call(2).will_once(Return(16))
@@ -396,7 +421,7 @@ class TestMockWithMaxDepthSetToOne:
     def test_expect_rpow_to_be_called_and_call_it(self, uut):
         uut.__rpow__.expect_call(2).will_once(Return(16))
         with satisfied(uut):
-            assert 2 ** uut == 16
+            assert 2**uut == 16
 
     def test_expect_rlshift_to_be_called_and_call_it(self, uut):
         uut.__rlshift__.expect_call(2).will_once(Return(16))
@@ -483,17 +508,23 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             uut ^= 2
 
-    def test_when_expectation_is_recorded_on_div_magic_method_then_it_is_equivalent_to_recording_on_truediv_magic_method(self, uut):
+    def test_when_expectation_is_recorded_on_div_magic_method_then_it_is_equivalent_to_recording_on_truediv_magic_method(
+        self, uut
+    ):
         uut.__div__.expect_call(2).will_once(Return(2.5))
         with satisfied(uut):
             assert uut / 2 == 2.5
 
-    def test_when_expectation_is_recorded_on_rdiv_magic_method_then_it_is_equivalent_to_recording_on_rtruediv_magic_method(self, uut):
+    def test_when_expectation_is_recorded_on_rdiv_magic_method_then_it_is_equivalent_to_recording_on_rtruediv_magic_method(
+        self, uut
+    ):
         uut.__rdiv__.expect_call(2).will_once(Return(2.5))
         with satisfied(uut):
             assert 2 / uut == 2.5
 
-    def test_when_expectation_is_recorded_on_idiv_magic_method_then_it_is_equivalent_to_recording_on_itruediv_magic_method(self, uut):
+    def test_when_expectation_is_recorded_on_idiv_magic_method_then_it_is_equivalent_to_recording_on_itruediv_magic_method(
+        self, uut
+    ):
         uut.__idiv__.expect_call(2)
         with satisfied(uut):
             uut /= 2
@@ -533,7 +564,9 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert "Hello, {0:abc}".format(uut) == 'Hello, World!'
 
-    def test_expect_format_with_empty_params_to_be_called_and_call_it(self, uut):
+    def test_expect_format_with_empty_params_to_be_called_and_call_it(
+        self, uut
+    ):
         uut.__format__.expect_call("").will_once(Return('World!'))
         with satisfied(uut):
             assert "Hello, {}".format(uut) == 'Hello, World!'
@@ -558,7 +591,9 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert str(uut) == 'dummy'
 
-    def test_if_str_is_called_without_expectation_set_then_return_mocks_repr(self, uut):
+    def test_if_str_is_called_without_expectation_set_then_return_mocks_repr(
+        self, uut
+    ):
         assert str(uut) == "<mockify.mock.Mock('uut')>"
 
     def test_expect_repr_call_and_call_it(self, uut):
@@ -566,7 +601,9 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert repr(uut) == 'uut'
 
-    def test_if_repr_is_called_without_expectation_set_then_return_default_mock_repr(self, uut):
+    def test_if_repr_is_called_without_expectation_set_then_return_default_mock_repr(
+        self, uut
+    ):
         assert repr(uut) == "<mockify.mock.Mock('uut')>"
 
     def test_expect_getattr_to_be_called_and_call_it(self, uut):
@@ -614,7 +651,9 @@ class TestMockWithMaxDepthSetToOne:
         assert uut['foo'] == 123
         del uut['foo']
 
-    def test_object_mock_allows_to_set_and_get_both_items_and_attrs_allowing_name_reuse_for_different_purposes(self, uut):
+    def test_object_mock_allows_to_set_and_get_both_items_and_attrs_allowing_name_reuse_for_different_purposes(
+        self, uut
+    ):
         uut.foo = 123
         uut['foo'] = 'spam'
         assert uut.foo == 123
@@ -673,7 +712,9 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert [x async for x in gen()] == [1, 2]
 
-    def test_when_call_is_expected_to_be_called_then_it_is_the_same_as_directly_expecting_mock_to_be_called(self, uut):
+    def test_when_call_is_expected_to_be_called_then_it_is_the_same_as_directly_expecting_mock_to_be_called(
+        self, uut
+    ):
         uut.__call__.expect_call(1, 2).will_once(Return(3))
         with satisfied(uut):
             assert uut(1, 2) == 3
@@ -690,60 +731,82 @@ class TestMockWithMaxDepthSetToOne:
             with uut:
                 pass
 
-    def test_expect_context_exit_and_run_context_with_raising_exception_that_is_handled(self, uut):
-        uut.__exit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(True))
+    def test_expect_context_exit_and_run_context_with_raising_exception_that_is_handled(
+        self, uut
+    ):
+        uut.__exit__.expect_call(Type(type), Type(ValueError),
+                                 _).will_once(Return(True))
         with satisfied(uut):
             with uut:
                 raise ValueError('dummy')
 
-    def test_expect_context_exit_and_run_context_with_raising_exception_that_is_passed_through(self, uut):
-        uut.__exit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(False))
+    def test_expect_context_exit_and_run_context_with_raising_exception_that_is_passed_through(
+        self, uut
+    ):
+        uut.__exit__.expect_call(Type(type), Type(ValueError),
+                                 _).will_once(Return(False))
         with satisfied(uut):
             with pytest.raises(ValueError):
                 with uut:
                     raise ValueError('dummy')
 
-    def test_when_context_having_no_expectations_is_left_with_exception_being_raised_then_pass_it_through(self, uut):
+    def test_when_context_having_no_expectations_is_left_with_exception_being_raised_then_pass_it_through(
+        self, uut
+    ):
         with pytest.raises(ValueError):
             with uut:
                 raise ValueError('dummy')
 
     @pytest.mark.asyncio
-    async def test_expect_async_context_enter_and_enter_async_context(self, uut):
+    async def test_expect_async_context_enter_and_enter_async_context(
+        self, uut
+    ):
         uut.__aenter__.expect_call().will_once(Return(123))
         with satisfied(uut):
             async with uut as foo:
                 assert foo == 123
 
     @pytest.mark.asyncio
-    async def test_expect_async_context_exit_and_run_context_without_errors(self, uut):
+    async def test_expect_async_context_exit_and_run_context_without_errors(
+        self, uut
+    ):
         uut.__aexit__.expect_call(None, None, None)
         with satisfied(uut):
             async with uut:
                 pass
 
     @pytest.mark.asyncio
-    async def test_expect_async_context_exit_and_run_context_with_raising_exception_that_is_handled(self, uut):
-        uut.__aexit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(True))
+    async def test_expect_async_context_exit_and_run_context_with_raising_exception_that_is_handled(
+        self, uut
+    ):
+        uut.__aexit__.expect_call(Type(type), Type(ValueError),
+                                  _).will_once(Return(True))
         with satisfied(uut):
             async with uut:
                 raise ValueError('dummy')
 
     @pytest.mark.asyncio
-    async def test_expect_async_context_exit_and_run_context_with_raising_exception_that_is_passed_through(self, uut):
-        uut.__aexit__.expect_call(Type(type), Type(ValueError), _).will_once(Return(False))
+    async def test_expect_async_context_exit_and_run_context_with_raising_exception_that_is_passed_through(
+        self, uut
+    ):
+        uut.__aexit__.expect_call(Type(type), Type(ValueError),
+                                  _).will_once(Return(False))
         with satisfied(uut):
             with pytest.raises(ValueError):
                 async with uut:
                     raise ValueError('dummy')
 
     @pytest.mark.asyncio
-    async def test_when_async_context_having_no_expectations_is_left_with_exception_being_raised_then_pass_it_through(self, uut):
+    async def test_when_async_context_having_no_expectations_is_left_with_exception_being_raised_then_pass_it_through(
+        self, uut
+    ):
         with pytest.raises(ValueError):
             async with uut:
                 raise ValueError('dummy')
 
-    def test_dir_returns_user_defined_methods_and_properties_if_not_mocked(self, uut):
+    def test_dir_returns_user_defined_methods_and_properties_if_not_mocked(
+        self, uut
+    ):
         assert dir(uut) == []
         uut.foo.expect_call()
         assert dir(uut) == ['foo']
@@ -756,7 +819,9 @@ class TestMockWithMaxDepthSetToOne:
         uut.__getattr__.expect_call('bar')
         assert dir(uut) == ['__enter__', '__getattr__', 'foo']
 
-    def test_expect_get_descriptor_to_be_called_via_instance_and_call_it(self, uut):
+    def test_expect_get_descriptor_to_be_called_via_instance_and_call_it(
+        self, uut
+    ):
 
         class Dummy:
             foo = uut
@@ -767,7 +832,9 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert d.foo == 'spam'
 
-    def test_expect_get_descriptor_to_be_called_via_class_and_call_it(self, uut):
+    def test_expect_get_descriptor_to_be_called_via_class_and_call_it(
+        self, uut
+    ):
 
         class Dummy:
             foo = uut
@@ -803,21 +870,27 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             uut.expect_call(1, 2, 3)
 
-    def test_if_property_already_exists_then_recording_getattr_expectation_overrides_existing_value(self, uut):
+    def test_if_property_already_exists_then_recording_getattr_expectation_overrides_existing_value(
+        self, uut
+    ):
         uut.foo = 123
         assert uut.foo == 123
         uut.__getattr__.expect_call('foo').will_once(Return('spam'))
         with satisfied(uut):
             assert uut.foo == 'spam'
 
-    def test_if_property_already_exists_then_recording_delattr_expectation_overrides_existing_value(self, uut):
+    def test_if_property_already_exists_then_recording_delattr_expectation_overrides_existing_value(
+        self, uut
+    ):
         uut.foo = 123
         assert uut.foo == 123
         uut.__delattr__.expect_call('foo')
         with satisfied(uut):
             del uut.foo
 
-    def test_if_property_already_exists_then_recording_setattr_expectation_overrides_existing_value(self, uut):
+    def test_if_property_already_exists_then_recording_setattr_expectation_overrides_existing_value(
+        self, uut
+    ):
         uut.foo = 123
         assert uut.foo == 123
         uut.__setattr__.expect_call('foo', 'spam')
@@ -834,10 +907,14 @@ class TestMockWithMaxDepthSetToOne:
         with satisfied(uut):
             assert uut.foo(1, 2) == 3
 
-    def test_when_depth_is_one_then_mocking_namespaced_methods_is_not_possible(self, uut):
+    def test_when_depth_is_one_then_mocking_namespaced_methods_is_not_possible(
+        self, uut
+    ):
         with pytest.raises(AttributeError) as excinfo:
             uut.foo.bar.expect_call()
-        assert str(excinfo.value) == "'FunctionMock' object has no attribute 'bar'"
+        assert str(
+            excinfo.value
+        ) == "'FunctionMock' object has no attribute 'bar'"
 
 
 class TestMockWithMaxDepthSetToTwo:
@@ -856,12 +933,18 @@ class TestMockWithMaxDepthSetToTwo:
         with satisfied(uut):
             assert uut.foo(1, 2) == 3
 
-    def test_expect_namespaced_method_to_be_called_and_call_that_method(self, uut):
+    def test_expect_namespaced_method_to_be_called_and_call_that_method(
+        self, uut
+    ):
         uut.foo.bar.expect_call(1, 2).will_once(Return(3))
         with satisfied(uut):
             assert uut.foo.bar(1, 2) == 3
 
-    def test_when_depth_is_two_then_mocking_double_namespaced_methods_is_not_possible(self, uut):
+    def test_when_depth_is_two_then_mocking_double_namespaced_methods_is_not_possible(
+        self, uut
+    ):
         with pytest.raises(AttributeError) as excinfo:
             uut.foo.bar.baz.expect_call()
-        assert str(excinfo.value) == "'FunctionMock' object has no attribute 'baz'"
+        assert str(
+            excinfo.value
+        ) == "'FunctionMock' object has no attribute 'baz'"

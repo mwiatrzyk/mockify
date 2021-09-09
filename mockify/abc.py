@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/interface.py
+# mockify/abc.py
 #
 # Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
@@ -149,9 +149,7 @@ class IExpectation(abc.ABC):
         **will_repeatedly()** methods."""
 
         @abc.abstractmethod
-        def times(
-            self, value: typing.Union[int, IExpectedCallCount]
-        ):
+        def times(self, value: typing.Union[int, IExpectedCallCount]):
             """Used to configure how many times repeated action is expected to
             be called by a mock.
 

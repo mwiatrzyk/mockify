@@ -19,7 +19,7 @@ class TestLocationInfo:
 
     def test_issue_deprecation_warning_if_location_info_is_used(self):
         with pytest.warns(DeprecationWarning) as rec:
-            info = LocationInfo.get_external()
+            LocationInfo.get_external()
         assert len(rec) == 1
         first, = rec
         assert str(first.message) ==\

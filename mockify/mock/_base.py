@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# mockify/core/_base_mock.py
+# mockify/mock/_base.py
 #
 # Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
@@ -65,7 +65,9 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
     .. versionadded:: 0.8
     """
 
-    def __init__(self, name: str, session: ISession=None, parent: IMock=None):
+    def __init__(
+        self, name: str, session: ISession = None, parent: IMock = None
+    ):
         self.__name = name
         self.__parent = _utils.make_weak(parent)
         if name is not None:
@@ -84,8 +86,7 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
         if module.startswith('mockify.mock'):
             module = 'mockify.mock'  # Hide private submodule in repr()
         return "<{module}.{self.__class__.__qualname__}({self.__m_name__!r})>".format(
-            module=module,
-            self=self
+            module=module, self=self
         )
 
     @property
@@ -104,4 +105,3 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
         if self.__parent is not None:
             return self.__parent()
         return None
-

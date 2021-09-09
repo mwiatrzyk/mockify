@@ -8,19 +8,21 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-
 """Classes and functions providing Mockify's core functionality."""
-
-from ._call import Call, LocationInfo
-from ._expectation import Expectation
-from ._session import Session
-from ._functions import assert_satisfied, satisfied, ordered, patched
-from ._inspect import MockInfo
 
 from mockify import _utils
 from mockify.mock import _base
 
-BaseMock = _utils.mark_import_deprecated(_base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock', '(unreleased)')
+from ._call import Call, LocationInfo
+from ._expectation import Expectation
+from ._functions import assert_satisfied, ordered, patched, satisfied
+from ._inspect import MockInfo
+from ._session import Session
+
+BaseMock = _utils.mark_import_deprecated(
+    _base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock',
+    '(unreleased)'
+)
 
 __all__ = [
     'MockInfo', 'BaseMock', 'Call', 'LocationInfo', 'Expectation', 'Session',

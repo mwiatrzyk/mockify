@@ -14,8 +14,8 @@
 import collections
 from enum import Enum
 
-from mockify import exc, _utils
-from mockify.abc import IExpectation, ICall
+from mockify import _utils, exc
+from mockify.abc import ICall, IExpectation
 from mockify.actions import Return
 from mockify.cardinality import ActualCallCount, AtLeast, Exactly
 

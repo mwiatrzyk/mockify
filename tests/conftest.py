@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# tests/unit/conftest.py
+# tests/conftest.py
 #
 # Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #

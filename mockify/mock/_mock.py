@@ -1,9 +1,16 @@
-from collections.abc import Mapping
-from mockify.matchers import Func
-
+# ---------------------------------------------------------------------------
+# mockify/mock/_mock.py
+#
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+#
+# This file is part of Mockify library and is released under the terms of the
+# MIT license: http://opensource.org/licenses/mit-license.php.
+#
+# See LICENSE for details.
+# ---------------------------------------------------------------------------
 from mockify import _utils
-from mockify.core import Call
 from mockify.abc import IMock
+from mockify.core import Call
 
 from ._base import BaseMock
 from ._function import BaseFunctionMock, FunctionMock
@@ -25,6 +32,7 @@ def _register_builtin_mock(name):
 # TODO: Add method, readable and writable property lists to this class
 # constructor. Methods should allow the user to pass his/her own mock instance
 # as method implementation (similar to the way as built-in mocks are done)
+
 
 @export
 class Mock(FunctionMock):
@@ -359,7 +367,8 @@ class Mock(FunctionMock):
         return self._get_mock_or_super('__floordiv__')(other)
 
     def __truediv__(self, other):
-        return self._get_mock_or_super('__truediv__', aliases=['__div__'])(other)
+        return self._get_mock_or_super('__truediv__',
+                                       aliases=['__div__'])(other)
 
     def __mod__(self, other):
         return self._get_mock_or_super('__mod__')(other)
@@ -398,7 +407,8 @@ class Mock(FunctionMock):
         return self._get_mock_or_super('__rfloordiv__')(other)
 
     def __rtruediv__(self, other):
-        return self._get_mock_or_super('__rtruediv__', aliases=['__rdiv__'])(other)
+        return self._get_mock_or_super('__rtruediv__',
+                                       aliases=['__rdiv__'])(other)
 
     def __rmod__(self, other):
         return self._get_mock_or_super('__rmod__')(other)
@@ -437,7 +447,8 @@ class Mock(FunctionMock):
         return self._get_mock_or_super('__ifloordiv__')(other)
 
     def __itruediv__(self, other):
-        return self._get_mock_or_super('__itruediv__', aliases=['__idiv__'])(other)
+        return self._get_mock_or_super('__itruediv__',
+                                       aliases=['__idiv__'])(other)
 
     def __imod__(self, other):
         return self._get_mock_or_super('__imod__')(other)
@@ -517,7 +528,7 @@ class Mock(FunctionMock):
         elif max_depth == 0:
             return FunctionMock(name, parent=self)
         else:
-            return Mock(name, max_depth=max_depth-1, parent=self)
+            return Mock(name, max_depth=max_depth - 1, parent=self)
 
     def __setattr__(self, name, value):
         return self._get_mock_or_super('__setattr__')(name, value)
@@ -634,7 +645,9 @@ class Mock(FunctionMock):
             return self.__m_session__(actual_call)
 
         def _expect_call(self, *args, **kwargs):
-            expected_call = Call(self.__m_parent__.__m_fullname__, *args, **kwargs)
+            expected_call = Call(
+                self.__m_parent__.__m_fullname__, *args, **kwargs
+            )
             return self.__m_session__.expect_call(expected_call)
 
     @_register_builtin_mock('__get__')
