@@ -3,20 +3,30 @@
 
 **Added**
 
-  * Use of ABC classes as Mockify base interface (:mod:`mockify.abc`)
-  * Introducting new :mod:`mockify.expect` module containing set
-    of **expect_**-prefixed functions for recording expectations on mock
-    objects.
+  * Introducing :mod:`mockify.abc` module - a set of ABC classes for Mockify
+  * Introducing :mod:`mockify.api` module - a proxy for doing single-line
+    imports of Mockify classes and functions
+  * Added :class:`mockify.mock.BaseFunctionMock` for making function mocks with
+    user-defined fixed set of parameters
+  * Added support for mocking magic methods in :class:`mockify.mock.Mock` class
+  * Added *max_depth* parameter to :class:`mockify.mock.Mock` class
+    constructor, so it can have limited depth of method namespacing (by
+    default, the depth is unlimited)
 
-    Current way of recording expectations (i.e.
-    ``mock.method.expect_call(...)``) will be deprecated once development of
-    this new module is done.
+**Changed**
 
-    This is due to the fact that implementing public **expect_call()** method
-    on nested mocks is problematic and with separate module it will be easy to
-    properly document functions, have one common set of **expect_**-prefixed
-    functions for all mocks, and to hide actual mock expectation recording
-    logic behind the scenes.
+  * Class :class:`mockify.mock.FunctionMock` now inherits from
+    :class:`mockify.mock.BaseFunctionMock`
+  * Class :class:`mockify.core.BaseMock` was moved to
+    :class:`mockify.mock.BaseMock` (old location is marked as deprecated)
+
+**Deprecated**
+
+  * Current core module :mod:`mockify` is now made deprecated, so using names
+    from that module will cause deprecation warnings. Please use
+    :mod:`mockify.core` instead.
+  * Class :class:`mockify.core.LocationInfo` is made deprecated and will be
+    removed soon
 
 0.12.0 (2020-11-29)
 -------------------
