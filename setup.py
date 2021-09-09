@@ -8,6 +8,8 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
+
+import re
 import setuptools
 
 
@@ -16,16 +18,21 @@ with open("README.md", "r") as fd:
 
 
 def version_scheme(version):
+
+    def repl(x):
+        return str(int(x.group(0)) + 1)
+
     if not version.distance:
         return str(version.tag)
     major, minor, build = str(version.tag).split('.')
-    return "{}.{}.{}".format(major, minor, int(build)+1)
+    build = re.sub(r'(\d+)$', repl, build)  # increase last number (f.e. 0rc1 -> 0rc2, 0 -> 1)
+    return "{}.{}.{}".format(major, minor, build)
 
 
 def local_scheme(version):
     if not version.distance:
         return ''
-    return "rc{}".format(version.distance)
+    return ".dev{}".format(version.distance)
 
 
 setuptools.setup(
