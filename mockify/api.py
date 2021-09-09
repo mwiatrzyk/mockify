@@ -8,35 +8,28 @@
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-import types
 
-from mockify import actions, cardinality, core, exc, matchers, mock
+import itertools
 
-_submodules = (core, mock, actions, cardinality, exc, matchers)
+from mockify import _utils
+from mockify import abc as _abc
+from mockify import actions as _actions
+from mockify import cardinality as _cardinality
+from mockify import core as _core
+from mockify import exc as _exc
+from mockify import matchers as _matchers
+from mockify import mock as _mock
+from mockify.abc import *
+from mockify.actions import *
+from mockify.cardinality import *
+from mockify.core import *
+from mockify.exc import *
+from mockify.matchers import *
+from mockify.mock import *
 
-__all__ = []
+_submodules = [_core, _mock, _abc, _actions, _cardinality, _exc, _matchers]
 
-
-def _gen_name_list():
-    memo = set()
-    for module in _submodules:
-        yield "* From :mod:`{module.__name__}` module:".format(module=module)
-        for name in module.__all__:
-            if name not in memo:
-                memo.add(name)
-                obj = getattr(module, name)
-                if isinstance(obj, type):
-                    yield "    * :class:`{module.__name__}.{name}`".format(
-                        module=module, name=name
-                    )
-                elif isinstance(obj, types.FunctionType):
-                    yield "    * :func:`{module.__name__}.{name}`".format(
-                        module=module, name=name
-                    )
-                else:
-                    yield "    * :obj:`{module.__name__}.{name}`".format(
-                        module=module, name=name
-                    )
+__all__ = _utils.ExportList.merge_unique(*(x.__all__ for x in _submodules))
 
 __doc__ =\
 """A proxy module providing access to all publicly available classes and
@@ -53,7 +46,9 @@ See the list of available names below.
 
 Rationale behind this module is that testing frameworks like PyTest provide
 access to all public names basically via single import, so test helper like
-Mockify should also provide similar behaviour.
+Mockify should also provide similar behaviour. On the other hand, using a root
+module to do such imports is discouraged, as it would always import everything
+- even if the user does not want to.
 
 .. note::
     Since this is a proxy module, any change to other public modules will
@@ -65,4 +60,4 @@ Currently available classes and functions are:
 {}
 
 .. versionadded:: (unreleased)
-""".format('\n'.join(_gen_name_list()))
+""".format('\n'.join(itertools.chain(*(_utils.render_public_members_docstring(x) for x in _submodules))))

@@ -277,14 +277,37 @@ class DictEqualityMixin:
 
 
 class ExportList(list):
-    """A helper to implement ``__all__`` in modules."""
+    """A helper to implement ``__all__`` in modules.
 
-    def __init__(self, defaults=None):
+    This helps to do the following::
+
+        __all__ = export = ExportList()
+
+        @export
+        def exported_function():
+            pass
+    """
+
+    def __init__(self, defaults: typing.Iterable[str] = None):
         super().__init__(defaults or [])
 
     def __call__(self, member):
         self.append(member.__name__)
         return member
+
+    @classmethod
+    def merge_unique(cls, *other: 'ExportList'):
+        """Create new :class:`ExportList` object by merging all given *other*
+        :class:`ExportList` instances and removing duplicated entries."""
+
+        def gen():
+            memo = set()
+            for item in itertools.chain(*other):
+                if item not in memo:
+                    memo.add(item)
+                    yield item
+
+        return cls(defaults=gen())
 
 
 def make_alias(cls_or_func):
@@ -318,6 +341,24 @@ def make_alias(cls_or_func):
         func=cls_or_func
     )
     return alias
+
+
+def render_public_members_docstring(module):
+    """For given module, generate a Sphinx list with reference to module name,
+    and reference to each publicly available object in that module.
+
+    This is a helper for automated rendering of ``__doc__`` property in proxy
+    modules.
+    """
+    yield '* :mod:`{}`'.format(module.__name__)
+    for name in module.__all__:
+        obj = getattr(module, name)
+        if isinstance(obj, type):
+            yield '    * :class:`{}.{}`'.format(module.__name__, name)
+        elif isinstance(obj, types.FunctionType):
+            yield '    * :func:`{}.{}`'.format(module.__name__, name)
+        else:
+            yield '    * :attr:`{}.{}`'.format(module.__name__, name)
 
 
 class memoized_property:

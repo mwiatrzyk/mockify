@@ -15,7 +15,10 @@ import typing
 
 from . import _utils
 
+__all__ = export = _utils.ExportList()
 
+
+@export
 class ICallLocation(abc.ABC):
     """An interface to be implemented by classes used to obtain call location
     (file name and line number) from the stack.
@@ -49,6 +52,7 @@ class ICallLocation(abc.ABC):
         """Line number (within file given by :attr:`filename`)."""
 
 
+@export
 class ICall(abc.ABC):
     """An interface to be implemented by objects containing mock call
     information.
@@ -97,6 +101,7 @@ class ICall(abc.ABC):
         """A place in user's source code where this call object was created."""
 
 
+@export
 class IAction(abc.ABC):
     """An interface to be implemented by mock actions.
 
@@ -122,6 +127,7 @@ class IAction(abc.ABC):
         """
 
 
+@export
 class IExpectedCallCount(abc.ABC):
     """An interface to be implemented by classes that set expected call count
     ranges.
@@ -137,6 +143,7 @@ class IExpectedCallCount(abc.ABC):
         """Check if actual number of calls matches expected number of calls."""
 
 
+@export
 class IExpectation(abc.ABC):
     """Represents single expectation recorded on a mock.
 
@@ -256,6 +263,7 @@ class IExpectation(abc.ABC):
         """
 
 
+@export
 class ISession(abc.ABC):
     """An interface to be implemented by session classes.
 
@@ -268,6 +276,7 @@ class ISession(abc.ABC):
     """
 
 
+@export
 class IMock(abc.ABC):
     """An interface to be implemented by mock classes.
 

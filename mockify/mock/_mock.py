@@ -10,7 +10,7 @@
 # ---------------------------------------------------------------------------
 from mockify import _utils
 from mockify.abc import IMock
-from mockify.core import Call
+from mockify.core._call import Call
 
 from ._base import BaseMock
 from ._function import BaseFunctionMock, FunctionMock

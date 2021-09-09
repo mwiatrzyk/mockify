@@ -118,7 +118,10 @@ def tox(ctx, parallel=False, env=None):
 def fix_formatting(ctx):
     """Run code formatting tools."""
     ctx.run(
-        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests scripts tasks.py'
+        'autoflake --in-place --recursive --remove-all-unused-imports '
+        '--remove-unused-variables --expand-star-imports '
+        '--exclude */api.py'
+        'mockify tests scripts tasks.py'
     )
     ctx.run('isort --atomic mockify tests scripts tasks.py')
     ctx.run('yapf -i --recursive --parallel mockify tests scripts tasks.py')
