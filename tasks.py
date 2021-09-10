@@ -60,12 +60,14 @@ def serve_coverage(ctx, host='localhost', port=8000):
 def lint_code(ctx):
     """Run linter on source files."""
     args = ['pylint mockify -f colorized --fail-under=9.0']
-    args.extend([
-        '-d missing-module-docstring',
-        '-d missing-class-docstring',
-        '-d missing-function-docstring',
-        '-d too-few-public-methods',
-    ])
+    args.extend(
+        [
+            '-d missing-module-docstring',
+            '-d missing-class-docstring',
+            '-d missing-function-docstring',
+            '-d too-few-public-methods',
+        ]
+    )
     ctx.run(' '.join(args))
 
 
@@ -125,7 +127,7 @@ def fix_formatting(ctx):
     ctx.run(
         'autoflake --in-place --recursive --remove-all-unused-imports '
         '--remove-unused-variables --expand-star-imports '
-        '--exclude */api.py'
+        '--exclude */api.py '
         'mockify tests scripts tasks.py'
     )
     ctx.run('isort --atomic mockify tests scripts tasks.py')

@@ -20,8 +20,7 @@ from ._inspect import MockInfo
 from ._session import Session
 
 BaseMock = _utils.mark_import_deprecated(
-    _base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock',
-    '0.13'
+    _base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock', '0.13'
 )
 
 __all__ = [

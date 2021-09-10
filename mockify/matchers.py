@@ -21,7 +21,7 @@ import re
 
 from mockify import _utils
 
-__all__ = export = _utils.ExportList(['_']) # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList(['_'])  # pylint: disable=invalid-all-format
 
 
 def _format_repr(obj, *args, **kwargs):

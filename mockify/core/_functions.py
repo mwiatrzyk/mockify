@@ -17,7 +17,7 @@ from contextlib import contextmanager
 from mockify import _utils, exc
 from mockify.abc import IMock
 
-__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 
 @export

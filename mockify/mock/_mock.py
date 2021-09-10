@@ -14,12 +14,11 @@
 
 from mockify import _utils
 from mockify.abc import IMock
-from mockify.core._call import Call
 
 from ._base import BaseMock
 from ._function import BaseFunctionMock, FunctionMock
 
-__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 
 def _register_builtin_mock(name):

@@ -19,7 +19,7 @@ from mockify.abc import ICall, IExpectation
 from mockify.actions import Return
 from mockify.cardinality import ActualCallCount, AtLeast, Exactly
 
-__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 
 class _ActionType(Enum):

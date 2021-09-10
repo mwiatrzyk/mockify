@@ -14,7 +14,7 @@ import logging
 
 from . import _utils
 
-__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 logger = logging.getLogger('mockify')
 

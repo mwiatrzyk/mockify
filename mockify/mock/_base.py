@@ -17,7 +17,7 @@ from mockify import _utils
 from mockify.abc import IMock, ISession
 from mockify.core._session import Session
 
-__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 
 @export
