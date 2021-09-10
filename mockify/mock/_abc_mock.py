@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/mock/_abc_mock.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -11,10 +11,15 @@
 import abc
 import inspect
 
-from ..core import BaseMock
+from mockify import _utils
+
+from ._base import BaseMock
 from ._function import FunctionMock
 
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
+
+@export
 def ABCMock(name, abstract_base_class, **kwargs):
     """Factory function for creating mocks that implement given
     :class:`abc.ABC` subclass.

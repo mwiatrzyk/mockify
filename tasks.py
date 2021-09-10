@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # tasks.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -17,7 +17,13 @@ import mockify
 @invoke.task
 def test_unit(ctx):
     """Run unit tests."""
-    ctx.run('pytest tests/')
+    ctx.run('pytest tests/unit')
+
+
+@invoke.task
+def test_functional(ctx):
+    """Run functional tests."""
+    ctx.run('pytest tests/functional')
 
 
 @invoke.task
@@ -26,7 +32,7 @@ def test_docs(ctx):
     ctx.run('sphinx-build -M doctest docs/source docs/build')
 
 
-@invoke.task(test_unit, test_docs)
+@invoke.task(test_unit, test_functional, test_docs)
 def test(_):
     """Run all tests."""
 
@@ -53,9 +59,14 @@ def serve_coverage(ctx, host='localhost', port=8000):
 @invoke.task
 def lint_code(ctx):
     """Run linter on source files."""
-    ctx.run(
-        'pylint -f colorized --fail-under=9.0 mockify scripts tasks.py setup.py'
-    )
+    args = ['pylint mockify -f colorized --fail-under=9.0']
+    args.extend([
+        '-d missing-module-docstring',
+        '-d missing-class-docstring',
+        '-d missing-function-docstring',
+        '-d too-few-public-methods',
+    ])
+    ctx.run(' '.join(args))
 
 
 @invoke.task
@@ -112,7 +123,10 @@ def tox(ctx, parallel=False, env=None):
 def fix_formatting(ctx):
     """Run code formatting tools."""
     ctx.run(
-        'autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables --expand-star-imports mockify tests scripts tasks.py'
+        'autoflake --in-place --recursive --remove-all-unused-imports '
+        '--remove-unused-variables --expand-star-imports '
+        '--exclude */api.py'
+        'mockify tests scripts tasks.py'
     )
     ctx.run('isort --atomic mockify tests scripts tasks.py')
     ctx.run('yapf -i --recursive --parallel mockify tests scripts tasks.py')

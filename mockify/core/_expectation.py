@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/core/_expectation.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -14,9 +14,12 @@
 import collections
 from enum import Enum
 
-from .. import exc
-from ..actions import Return
-from ..cardinality import ActualCallCount, AtLeast, Exactly
+from mockify import _utils, exc
+from mockify.abc import ICall, IExpectation
+from mockify.actions import Return
+from mockify.cardinality import ActualCallCount, AtLeast, Exactly
+
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 class _ActionType(Enum):
@@ -25,26 +28,34 @@ class _ActionType(Enum):
     REPEATED = 'repeated'
 
 
-class Expectation:
-    """An class representing single expectation.
+@export
+class Expectation(IExpectation):
+    """Default implementation of the :class:`mockify.abc.IExpectation`
+    interface.
 
-    Instances of this class are created and returned by factory
-    **expect_call()** method you will use to record expectations on your
-    mocks:
+    Instances of this class are created and returned when expectations are
+    recorded on mocks.
+
+    Here's an example:
 
     .. doctest::
 
         >>> from mockify.mock import Mock
         >>> mock = Mock('mock')
         >>> mock.expect_call(1, 2)
-        <mockify.Expectation: mock(1, 2)>
+        <mockify.core.Expectation: mock(1, 2)>
 
     :param expected_call:
-        Instance of :class:`Call` class containing parameters passed to
-        **expect_call()** factory method that created this expectation object.
+        Instance of :class:`mockify.abc.ICall` object that was created during
+        expectation recording.
+
+        .. note::
+            Value of :attr:`mockify.abc.ICall.location` property of given call
+            object will point to the place in user's test code where
+            ``expect_call(...)`` method was called.
     """
 
-    def __init__(self, expected_call):
+    def __init__(self, expected_call: ICall):
         self._expected_call = expected_call
         self._action_store = self._ActionStore()
         self._action_store.add(
@@ -52,108 +63,66 @@ class Expectation:
         )
 
     def __repr__(self):
-        return "<mockify.{}: {}>".format(
+        return "<mockify.core.{}: {}>".format(
             self.__class__.__name__, self._expected_call
         )
 
-    def __call__(self, actual_call):
-        """Call this expectation object.
+    def __call__(self, actual_call: ICall):
+        """Consume this expectation object.
 
-        If given ``call`` object does not match :attr:`expected_call` then this
-        method will raise :exc:`TypeError` exception.
+        This method requires given *actual_call* object to satisfy following
+        condition::
 
-        Otherwise, total call count is increased by one and:
+            self.expected_call == actual_call
 
-            * if actions are recorded, then next action is executed and its
-              result returned or :exc:`mockify.exc.OversaturatedCall` exception
-              is raised if there are no more actions
+        In other words, given *actual_call* must be equal to current
+        :attr:`expected_call` object, as consuming expectation with a
+        non-matching actuall call does not make sense and is considered as a
+        bug.
 
-            * if there are no actions recorded, just ``None`` is returned
+        :param actual_call:
+            Instance of :class:`mockify.abc.ICall` object that was created when
+            corresponding mock was called.
+
+            .. note::
+                Value of :attr:`mockify.abc.ICall.location` property of given
+                call object will point to the place in user's tested code where
+                the mocked method or function was called.
         """
         assert self.expected_call == actual_call
         return self._action_store(actual_call, self)
 
     def is_satisfied(self):
-        """Check if this expectation is satisfied.
-
-        Expectation object is satisfied if and only if:
-
-        * total number of calls is not exceeding expected number of calls,
-        * all actions (if any were recorded) are **consumed**.
-
-        :rtype: bool
-        """
+        """See :meth:`mockify.abc.IExpectation.is_satisfied`."""
         return self.expected_call_count.match(self.actual_call_count)
 
     def times(self, cardinality):
-        """Set expected number or range of call counts.
-
-        Following values are possible:
-
-        * integer number (for setting expected call count to fixed value),
-        * instance of :class:`mockify.cardinality.ExpectedCallCount` (for
-          setting expected call count to **ranged** value).
-
-        See :ref:`setting-expected-call-count` tutorial section for more
-        details.
-        """
+        """See :meth:`mockify.abc.IExpectation.times`."""
         return self._Times(self, cardinality)
 
     def will_once(self, action):
-        """Append next action to be executed when this expectation object
-        receives a call.
-
-        Once this method is called, it returns special proxy object that you
-        can use to mutate this expectation even further by calling one of
-        given methods on that proxy:
-
-        * **will_once()** (this one again),
-        * **will_repeatedly()** (see :meth:`will_repeatedly`).
-
-        Thanks to that you can record so called **action chains** (see
-        :ref:`recording-action-chains` for more details).
-
-        This method can be called with any action object from
-        :mod:`mockify.actions` as an argument.
-        """
+        """See :meth:`mockify.abc.IExpectation.will_once`."""
         if self._action_store[0].type_ == _ActionType.DEFAULT:
             self._action_store.pop()
         return self._WillOnce(self, action)
 
     def will_repeatedly(self, action):
-        """Attach so called **repeated action** to be executed when this
-        expectation is called.
-
-        Unlike single actions, recorded with :meth:`will_once`, repeated
-        actions are by default executed any number of times, including zero
-        (see :ref:`recording-repeated-actions` for more details).
-
-        Once this method is called, it returns a proxy object you can use to
-        adjust repeated action even more by calling one of following methods:
-
-        * **times()**, used to record repeated action call count limits (see
-          :meth:`times`).
-
-        This method accepts actions defined in :mod:`mockify.actions` module.
-        """
+        """See :meth:`mockify.abc.IExpectation.will_repeatedly`."""
         if self._action_store[0].type_ == _ActionType.DEFAULT:
             self._action_store.pop()
         return self._WillRepeatedly(self, action)
 
     @property
-    def expected_call(self):
-        """Returns *expected_call* parameter passed during construction.
+    def expected_call(self) -> ICall:
+        """Returns **expected call** object assigned to this expectation.
 
-        This is used when this expectation is compared with
-        :class:`mockify.core.Call` object representing **actual call**, to
-        find expectations matching that call.
-
-        :rtype: mockify.core.Call
+        This is used by Mockify's internals to find expectations that match
+        given **actual call** object.
         """
         return self._expected_call
 
     @property
-    def actual_call_count(self):
+    def actual_call_count(self) -> int:
         """Number of matching calls this expectation object received so far.
 
         This is relative value; if one action expires and another one is
@@ -290,7 +259,7 @@ class Expectation:
             self._expectation = expectation
             expectation._action_store[0].times(cardinality)
 
-    class _WillOnce(_Mutation):
+    class _WillOnce(_Mutation, IExpectation.IWillOnceMutation):
         # pylint: disable=missing-function-docstring
 
         def __init__(self, expectation, action):
@@ -308,7 +277,7 @@ class Expectation:
         def will_repeatedly(self, action):
             return self._expectation.will_repeatedly(action)
 
-    class _WillRepeatedly(_Mutation):
+    class _WillRepeatedly(_Mutation, IExpectation.IWillRepeatedlyMutation):
         # pylint: disable=missing-function-docstring
         # pylint: disable=too-few-public-methods
 

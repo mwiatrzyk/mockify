@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/actions.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -20,7 +20,11 @@ import functools
 import inspect
 from contextlib import contextmanager
 
+from mockify.abc import IAction
+
 from . import _utils
+
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 def _format_str(obj, *args, **kwargs):
@@ -30,7 +34,8 @@ def _format_str(obj, *args, **kwargs):
     )
 
 
-class Action(abc.ABC, _utils.DictEqualityMixin):
+@export
+class Action(IAction, _utils.DictEqualityMixin):
     """Abstract base class for actions.
 
     This is common base class for all actions defined in this module. Custom
@@ -67,6 +72,7 @@ class Action(abc.ABC, _utils.DictEqualityMixin):
         """
 
 
+@export
 class Return(Action):
     """Forces mock to return *value* when called.
 
@@ -78,7 +84,7 @@ class Return(Action):
         >>> from mockify.actions import Return
         >>> mock = Mock('mock')
         >>> mock.expect_call().will_once(Return('foo'))
-        <mockify.Expectation: mock()>
+        <mockify.core.Expectation: mock()>
         >>> mock()
         'foo'
     """
@@ -93,6 +99,7 @@ class Return(Action):
         return self.value
 
 
+@export
 class ReturnAsync(Return):
     """Similar to :class:`Return`, but to be used with asynchronous Python
     code.
@@ -131,6 +138,7 @@ class ReturnAsync(Return):
         return proxy(self.value)
 
 
+@export
 class ReturnContext(Return):
     """Similar to :class:`Return`, but returns *value* via context
     manager.
@@ -178,6 +186,7 @@ class ReturnContext(Return):
         return proxy(self.value)
 
 
+@export
 class ReturnAsyncContext(ReturnContext):
     """Similar to :class:`ReturnContext`, but returns *value* via async
     context manager.
@@ -233,6 +242,7 @@ class ReturnAsyncContext(ReturnContext):
         return Proxy(self.value)
 
 
+@export
 class Iterate(Action):
     """Similar to :class:`Return`, but returns an iterator to given
     *iterable*.
@@ -245,7 +255,7 @@ class Iterate(Action):
         >>> from mockify.actions import Iterate
         >>> mock = Mock('mock')
         >>> mock.expect_call().will_once(Iterate('foo'))
-        <mockify.Expectation: mock()>
+        <mockify.core.Expectation: mock()>
         >>> next(mock())
         'f'
 
@@ -262,6 +272,7 @@ class Iterate(Action):
         return iter(self.iterable)
 
 
+@export
 class IterateAsync(Iterate):
     """Similar to :class:`Iterate`, but returns awaitable that returns an
     iterator to given *iterable*.
@@ -301,6 +312,7 @@ class IterateAsync(Iterate):
         return proxy(self.iterable)
 
 
+@export
 class YieldAsync(Iterate):
     """Similar to :class:`Iterate`, but returns async iterator to given *iterable*.
 
@@ -344,6 +356,7 @@ class YieldAsync(Iterate):
         return proxy(self.iterable)
 
 
+@export
 class Raise(Action):
     """Forces mock to raise *exc* when called.
 
@@ -355,7 +368,7 @@ class Raise(Action):
         >>> from mockify.actions import Raise
         >>> mock = Mock('mock')
         >>> mock.expect_call().will_once(Raise(ValueError('invalid value')))
-        <mockify.Expectation: mock()>
+        <mockify.core.Expectation: mock()>
         >>> mock()
         Traceback (most recent call last):
             ...
@@ -372,6 +385,7 @@ class Raise(Action):
         raise self.exc
 
 
+@export
 class RaiseAsync(Raise):
     """Similar to :class:`Raise`, but to be used with asynchronous Python
     code.
@@ -413,6 +427,7 @@ class RaiseAsync(Raise):
         return proxy(self.exc)
 
 
+@export
 class Invoke(Action):
     """Forces mock to invoke *func* when called.
 
@@ -432,7 +447,7 @@ class Invoke(Action):
         >>> from mockify.actions import Invoke
         >>> mock = Mock('mock')
         >>> mock.expect_call([1, 2, 3]).will_once(Invoke(sum))
-        <mockify.Expectation: mock([1, 2, 3])>
+        <mockify.core.Expectation: mock([1, 2, 3])>
         >>> mock([1, 2, 3])
         6
 
@@ -465,6 +480,7 @@ class Invoke(Action):
         return self._bound_func(*actual_call.args, **actual_call.kwargs)
 
 
+@export
 class InvokeAsync(Invoke):
     """Similar to :class:`Invoke`, but to be used with asynchronous Python
     code.

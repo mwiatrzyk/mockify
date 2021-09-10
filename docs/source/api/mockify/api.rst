@@ -1,5 +1,5 @@
 .. ----------------------------------------------------------------------------
-.. docs/source/api/mockify/mock.rst
+.. docs/source/api/mockify/api.rst
 ..
 .. Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 ..
@@ -10,11 +10,7 @@
 .. See LICENSE for details.
 .. ----------------------------------------------------------------------------
 
-**mockify.mock** - Classes for creating and inspecting mocks
-============================================================
+**mockify.api** - An all-in-one import module
+=============================================
 
-.. automodule:: mockify.mock
-    :members:
-    :special-members: __call__
-    :no-undoc-members:
-    :show-inheritance:
+.. automodule:: mockify.api

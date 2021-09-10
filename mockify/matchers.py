@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/matchers.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -21,6 +21,8 @@ import re
 
 from mockify import _utils
 
+__all__ = export = _utils.ExportList(['_']) # pylint: disable=invalid-all-format
+
 
 def _format_repr(obj, *args, **kwargs):
 
@@ -33,6 +35,7 @@ def _format_repr(obj, *args, **kwargs):
     return "{}({})".format(obj.__class__.__name__, formatted_args_kwargs)
 
 
+@export
 class Matcher(abc.ABC):
     """Abstract base class for matchers.
 
@@ -61,6 +64,7 @@ class Matcher(abc.ABC):
         return AllOf(self, other)
 
 
+@export
 class AnyOf(Matcher):
     """Matches any value from given list of *values*.
 
@@ -82,6 +86,7 @@ class AnyOf(Matcher):
         return ' | '.join(repr(x) for x in self._values)
 
 
+@export
 class AllOf(Matcher):
     """Matches if and only if received value is equal to all given
     *values*.
@@ -104,16 +109,23 @@ class AllOf(Matcher):
         return ' & '.join(repr(x) for x in self._values)
 
 
+@export
 class Any(Matcher):
     """Matches any value.
 
     This can be used as a wildcard, when you care about number of arguments
-    in your expectation, not their values or types. This can also be imported
-    as underscore:
+    in your expectation, not their values or types.
 
-    .. testcode::
+    .. note::
 
-        from mockify.matchers import _
+        This is also available as ``_`` (underscore) member of
+        :mod:`mockify.matchers` module:
+
+        .. testcode::
+
+            from mockify.matchers import _, Any
+
+            assert isinstance(_, Any)
     """
 
     def __eq__(self, other):
@@ -123,6 +135,10 @@ class Any(Matcher):
         return '_'
 
 
+_ = Any()
+
+
+@export
 class Type(Matcher):
     """Matches any value that is instance of one of given *types*.
 
@@ -158,6 +174,7 @@ class Type(Matcher):
         )
 
 
+@export
 class Regex(Matcher):
     """Matches value if it is a string that matches given regular expression
     *pattern*.
@@ -197,6 +214,7 @@ class Regex(Matcher):
         return "{}({})".format(self.__class__.__name__, self._name)
 
 
+@export
 class List(Matcher):
     """Matches value if it is a list of values matching *matcher*.
 
@@ -241,6 +259,7 @@ class List(Matcher):
         )
 
 
+@export
 class Object(Matcher):
     """Matches value if it is an object with attributes equal to names and
     values given via keyword args.
@@ -292,6 +311,7 @@ class Object(Matcher):
         return _format_repr(self, **self._kwargs)
 
 
+@export
 class Func(Matcher):
     """Matches value if *func* returns ``True`` for that value.
 
@@ -327,6 +347,3 @@ class Func(Matcher):
         if self._name is None:
             return "{}({})".format(self.__class__.__name__, self._func.__name__)
         return "{}({})".format(self.__class__.__name__, self._name)
-
-
-_ = Any()

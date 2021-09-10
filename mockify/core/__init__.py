@@ -1,23 +1,30 @@
 # ---------------------------------------------------------------------------
 # mockify/core/__init__.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
 #
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
-"""Library core module."""
+"""Classes and functions providing Mockify's core functionality."""
 
-from ._assert import assert_satisfied
-from ._base_mock import BaseMock, MockInfo
+from mockify import _utils
+from mockify.mock import _base
+
 from ._call import Call, LocationInfo
-from ._contextmanagers import ordered, patched, satisfied
 from ._expectation import Expectation
+from ._functions import assert_satisfied, ordered, patched, satisfied
+from ._inspect import MockInfo
 from ._session import Session
 
+BaseMock = _utils.mark_import_deprecated(
+    _base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock',
+    '0.13'
+)
+
 __all__ = [
-    'assert_satisfied', 'Call', 'LocationInfo', 'satisfied', 'ordered',
-    'patched', 'Expectation', 'Session', 'BaseMock', 'MockInfo'
+    'MockInfo', 'BaseMock', 'Call', 'LocationInfo', 'Expectation', 'Session',
+    'assert_satisfied', 'satisfied', 'ordered', 'patched'
 ]

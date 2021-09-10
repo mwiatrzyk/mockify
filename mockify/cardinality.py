@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/cardinality.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -14,7 +14,10 @@ calls."""
 import abc
 from functools import total_ordering
 
-from . import _utils
+from mockify import _utils
+from mockify.abc import IExpectedCallCountMatcher
+
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 def _format_repr(obj, *args, **kwargs):
@@ -24,6 +27,7 @@ def _format_repr(obj, *args, **kwargs):
     )
 
 
+@export
 @total_ordering
 class ActualCallCount:
     """Proxy class that is used to calculate actual mock calls.
@@ -69,7 +73,8 @@ class ActualCallCount:
         return self._value
 
 
-class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
+@export
+class ExpectedCallCount(IExpectedCallCountMatcher, _utils.DictEqualityMixin):
     """Abstract base class for classes used to set expected call count on
     mock objects.
 
@@ -112,6 +117,7 @@ class ExpectedCallCount(abc.ABC, _utils.DictEqualityMixin):
         """
 
 
+@export
 class Exactly(ExpectedCallCount):
     """Used to set expected call count to fixed *expected* value.
 
@@ -143,6 +149,7 @@ class Exactly(ExpectedCallCount):
         return Exactly(self.expected + minimal)
 
 
+@export
 class AtLeast(ExpectedCallCount):
     """Used to set expected call count to given *minimal* value.
 
@@ -172,6 +179,7 @@ class AtLeast(ExpectedCallCount):
         return AtLeast(self.minimal + minimal)
 
 
+@export
 class AtMost(ExpectedCallCount):
     """Used to set expected call count to given *maximal* value.
 
@@ -204,6 +212,7 @@ class AtMost(ExpectedCallCount):
         return Between(minimal, self.maximal + minimal)
 
 
+@export
 class Between(ExpectedCallCount):
     """Used to set a range of expected call counts between *minimal* and
     *maximal*, both included.

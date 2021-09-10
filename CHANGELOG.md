@@ -1,3 +1,33 @@
+0.13.0 (2021-09-09)
+-------------------
+
+**Added**
+
+  * Introducing :mod:`mockify.abc` module - a set of ABC classes for Mockify
+  * Introducing :mod:`mockify.api` module - a proxy for doing single-line
+    imports of Mockify classes and functions
+  * Added :class:`mockify.mock.BaseFunctionMock` for making function mocks with
+    user-defined fixed set of parameters
+  * Added support for mocking magic methods in :class:`mockify.mock.Mock` class
+  * Added *max_depth* parameter to :class:`mockify.mock.Mock` class
+    constructor, so it can have limited depth of method namespacing (by
+    default, the depth is unlimited)
+
+**Changed**
+
+  * Class :class:`mockify.mock.FunctionMock` now inherits from
+    :class:`mockify.mock.BaseFunctionMock`
+  * Class :class:`mockify.core.BaseMock` was moved to
+    :class:`mockify.mock.BaseMock` (old location is marked as deprecated)
+
+**Deprecated**
+
+  * Current core module :mod:`mockify` is now made deprecated, so using names
+    from that module will cause deprecation warnings. Please use
+    :mod:`mockify.core` instead.
+  * Class :class:`mockify.core.LocationInfo` is made deprecated and will be
+    removed soon
+
 0.12.0 (2020-11-29)
 -------------------
 

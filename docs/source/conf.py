@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # docs/source/conf.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -210,4 +210,15 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 doctest_default_flags = doctest.ELLIPSIS | doctest.DONT_ACCEPT_TRUE_FOR_1
 
 # Autodoc
-autodoc_member_order = 'bysource'  # Order as in source files
+autodoc_member_order = 'groupwise'  # See https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html
+
+# -- Extension hooks ----------------------------------------------------------
+
+def setup(app):
+
+    def autodoc_skip_member(app, what, name, obj, skip, options):
+        if name.startswith('__m_') and name.endswith('__'):  # all Mockify-defined special members are not skipped
+            return False
+        return skip
+
+    app.connect('autodoc-skip-member', autodoc_skip_member)

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # mockify/mock/_factory.py
 #
-# Copyright (C) 2019 - 2020 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
+# Copyright (C) 2019 - 2021 Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>
 #
 # This file is part of Mockify library and is released under the terms of the
 # MIT license: http://opensource.org/licenses/mit-license.php.
@@ -9,10 +9,15 @@
 # See LICENSE for details.
 # ---------------------------------------------------------------------------
 
-from ..core import BaseMock, MockInfo
+from mockify import _utils
+
+from ._base import BaseMock
 from ._mock import Mock
 
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
+
+@export
 class MockFactory(BaseMock):
     """A factory class used to create groups of related mocks.
 
@@ -67,8 +72,8 @@ class MockFactory(BaseMock):
             yield from mock.__m_expectations__()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self_info.fullname!r})>".format(
-            self=self, self_info=MockInfo(self)
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(
+            self=self
         )
 
     def mock(self, name):
