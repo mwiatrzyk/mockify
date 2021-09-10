@@ -17,7 +17,7 @@ import typing
 from mockify import _globals, _utils
 from mockify.abc import ICall, ICallLocation
 
-__all__ = export = _utils.ExportList()
+__all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 
 @export

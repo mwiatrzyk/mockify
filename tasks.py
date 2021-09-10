@@ -59,9 +59,14 @@ def serve_coverage(ctx, host='localhost', port=8000):
 @invoke.task
 def lint_code(ctx):
     """Run linter on source files."""
-    ctx.run(
-        'pylint -f colorized --fail-under=9.0 mockify scripts tasks.py setup.py'
-    )
+    args = ['pylint mockify -f colorized --fail-under=9.0']
+    args.extend([
+        '-d missing-module-docstring',
+        '-d missing-class-docstring',
+        '-d missing-function-docstring',
+        '-d too-few-public-methods',
+    ])
+    ctx.run(' '.join(args))
 
 
 @invoke.task

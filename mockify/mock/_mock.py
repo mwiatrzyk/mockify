@@ -19,15 +19,15 @@ from mockify.core._call import Call
 from ._base import BaseMock
 from ._function import BaseFunctionMock, FunctionMock
 
-__all__ = export = _utils.ExportList()
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 def _register_builtin_mock(name):
 
     def decorator(cls):
         if not hasattr(cls, '_m_method_names'):
-            cls._m_method_names = set()
-        cls._m_method_names.add(name)
+            cls._m_method_names = set()  # pylint: disable=protected-access
+        cls._m_method_names.add(name)  # pylint: disable=protected-access
         return cls
 
     return decorator
@@ -279,9 +279,9 @@ class Mock(FunctionMock):
     @_utils.memoized_property
     def _m_builtin_mocks(self):
         result = {}
-        for name, mock in self.__class__.__dict__.items():
+        for mock in self.__class__.__dict__.values():
             if hasattr(mock, '_m_method_names'):
-                for n in mock._m_method_names:
+                for n in mock._m_method_names:  # pylint: disable=protected-access
                     result[n] = mock
         return result
 
@@ -528,7 +528,7 @@ class Mock(FunctionMock):
         max_depth = self._m_max_depth
         if max_depth < 0:
             return Mock(name, max_depth=self._m_max_depth, parent=self)
-        elif max_depth == 0:
+        if max_depth == 0:
             return FunctionMock(name, parent=self)
         return Mock(name, max_depth=max_depth - 1, parent=self)
 
@@ -636,21 +636,11 @@ class Mock(FunctionMock):
             fullname = self.__m_fullname__
             query = _utils.IterableQuery(self.__m_session__.expectations())
             if query.exists(lambda x: x.expected_call.name == fullname):
-                return self._call(*args, **kwargs)
-            return self._expect_call(*args, **kwargs)
+                return self.__m_call__(*args, **kwargs)
+            return self.__m_parent__.__m_expect_call__(*args, **kwargs)
 
         def expect_call(self, *args, **kwargs):
             return self.__m_expect_call__(*args, **kwargs)
-
-        def _call(self, *args, **kwargs):
-            actual_call = Call(self.__m_fullname__, *args, **kwargs)
-            return self.__m_session__(actual_call)
-
-        def _expect_call(self, *args, **kwargs):
-            expected_call = Call(
-                self.__m_parent__.__m_fullname__, *args, **kwargs
-            )
-            return self.__m_session__.expect_call(expected_call)
 
     @_register_builtin_mock('__get__')
     class _GetDescriptorMock(BaseFunctionMock):

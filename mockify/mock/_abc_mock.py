@@ -16,7 +16,7 @@ from mockify import _utils
 from ._base import BaseMock
 from ._function import FunctionMock
 
-__all__ = export = _utils.ExportList()
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 @export

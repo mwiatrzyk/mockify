@@ -21,7 +21,7 @@ from mockify.abc import ISession
 from . import _config
 from ._expectation import Expectation
 
-__all__ = export = _utils.ExportList()
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 @export

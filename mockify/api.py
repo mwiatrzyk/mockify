@@ -10,6 +10,8 @@
 # ---------------------------------------------------------------------------
 
 # pylint: disable=unused-wildcard-import
+# pylint: disable=wildcard-import
+# pylint: disable=empty-docstring
 
 import itertools
 

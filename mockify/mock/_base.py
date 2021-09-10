@@ -11,11 +11,13 @@
 
 # pylint: disable=missing-module-docstring
 
+import typing
+
 from mockify import _utils
 from mockify.abc import IMock, ISession
 from mockify.core._session import Session
 
-__all__ = export = _utils.ExportList()
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 @export
@@ -100,7 +102,7 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
         return self.__session
 
     @property
-    def __m_parent__(self) -> IMock:
+    def __m_parent__(self) -> typing.Optional[IMock]:
         """See :meth:`mockify.abc.IMock.__m_parent__`."""
         if self.__parent is not None:
             return self.__parent()

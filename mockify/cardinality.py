@@ -17,7 +17,7 @@ from functools import total_ordering
 from mockify import _utils
 from mockify.abc import IExpectedCallCountMatcher
 
-__all__ = export = _utils.ExportList()
+__all__ = export = _utils.ExportList() # pylint: disable=invalid-all-format
 
 
 def _format_repr(obj, *args, **kwargs):
