@@ -23,8 +23,7 @@ Call = _utils.mark_import_deprecated(
     core.Call, 'mockify.Call', 'mockify.core.Call', '0.13'
 )
 Expectation = _utils.mark_import_deprecated(
-    core.Expectation, 'mockify.Expectation', 'mockify.core.Expectation',
-    '0.13'
+    core.Expectation, 'mockify.Expectation', 'mockify.core.Expectation', '0.13'
 )
 LocationInfo = _utils.mark_import_deprecated(
     core.LocationInfo, 'mockify.LocationInfo', 'mockify.core.LocationInfo',
@@ -44,8 +43,7 @@ patched = _utils.mark_import_deprecated(
     core.patched, 'mockify.patched', 'mockify.core.patched', '0.13'
 )
 satisfied = _utils.mark_import_deprecated(
-    core.satisfied, 'mockify.satisfied', 'mockify.core.satisfied',
-    '0.13'
+    core.satisfied, 'mockify.satisfied', 'mockify.core.satisfied', '0.13'
 )
 
 __author__ = 'Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>'
@@ -53,7 +51,7 @@ __released__ = 2019
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
-    __version__ = '0.12.0'  # Use 'inv tag' to update this
+    __version__ = '0.13.0'  # Use 'inv tag' to update this
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',
