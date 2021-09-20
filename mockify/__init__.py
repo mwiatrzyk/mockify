@@ -51,7 +51,7 @@ __released__ = 2019
 try:
     __version__ = get_distribution(__name__).version
 except DistributionNotFound:
-    __version__ = '0.13.0'  # Use 'inv tag' to update this
+    __version__ = '0.13.1'  # Use 'inv tag' to update this
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',

@@ -1,3 +1,11 @@
+0.13.1 (2021-09-20)
+-------------------
+
+**Fixed**
+
+  * Fixed issue #37 (dictionary changed size during iteration in
+    :class:`ABCMock` when used with no expectations set)
+
 0.13.0 (2021-09-10)
 -------------------
 
