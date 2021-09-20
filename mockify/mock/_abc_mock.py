@@ -14,7 +14,7 @@ import inspect
 from mockify import _utils
 
 from ._base import BaseMock
-from ._function import FunctionMock
+from ._function import BaseFunctionMock
 
 __all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
@@ -75,22 +75,10 @@ def ABCMock(name, abstract_base_class, **kwargs):
         __abstract_methods__ = {}
         __abstract_properties__ = set()
 
-        class _Proxy(BaseMock):  # pylint: disable=too-few-public-methods
-
-            def __init__(self, name, parent):
-                super().__init__(name=name, parent=parent)
-                self._mock = FunctionMock(name, parent=parent)
-
-            def __m_children__(self):
-                return iter([])
-
-            def __m_expectations__(self):
-                yield from self._mock.__m_expectations__()
-
-        class _GetAttrProxy(_Proxy):
+        class _GetAttrProxy(BaseFunctionMock):
 
             def __call__(self, name):
-                return self._mock(name)
+                return self.__m_call__(name)
 
             def expect_call(self, name):  # pylint: disable=missing-function-docstring
                 if name not in self.__m_parent__.__abstract_properties__:
@@ -98,12 +86,12 @@ def ABCMock(name, abstract_base_class, **kwargs):
                         "{self.__m_parent__.__class__.__name__!r} object has no attribute {name!r}"
                         .format(self=self, name=name)
                     )
-                return self._mock.expect_call(name)
+                return self.__m_expect_call__(name)
 
-        class _SetAttrProxy(_Proxy):
+        class _SetAttrProxy(BaseFunctionMock):
 
             def __call__(self, name, value):
-                return self._mock(name, value)
+                return self.__m_call__(name, value)
 
             def expect_call(self, name, value):
                 if name not in self.__m_parent__.__abstract_properties__:
@@ -111,21 +99,21 @@ def ABCMock(name, abstract_base_class, **kwargs):
                         "can't set attribute {name!r} (not defined in the interface)"
                         .format(name=name)
                     )
-                return self._mock.expect_call(name, value)
+                return self.__m_expect_call__(name, value)
 
-        class _MethodProxy(_Proxy):
+        class _MethodProxy(BaseFunctionMock):
 
-            def __init__(self, name, signature, parent):
-                super().__init__(name, parent)
+            def __init__(self, signature, name, parent):
+                super().__init__(name, parent=parent)
                 self.__signature = signature
 
             def __call__(self, *args, **kwargs):
                 self._validate_signature(*args, **kwargs)
-                return self._mock(*args, **kwargs)
+                return self.__m_call__(*args, **kwargs)
 
             def expect_call(self, *args, **kwargs):
                 self._validate_signature(*args, **kwargs)
-                return self._mock.expect_call(*args, **kwargs)
+                return self.__m_expect_call__(*args, **kwargs)
 
             def _validate_signature(self, *args, **kwargs):
                 expected_signature = self.__signature
@@ -144,13 +132,13 @@ def ABCMock(name, abstract_base_class, **kwargs):
             super().__init__(name, **kwargs)
             if self.__abstract_properties__:
                 self.__dict__['__getattr__'] = self._GetAttrProxy(
-                    '__getattr__', self
+                    '__getattr__', parent=self
                 )
                 self.__dict__['__setattr__'] = self._SetAttrProxy(
-                    '__setattr__', self
+                    '__setattr__', parent=self
                 )
             for key, signature in self.__abstract_methods__.items():
-                self.__dict__[key] = self._MethodProxy(key, signature, self)
+                self.__dict__[key] = self._MethodProxy(signature, key, self)
 
         def __setattr__(self, name, value):
             if name.startswith('_'):
@@ -173,8 +161,9 @@ def ABCMock(name, abstract_base_class, **kwargs):
             )
 
         def __m_children__(self):
-            for obj in self.__dict__.values():
-                if isinstance(obj, self._Proxy):
+            d = dict(self.__dict__)
+            for obj in d.values():
+                if isinstance(obj, BaseFunctionMock):
                     yield obj
 
         def __m_expectations__(self):
