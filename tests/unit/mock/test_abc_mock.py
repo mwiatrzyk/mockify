@@ -250,3 +250,8 @@ class TestABCMock:
         with pytest.raises(exc.Unsatisfied) as excinfo:
             assert_satisfied(self.uut)
         assert excinfo.value.unsatisfied_expectations == [one, two, three]
+
+    def test_checking_if_mock_with_no_expectations_is_satisfied_does_not_throw_exceptions(
+        self
+    ):
+        assert_satisfied(self.uut)
