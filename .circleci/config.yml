@@ -35,7 +35,15 @@ workflows:
           name: "test-py37"
           version: "3.7"
           toxenv: "py37"
-      - tag:
-          requires:
-            - test-py36
-            - test-py37
+      - test:
+          name: "test-py38"
+          version: "3.8"
+          toxenv: "py38"
+      - test:
+          name: "test-py39"
+          version: "3.9"
+          toxenv: "py39"
+      #- tag:
+      #    requires:
+      #      - test-py36
+      #      - test-py37
