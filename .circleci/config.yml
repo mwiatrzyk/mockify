@@ -11,7 +11,7 @@ jobs:
       - checkout
       - run: |
           pipenv --python <<parameters.version>> install --dev
-          inv tox -e <<parameters.version>>
+          pipenv run inv tox -e <<parameters.version>>
 
 workflows:
   test-workflow:
