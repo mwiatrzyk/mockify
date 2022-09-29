@@ -3,15 +3,15 @@ version: 2.1
 jobs:
   test:
     docker:
-      - image: cimg/python:<<parameters.version>>
+      - image: cimg/python
     parameters:
       version:
         type: string
     steps:
       - checkout
       - run: |
-          pipenv --python <<parameters.version>> install --dev
-          pipenv run inv tox -e <<parameters.version>>
+          pipenv install --dev
+          pipenv run inv tox -p
 
 workflows:
   test-workflow:
