@@ -9,11 +9,9 @@ jobs:
         type: string
     steps:
       - checkout
-      - run:
-          name: "Run tests for Python <<parameters.version>>"
-          command:
-            pipenv --python <<parameters.version>> install --dev
-            inv tox -e <<parameters.version>>
+      - run: |
+          pipenv --python <<parameters.version>> install --dev
+          inv tox -e <<parameters.version>>
 
 workflows:
   test-workflow:
