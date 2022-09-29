@@ -12,7 +12,9 @@ jobs:
       - checkout
       - run:
           name: "Install dependencies"
-          command: "pipenv install --dev"
+          command:
+            pyenv local <<parameters.version>>
+            pipenv install --skip-lock --dev
 
   test:
     docker:
