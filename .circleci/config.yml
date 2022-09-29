@@ -14,13 +14,28 @@ jobs:
       - run: |
           pipenv --python <<parameters.version>> install --skip-lock --dev
           pipenv run inv tox -e <<parameters.toxenv>>
+  
+  tag:
+    docker:
+      - image: cimg/python:3.9
+    steps:
+      - checkout
+      - run: |
+          git tag dummy
+          git push --tags
 
 workflows:
   test:
     jobs:
       - test:
+          name: "test-py36"
           version: "3.6"
           toxenv: "py36"
       - test:
+          name: "test-py37"
           version: "3.7"
           toxenv: "py37"
+      - tag:
+          requires:
+            - test-py36
+            - test-py37
