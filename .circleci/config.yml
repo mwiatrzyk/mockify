@@ -1,21 +1,6 @@
 version: 2.1
 
 jobs:
-
-  install:
-    docker:
-      - image: cimg/python:<<parameters.version>>
-    parameters:
-      version:
-        type: string
-    steps:
-      - checkout
-      - run:
-          name: "Install dependencies"
-          command:
-            pyenv local <<parameters.version>>
-            pipenv install --skip-lock --dev
-
   test:
     docker:
       - image: cimg/python:<<parameters.version>>
@@ -26,13 +11,12 @@ jobs:
       - checkout
       - run:
           name: "Run tests for Python <<parameters.version>>"
-          command: "inv test"
+          command:
+            pipenv --python <<parameters.version>> install --dev
+            inv tox -e <<parameters.version>>
 
 workflows:
-
   test-workflow:
     jobs:
-      - install:
-          version: "3.6"
       - test:
           version: "3.6"
