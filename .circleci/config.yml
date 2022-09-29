@@ -3,18 +3,24 @@ version: 2.1
 jobs:
   test:
     docker:
-      - image: cimg/python
+      - image: <<parameters.image>>
     parameters:
-      version:
+      image:
+        type: string
+      envname:
         type: string
     steps:
       - checkout
       - run: |
-          pipenv install --dev
-          pipenv run inv tox -p
+          pipenv install --skip-lock --dev
+          pipenv run inv tox -e <<parameters.envname>>
 
 workflows:
   test-workflow:
     jobs:
       - test:
-          version: "3.6"
+          image: "cimg/python:3.6"
+          envname: "py36"
+      - test:
+          image: "cimg/python:3.7"
+          envname: "py37"
