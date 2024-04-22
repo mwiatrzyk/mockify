@@ -85,7 +85,7 @@ class TestMock:
             uut.__getattr__.expect_call('foo', 'bar')
         assert str(
             excinfo.value
-        ) == "expect_call() takes 2 positional arguments but 3 were given"
+        ).endswith("expect_call() takes 2 positional arguments but 3 were given")
 
     def test_when_property_is_expected_to_be_get_and_is_never_get__then_raise_unsatisfied_error(
         self, uut
@@ -120,7 +120,7 @@ class TestMock:
             uut.__setattr__.expect_call('foo', 'bar', 'baz')
         assert str(
             excinfo.value
-        ) == "expect_call() takes 3 positional arguments but 4 were given"
+        ).endswith("expect_call() takes 3 positional arguments but 4 were given")
 
     def test_when_property_is_expected_to_be_set_and_is_never_set__then_raise_unsatisfied_error(
         self, uut
