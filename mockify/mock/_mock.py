@@ -24,7 +24,7 @@ __all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 def _register_builtin_mock(name):
 
     def decorator(cls):
-        if not hasattr(cls, '_m_method_names'):
+        if not hasattr(cls, "_m_method_names"):
             cls._m_method_names = set()  # pylint: disable=protected-access
         cls._m_method_names.add(name)  # pylint: disable=protected-access
         return cls
@@ -279,13 +279,13 @@ class Mock(FunctionMock):
     def _m_builtin_mocks(self):
         result = {}
         for mock in self.__class__.__dict__.values():
-            if hasattr(mock, '_m_method_names'):
+            if hasattr(mock, "_m_method_names"):
                 for n in mock._m_method_names:  # pylint: disable=protected-access
                     result[n] = mock
         return result
 
     def __getattribute__(self, name):
-        if name in ('_m_builtin_mocks', '__class__', '__dict__'):
+        if name in ("_m_builtin_mocks", "__class__", "__dict__"):
             return super().__getattribute__(name)
         method_mocks = self._m_builtin_mocks
         if name not in method_mocks:
@@ -300,7 +300,7 @@ class Mock(FunctionMock):
         d = self.__dict__
         if name in d:
             return d[name]
-        for alias in (aliases or []):
+        for alias in aliases or []:
             if alias in d:
                 return d[alias]
         super_method = getattr(super(), name, None)
@@ -309,217 +309,212 @@ class Mock(FunctionMock):
         return super_method
 
     def __eq__(self, other):
-        method = self._get_mock_or_super('__eq__', create_if_missing=False)
+        method = self._get_mock_or_super("__eq__", create_if_missing=False)
         if method is not None:
             return method(other)
         return False
 
     def __ne__(self, other):
-        method = self._get_mock_or_super('__ne__', create_if_missing=False)
+        method = self._get_mock_or_super("__ne__", create_if_missing=False)
         if method is not None:
             return method(other)
         return True
 
     def __lt__(self, other):
-        return self._get_mock_or_super('__lt__')(other)
+        return self._get_mock_or_super("__lt__")(other)
 
     def __gt__(self, other):
-        return self._get_mock_or_super('__gt__')(other)
+        return self._get_mock_or_super("__gt__")(other)
 
     def __le__(self, other):
-        return self._get_mock_or_super('__le__')(other)
+        return self._get_mock_or_super("__le__")(other)
 
     def __ge__(self, other):
-        return self._get_mock_or_super('__ge__')(other)
+        return self._get_mock_or_super("__ge__")(other)
 
     def __pos__(self):
-        return self._get_mock_or_super('__pos__')()
+        return self._get_mock_or_super("__pos__")()
 
     def __neg__(self):
-        return self._get_mock_or_super('__neg__')()
+        return self._get_mock_or_super("__neg__")()
 
     def __abs__(self):
-        return self._get_mock_or_super('__abs__')()
+        return self._get_mock_or_super("__abs__")()
 
     def __invert__(self):
-        return self._get_mock_or_super('__invert__')()
+        return self._get_mock_or_super("__invert__")()
 
     def __round__(self, ndigits=None):
-        return self._get_mock_or_super('__round__')(ndigits=ndigits)
+        return self._get_mock_or_super("__round__")(ndigits=ndigits)
 
     def __floor__(self):
-        return self._get_mock_or_super('__floor__')()
+        return self._get_mock_or_super("__floor__")()
 
     def __ceil__(self):
-        return self._get_mock_or_super('__ceil__')()
+        return self._get_mock_or_super("__ceil__")()
 
     def __trunc__(self):
-        return self._get_mock_or_super('__trunc__')()
+        return self._get_mock_or_super("__trunc__")()
 
     def __add__(self, other):
-        return self._get_mock_or_super('__add__')(other)
+        return self._get_mock_or_super("__add__")(other)
 
     def __sub__(self, other):
-        return self._get_mock_or_super('__sub__')(other)
+        return self._get_mock_or_super("__sub__")(other)
 
     def __mul__(self, other):
-        return self._get_mock_or_super('__mul__')(other)
+        return self._get_mock_or_super("__mul__")(other)
 
     def __floordiv__(self, other):
-        return self._get_mock_or_super('__floordiv__')(other)
+        return self._get_mock_or_super("__floordiv__")(other)
 
     def __truediv__(self, other):
-        return self._get_mock_or_super('__truediv__',
-                                       aliases=['__div__'])(other)
+        return self._get_mock_or_super("__truediv__", aliases=["__div__"])(other)
 
     def __mod__(self, other):
-        return self._get_mock_or_super('__mod__')(other)
+        return self._get_mock_or_super("__mod__")(other)
 
     def __divmod__(self, other):
-        return self._get_mock_or_super('__divmod__')(other)
+        return self._get_mock_or_super("__divmod__")(other)
 
     def __pow__(self, other):
-        return self._get_mock_or_super('__pow__')(other)
+        return self._get_mock_or_super("__pow__")(other)
 
     def __lshift__(self, other):
-        return self._get_mock_or_super('__lshift__')(other)
+        return self._get_mock_or_super("__lshift__")(other)
 
     def __rshift__(self, other):
-        return self._get_mock_or_super('__rshift__')(other)
+        return self._get_mock_or_super("__rshift__")(other)
 
     def __and__(self, other):
-        return self._get_mock_or_super('__and__')(other)
+        return self._get_mock_or_super("__and__")(other)
 
     def __or__(self, other):
-        return self._get_mock_or_super('__or__')(other)
+        return self._get_mock_or_super("__or__")(other)
 
     def __xor__(self, other):
-        return self._get_mock_or_super('__xor__')(other)
+        return self._get_mock_or_super("__xor__")(other)
 
     def __radd__(self, other):
-        return self._get_mock_or_super('__radd__')(other)
+        return self._get_mock_or_super("__radd__")(other)
 
     def __rsub__(self, other):
-        return self._get_mock_or_super('__rsub__')(other)
+        return self._get_mock_or_super("__rsub__")(other)
 
     def __rmul__(self, other):
-        return self._get_mock_or_super('__rmul__')(other)
+        return self._get_mock_or_super("__rmul__")(other)
 
     def __rfloordiv__(self, other):
-        return self._get_mock_or_super('__rfloordiv__')(other)
+        return self._get_mock_or_super("__rfloordiv__")(other)
 
     def __rtruediv__(self, other):
-        return self._get_mock_or_super('__rtruediv__',
-                                       aliases=['__rdiv__'])(other)
+        return self._get_mock_or_super("__rtruediv__", aliases=["__rdiv__"])(other)
 
     def __rmod__(self, other):
-        return self._get_mock_or_super('__rmod__')(other)
+        return self._get_mock_or_super("__rmod__")(other)
 
     def __rdivmod__(self, other):
-        return self._get_mock_or_super('__rdivmod__')(other)
+        return self._get_mock_or_super("__rdivmod__")(other)
 
     def __rpow__(self, other):
-        return self._get_mock_or_super('__rpow__')(other)
+        return self._get_mock_or_super("__rpow__")(other)
 
     def __rlshift__(self, other):
-        return self._get_mock_or_super('__rlshift__')(other)
+        return self._get_mock_or_super("__rlshift__")(other)
 
     def __rrshift__(self, other):
-        return self._get_mock_or_super('__rrshift__')(other)
+        return self._get_mock_or_super("__rrshift__")(other)
 
     def __rand__(self, other):
-        return self._get_mock_or_super('__rand__')(other)
+        return self._get_mock_or_super("__rand__")(other)
 
     def __ror__(self, other):
-        return self._get_mock_or_super('__ror__')(other)
+        return self._get_mock_or_super("__ror__")(other)
 
     def __rxor__(self, other):
-        return self._get_mock_or_super('__rxor__')(other)
+        return self._get_mock_or_super("__rxor__")(other)
 
     def __iadd__(self, other):
-        return self._get_mock_or_super('__iadd__')(other)
+        return self._get_mock_or_super("__iadd__")(other)
 
     def __isub__(self, other):
-        return self._get_mock_or_super('__isub__')(other)
+        return self._get_mock_or_super("__isub__")(other)
 
     def __imul__(self, other):
-        return self._get_mock_or_super('__imul__')(other)
+        return self._get_mock_or_super("__imul__")(other)
 
     def __ifloordiv__(self, other):
-        return self._get_mock_or_super('__ifloordiv__')(other)
+        return self._get_mock_or_super("__ifloordiv__")(other)
 
     def __itruediv__(self, other):
-        return self._get_mock_or_super('__itruediv__',
-                                       aliases=['__idiv__'])(other)
+        return self._get_mock_or_super("__itruediv__", aliases=["__idiv__"])(other)
 
     def __imod__(self, other):
-        return self._get_mock_or_super('__imod__')(other)
+        return self._get_mock_or_super("__imod__")(other)
 
     def __ipow__(self, other):
-        return self._get_mock_or_super('__ipow__')(other)
+        return self._get_mock_or_super("__ipow__")(other)
 
     def __ilshift__(self, other):
-        return self._get_mock_or_super('__ilshift__')(other)
+        return self._get_mock_or_super("__ilshift__")(other)
 
     def __irshift__(self, other):
-        return self._get_mock_or_super('__irshift__')(other)
+        return self._get_mock_or_super("__irshift__")(other)
 
     def __iand__(self, other):
-        return self._get_mock_or_super('__iand__')(other)
+        return self._get_mock_or_super("__iand__")(other)
 
     def __ior__(self, other):
-        return self._get_mock_or_super('__ior__')(other)
+        return self._get_mock_or_super("__ior__")(other)
 
     def __ixor__(self, other):
-        return self._get_mock_or_super('__ixor__')(other)
+        return self._get_mock_or_super("__ixor__")(other)
 
     def __int__(self):
-        return self._get_mock_or_super('__int__')()
+        return self._get_mock_or_super("__int__")()
 
     def __float__(self):
-        return self._get_mock_or_super('__float__')()
+        return self._get_mock_or_super("__float__")()
 
     def __complex__(self):
-        return self._get_mock_or_super('__complex__')()
+        return self._get_mock_or_super("__complex__")()
 
     def __bool__(self):
-        return self._get_mock_or_super('__bool__')()
+        return self._get_mock_or_super("__bool__")()
 
     def __index__(self):
-        return self._get_mock_or_super('__index__')()
+        return self._get_mock_or_super("__index__")()
 
     def __str__(self):
-        return self._get_mock_or_super('__str__')()
+        return self._get_mock_or_super("__str__")()
 
     def __repr__(self):
-        return self._get_mock_or_super('__repr__')()
+        return self._get_mock_or_super("__repr__")()
 
     def __format__(self, formatstr):
-        return self._get_mock_or_super('__format__')(formatstr)
+        return self._get_mock_or_super("__format__")(formatstr)
 
     def __hash__(self):
-        return self._get_mock_or_super('__hash__')()
+        return self._get_mock_or_super("__hash__")()
 
     def __dir__(self):
         d = self.__dict__
-        if '__dir__' in d:
-            return d['__dir__']()
+        if "__dir__" in d:
+            return d["__dir__"]()
 
         def is_built_in(k):
             # TODO: replace hardcoded list from below with something more reliable
-            return k.startswith('_BaseMock') or\
-                k.startswith('__m_') or\
-                k.startswith('_m_')
+            return k.startswith("_BaseMock") or k.startswith("__m_") or k.startswith("_m_")
 
         return [k for k in d if not is_built_in(k)]
 
     def __sizeof__(self):
-        return self._get_mock_or_super('__sizeof__')()
+        return self._get_mock_or_super("__sizeof__")()
 
     def __getattr__(self, name):
         d = self.__dict__
-        if '__getattr__' in d:
-            return d['__getattr__'](name)
+        if "__getattr__" in d:
+            return d["__getattr__"](name)
         d[name] = tmp = self.__make_leaf_node(name)
         return tmp
 
@@ -532,90 +527,90 @@ class Mock(FunctionMock):
         return Mock(name, max_depth=max_depth - 1, parent=self)
 
     def __setattr__(self, name, value):
-        return self._get_mock_or_super('__setattr__')(name, value)
+        return self._get_mock_or_super("__setattr__")(name, value)
 
     def __delattr__(self, name):
-        return self._get_mock_or_super('__delattr__')(name)
+        return self._get_mock_or_super("__delattr__")(name)
 
     def __len__(self):
-        method = self._get_mock_or_super('__len__', create_if_missing=False)
+        method = self._get_mock_or_super("__len__", create_if_missing=False)
         if method is None:
             return NotImplemented
         return method()
 
     def __getitem__(self, name):
         d = self.__dict__
-        if '__getitem__' in d:
-            return d['__getitem__'](name)
-        return d.get('__m_items', {})[name]
+        if "__getitem__" in d:
+            return d["__getitem__"](name)
+        return d.get("__m_items", {})[name]
 
     def __setitem__(self, name, value):
         d = self.__dict__
-        if '__setitem__' in d:
-            d['__setitem__'](name, value)
+        if "__setitem__" in d:
+            d["__setitem__"](name, value)
         else:
-            d.setdefault('__m_items', {})[name] = value
+            d.setdefault("__m_items", {})[name] = value
 
     def __delitem__(self, name):
         d = self.__dict__
-        if '__delitem__' in d:
-            d['__delitem__'](name)
+        if "__delitem__" in d:
+            d["__delitem__"](name)
         else:
-            del d.get('__m_items', {})[name]
+            del d.get("__m_items", {})[name]
 
     def __reversed__(self):
-        return self._get_mock_or_super('__reversed__')()
+        return self._get_mock_or_super("__reversed__")()
 
     def __contains__(self, key):
-        return self._get_mock_or_super('__contains__')(key)
+        return self._get_mock_or_super("__contains__")(key)
 
     def __iter__(self):
-        method = self._get_mock_or_super('__iter__', create_if_missing=False)
+        method = self._get_mock_or_super("__iter__", create_if_missing=False)
         if method is not None:
             return method()
         return NotImplemented
 
     def __next__(self):
-        return self._get_mock_or_super('__next__')()
+        return self._get_mock_or_super("__next__")()
 
     def __aiter__(self):
-        return self._get_mock_or_super('__aiter__')()
+        return self._get_mock_or_super("__aiter__")()
 
     async def __anext__(self):
-        return self._get_mock_or_super('__anext__')()
+        return self._get_mock_or_super("__anext__")()
 
     def __enter__(self):
-        method = self._get_mock_or_super('__enter__', create_if_missing=False)
+        method = self._get_mock_or_super("__enter__", create_if_missing=False)
         if method is not None:
             return method()
         return self
 
     async def __aenter__(self):
-        method = self._get_mock_or_super('__aenter__', create_if_missing=False)
+        method = self._get_mock_or_super("__aenter__", create_if_missing=False)
         if method is not None:
             return method()
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        method = self._get_mock_or_super('__exit__', create_if_missing=False)
+        method = self._get_mock_or_super("__exit__", create_if_missing=False)
         if method is None:
             return False
         return method(exc_type, exc, tb)
 
     async def __aexit__(self, exc_type, exc, tb):
-        method = self._get_mock_or_super('__aexit__', create_if_missing=False)
+        method = self._get_mock_or_super("__aexit__", create_if_missing=False)
         if method is None:
             return False
         return method(exc_type, exc, tb)
 
     def __get__(self, obj, obj_type):
-        return self._get_mock_or_super('__get__')(obj, obj_type)
+        return self._get_mock_or_super("__get__")(obj, obj_type)
 
     def __set__(self, obj, value):
-        return self._get_mock_or_super('__set__')(obj, value)
+        return self._get_mock_or_super("__set__")(obj, value)
 
     def __delete__(self, obj):
-        return self._get_mock_or_super('__delete__')(obj)
+        return self._get_mock_or_super("__delete__")(obj)
 
     def __m_children__(self):
         for item in self.__dict__.values():
@@ -624,11 +619,11 @@ class Mock(FunctionMock):
 
     def expect_call(self, *args, **kwargs):
         d = self.__dict__
-        if 'expect_call' in d:
-            return d['expect_call'](*args, **kwargs)
+        if "expect_call" in d:
+            return d["expect_call"](*args, **kwargs)
         return super().expect_call(*args, **kwargs)
 
-    @_register_builtin_mock('expect_call')
+    @_register_builtin_mock("expect_call")
     class _ExpectCallMock(BaseFunctionMock):
 
         def __call__(self, *args, **kwargs):
@@ -641,7 +636,7 @@ class Mock(FunctionMock):
         def expect_call(self, *args, **kwargs):
             return self.__m_expect_call__(*args, **kwargs)
 
-    @_register_builtin_mock('__get__')
+    @_register_builtin_mock("__get__")
     class _GetDescriptorMock(BaseFunctionMock):
 
         def __call__(self, obj, obj_type):
@@ -650,7 +645,7 @@ class Mock(FunctionMock):
         def expect_call(self, obj, obj_type):
             return self.__m_expect_call__(obj, obj_type)
 
-    @_register_builtin_mock('__set__')
+    @_register_builtin_mock("__set__")
     class _SetDescriptorMock(BaseFunctionMock):
 
         def __call__(self, obj, value):
@@ -659,7 +654,7 @@ class Mock(FunctionMock):
         def expect_call(self, obj, value):
             return self.__m_expect_call__(obj, value)
 
-    @_register_builtin_mock('__delete__')
+    @_register_builtin_mock("__delete__")
     class _DelDescriptorMock(BaseFunctionMock):
 
         def __call__(self, obj):
@@ -668,8 +663,8 @@ class Mock(FunctionMock):
         def expect_call(self, obj):
             return self.__m_expect_call__(obj)
 
-    @_register_builtin_mock('__getattr__')
-    @_register_builtin_mock('__delattr__')
+    @_register_builtin_mock("__getattr__")
+    @_register_builtin_mock("__delattr__")
     class _GetDelAttrMock(BaseFunctionMock):
 
         def __call__(self, name):
@@ -681,9 +676,9 @@ class Mock(FunctionMock):
                 del parent_dict[name]
             return self.__m_expect_call__(name)
 
-    @_register_builtin_mock('__getitem__')
-    @_register_builtin_mock('__delitem__')
-    @_register_builtin_mock('__contains__')
+    @_register_builtin_mock("__getitem__")
+    @_register_builtin_mock("__delitem__")
+    @_register_builtin_mock("__contains__")
     class _GetDelContainsItemMock(BaseFunctionMock):
 
         def __call__(self, key):
@@ -692,7 +687,7 @@ class Mock(FunctionMock):
         def expect_call(self, key):
             return self.__m_expect_call__(key)
 
-    @_register_builtin_mock('__setattr__')
+    @_register_builtin_mock("__setattr__")
     class _SetAttrMock(BaseFunctionMock):
 
         def __call__(self, name, value):
@@ -701,7 +696,7 @@ class Mock(FunctionMock):
         def expect_call(self, name, value):
             return self.__m_expect_call__(name, value)
 
-    @_register_builtin_mock('__setitem__')
+    @_register_builtin_mock("__setitem__")
     class _SetItemMock(BaseFunctionMock):
 
         def __call__(self, key, value):
@@ -710,24 +705,24 @@ class Mock(FunctionMock):
         def expect_call(self, key, value):
             return self.__m_expect_call__(key, value)
 
-    @_register_builtin_mock('__iter__')
-    @_register_builtin_mock('__next__')
-    @_register_builtin_mock('__aiter__')
-    @_register_builtin_mock('__anext__')
-    @_register_builtin_mock('__enter__')
-    @_register_builtin_mock('__aenter__')
-    @_register_builtin_mock('__str__')
-    @_register_builtin_mock('__repr__')
-    @_register_builtin_mock('__hash__')
-    @_register_builtin_mock('__sizeof__')
-    @_register_builtin_mock('__int__')
-    @_register_builtin_mock('__float__')
-    @_register_builtin_mock('__complex__')
-    @_register_builtin_mock('__bool__')
-    @_register_builtin_mock('__index__')
-    @_register_builtin_mock('__dir__')
-    @_register_builtin_mock('__len__')
-    @_register_builtin_mock('__reversed__')
+    @_register_builtin_mock("__iter__")
+    @_register_builtin_mock("__next__")
+    @_register_builtin_mock("__aiter__")
+    @_register_builtin_mock("__anext__")
+    @_register_builtin_mock("__enter__")
+    @_register_builtin_mock("__aenter__")
+    @_register_builtin_mock("__str__")
+    @_register_builtin_mock("__repr__")
+    @_register_builtin_mock("__hash__")
+    @_register_builtin_mock("__sizeof__")
+    @_register_builtin_mock("__int__")
+    @_register_builtin_mock("__float__")
+    @_register_builtin_mock("__complex__")
+    @_register_builtin_mock("__bool__")
+    @_register_builtin_mock("__index__")
+    @_register_builtin_mock("__dir__")
+    @_register_builtin_mock("__len__")
+    @_register_builtin_mock("__reversed__")
     class _NoArgMethodMock(BaseFunctionMock):
 
         def __call__(self):
@@ -736,53 +731,53 @@ class Mock(FunctionMock):
         def expect_call(self):
             return self.__m_expect_call__()
 
-    @_register_builtin_mock('__eq__')
-    @_register_builtin_mock('__ne__')
-    @_register_builtin_mock('__lt__')
-    @_register_builtin_mock('__gt__')
-    @_register_builtin_mock('__le__')
-    @_register_builtin_mock('__ge__')
-    @_register_builtin_mock('__add__')
-    @_register_builtin_mock('__sub__')
-    @_register_builtin_mock('__mul__')
-    @_register_builtin_mock('__floordiv__')
-    @_register_builtin_mock('__div__')
-    @_register_builtin_mock('__truediv__')
-    @_register_builtin_mock('__mod__')
-    @_register_builtin_mock('__divmod__')
-    @_register_builtin_mock('__pow__')
-    @_register_builtin_mock('__lshift__')
-    @_register_builtin_mock('__rshift__')
-    @_register_builtin_mock('__and__')
-    @_register_builtin_mock('__or__')
-    @_register_builtin_mock('__xor__')
-    @_register_builtin_mock('__radd__')
-    @_register_builtin_mock('__rsub__')
-    @_register_builtin_mock('__rmul__')
-    @_register_builtin_mock('__rfloordiv__')
-    @_register_builtin_mock('__rdiv__')
-    @_register_builtin_mock('__rtruediv__')
-    @_register_builtin_mock('__rmod__')
-    @_register_builtin_mock('__rdivmod__')
-    @_register_builtin_mock('__rpow__')
-    @_register_builtin_mock('__rlshift__')
-    @_register_builtin_mock('__rrshift__')
-    @_register_builtin_mock('__rand__')
-    @_register_builtin_mock('__ror__')
-    @_register_builtin_mock('__rxor__')
-    @_register_builtin_mock('__iadd__')
-    @_register_builtin_mock('__isub__')
-    @_register_builtin_mock('__imul__')
-    @_register_builtin_mock('__ifloordiv__')
-    @_register_builtin_mock('__idiv__')
-    @_register_builtin_mock('__itruediv__')
-    @_register_builtin_mock('__imod__')
-    @_register_builtin_mock('__ipow__')
-    @_register_builtin_mock('__ilshift__')
-    @_register_builtin_mock('__irshift__')
-    @_register_builtin_mock('__iand__')
-    @_register_builtin_mock('__ior__')
-    @_register_builtin_mock('__ixor__')
+    @_register_builtin_mock("__eq__")
+    @_register_builtin_mock("__ne__")
+    @_register_builtin_mock("__lt__")
+    @_register_builtin_mock("__gt__")
+    @_register_builtin_mock("__le__")
+    @_register_builtin_mock("__ge__")
+    @_register_builtin_mock("__add__")
+    @_register_builtin_mock("__sub__")
+    @_register_builtin_mock("__mul__")
+    @_register_builtin_mock("__floordiv__")
+    @_register_builtin_mock("__div__")
+    @_register_builtin_mock("__truediv__")
+    @_register_builtin_mock("__mod__")
+    @_register_builtin_mock("__divmod__")
+    @_register_builtin_mock("__pow__")
+    @_register_builtin_mock("__lshift__")
+    @_register_builtin_mock("__rshift__")
+    @_register_builtin_mock("__and__")
+    @_register_builtin_mock("__or__")
+    @_register_builtin_mock("__xor__")
+    @_register_builtin_mock("__radd__")
+    @_register_builtin_mock("__rsub__")
+    @_register_builtin_mock("__rmul__")
+    @_register_builtin_mock("__rfloordiv__")
+    @_register_builtin_mock("__rdiv__")
+    @_register_builtin_mock("__rtruediv__")
+    @_register_builtin_mock("__rmod__")
+    @_register_builtin_mock("__rdivmod__")
+    @_register_builtin_mock("__rpow__")
+    @_register_builtin_mock("__rlshift__")
+    @_register_builtin_mock("__rrshift__")
+    @_register_builtin_mock("__rand__")
+    @_register_builtin_mock("__ror__")
+    @_register_builtin_mock("__rxor__")
+    @_register_builtin_mock("__iadd__")
+    @_register_builtin_mock("__isub__")
+    @_register_builtin_mock("__imul__")
+    @_register_builtin_mock("__ifloordiv__")
+    @_register_builtin_mock("__idiv__")
+    @_register_builtin_mock("__itruediv__")
+    @_register_builtin_mock("__imod__")
+    @_register_builtin_mock("__ipow__")
+    @_register_builtin_mock("__ilshift__")
+    @_register_builtin_mock("__irshift__")
+    @_register_builtin_mock("__iand__")
+    @_register_builtin_mock("__ior__")
+    @_register_builtin_mock("__ixor__")
     class _BinaryOperatorMock(BaseFunctionMock):
 
         def __call__(self, other):
@@ -791,13 +786,13 @@ class Mock(FunctionMock):
         def expect_call(self, other):
             return self.__m_expect_call__(other)
 
-    @_register_builtin_mock('__pos__')
-    @_register_builtin_mock('__neg__')
-    @_register_builtin_mock('__abs__')
-    @_register_builtin_mock('__invert__')
-    @_register_builtin_mock('__floor__')
-    @_register_builtin_mock('__ceil__')
-    @_register_builtin_mock('__trunc__')
+    @_register_builtin_mock("__pos__")
+    @_register_builtin_mock("__neg__")
+    @_register_builtin_mock("__abs__")
+    @_register_builtin_mock("__invert__")
+    @_register_builtin_mock("__floor__")
+    @_register_builtin_mock("__ceil__")
+    @_register_builtin_mock("__trunc__")
     class _UnaryOperatorMock(BaseFunctionMock):
 
         def __call__(self):
@@ -806,7 +801,7 @@ class Mock(FunctionMock):
         def expect_call(self):
             return self.__m_expect_call__()
 
-    @_register_builtin_mock('__round__')
+    @_register_builtin_mock("__round__")
     class _RoundOperatorMock(BaseFunctionMock):
 
         def __call__(self, ndigits=None):
@@ -815,7 +810,7 @@ class Mock(FunctionMock):
         def expect_call(self, ndigits=None):
             return self.__m_expect_call__(ndigits=ndigits)
 
-    @_register_builtin_mock('__format__')
+    @_register_builtin_mock("__format__")
     class _FormatMock(BaseFunctionMock):
 
         def __call__(self, formatstr):
@@ -824,7 +819,7 @@ class Mock(FunctionMock):
         def expect_call(self, formatstr):
             return self.__m_expect_call__(formatstr)
 
-    @_register_builtin_mock('__call__')
+    @_register_builtin_mock("__call__")
     class _CallMock(BaseMock):
 
         def __m_children__(self):
@@ -841,8 +836,8 @@ class Mock(FunctionMock):
         def expect_call(self, *args, **kwargs):
             return self.__m_parent__.expect_call(*args, **kwargs)
 
-    @_register_builtin_mock('__exit__')
-    @_register_builtin_mock('__aexit__')
+    @_register_builtin_mock("__exit__")
+    @_register_builtin_mock("__aexit__")
     class _ContextExitMock(BaseFunctionMock):
 
         def __call__(self, exc_type, exc, tb):

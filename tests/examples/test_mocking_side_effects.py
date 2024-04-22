@@ -32,10 +32,10 @@ def write(payload, fd):
 
 
 def test_get_payload():
-    image = Mock('image')
-    image.save.expect_call(_).will_once(Invoke(write, b'image data'))
+    image = Mock("image")
+    image.save.expect_call(_).will_once(Invoke(write, b"image data"))
 
     uut = ImageAdapter(image)
 
     with satisfied(image):
-        assert uut.get_payload() == b'image data'
+        assert uut.get_payload() == b"image data"

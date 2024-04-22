@@ -74,10 +74,7 @@ class BaseFunctionMock(BaseMock):
     def __m_expectations__(self):
         """See :meth:`mockify.abc.IMock.__m_expectations__`"""
         fullname = self.__m_fullname__
-        return filter(
-            lambda x: x.expected_call.name == fullname,
-            self.__m_session__.expectations()
-        )
+        return filter(lambda x: x.expected_call.name == fullname, self.__m_session__.expectations())
 
     def __m_call__(self, *args, **kwargs):
         """A helper to implement ``__call__`` method in a subclass."""
@@ -85,9 +82,7 @@ class BaseFunctionMock(BaseMock):
 
     def __m_expect_call__(self, *args, **kwargs) -> IExpectation:
         """A helper to implement ``expect_call`` method in a subclass."""
-        return self.__m_session__.expect_call(
-            Call(self.__m_fullname__, *args, **kwargs)
-        )
+        return self.__m_session__.expect_call(Call(self.__m_fullname__, *args, **kwargs))
 
 
 @export

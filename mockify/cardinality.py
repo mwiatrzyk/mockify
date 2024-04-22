@@ -22,9 +22,7 @@ __all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 def _format_repr(obj, *args, **kwargs):
     formatted_args_kwargs = _utils.ArgsKwargsFormatter().format(*args, **kwargs)
-    return "<{}.{}({})>".format(
-        obj.__module__, obj.__class__.__name__, formatted_args_kwargs
-    )
+    return "<{}.{}({})>".format(obj.__module__, obj.__class__.__name__, formatted_args_kwargs)
 
 
 @export
@@ -54,7 +52,7 @@ class ActualCallCount:
 
     def __str__(self):
         if self._value == 0:
-            return 'never called'
+            return "never called"
         return "called {}".format(_utils.format_call_count(self._value))
 
     def __eq__(self, other):
@@ -139,7 +137,7 @@ class Exactly(ExpectedCallCount):
 
     def __str__(self):
         if self.expected == 0:
-            return 'to be never called'
+            return "to be never called"
         return "to be called {}".format(_utils.format_call_count(self.expected))
 
     def match(self, actual_call_count):
@@ -168,9 +166,7 @@ class AtLeast(ExpectedCallCount):
     def __str__(self):
         if self.minimal == 0:
             return "to be called any number of times"
-        return "to be called at least {}".format(
-            _utils.format_call_count(self.minimal)
-        )
+        return "to be called at least {}".format(_utils.format_call_count(self.minimal))
 
     def match(self, actual_call_count):
         return actual_call_count >= self.minimal
@@ -201,9 +197,7 @@ class AtMost(ExpectedCallCount):
         return _format_repr(self, self.maximal)
 
     def __str__(self):
-        return "to be called at most {}".format(
-            _utils.format_call_count(self.maximal)
-        )
+        return "to be called at most {}".format(_utils.format_call_count(self.maximal))
 
     def match(self, actual_call_count):
         return actual_call_count <= self.maximal
@@ -223,9 +217,7 @@ class Between(ExpectedCallCount):
 
     def __new__(cls, minimal, maximal):
         if minimal > maximal:
-            raise TypeError(
-                "value of 'minimal' must not be greater than 'maximal'"
-            )
+            raise TypeError("value of 'minimal' must not be greater than 'maximal'")
         if minimal < 0:
             raise TypeError("value of 'minimal' must be >= 0")
         if minimal == maximal:
@@ -242,9 +234,7 @@ class Between(ExpectedCallCount):
         return _format_repr(self, self.minimal, self.maximal)
 
     def __str__(self):
-        return "to be called from {} to {} times".format(
-            self.minimal, self.maximal
-        )
+        return "to be called from {} to {} times".format(self.minimal, self.maximal)
 
     def match(self, actual_call_count):
         return self.minimal <= actual_call_count <= self.maximal

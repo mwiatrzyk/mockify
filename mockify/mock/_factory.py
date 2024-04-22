@@ -72,9 +72,7 @@ class MockFactory(BaseMock):
             yield from mock.__m_expectations__()
 
     def __repr__(self):
-        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(
-            self=self
-        )
+        return "<{self.__module__}.{self.__class__.__name__}({self.__m_fullname__!r})>".format(self=self)
 
     def mock(self, name):
         """Create and return mock of given *name*.
@@ -98,11 +96,7 @@ class MockFactory(BaseMock):
         :rtype: MockFactory
         """
         self._raise_if_name_is_in_use(name)
-        self._factories[name] = tmp =\
-            self.__class__(
-                name=name,
-                mock_class=self._mock_class,
-                parent=self)
+        self._factories[name] = tmp = self.__class__(name=name, mock_class=self._mock_class, parent=self)
         return tmp
 
     def _raise_if_name_is_in_use(self, name):

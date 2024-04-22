@@ -16,7 +16,7 @@ from . import _utils
 
 __all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
-logger = logging.getLogger('mockify')
+logger = logging.getLogger("mockify")
 
 
 @export
@@ -111,14 +111,14 @@ class UnexpectedCall(MockifyAssertion):
     @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
         builder = _utils.ErrorMessageBuilder()
-        builder.append_line('No matching expectations found for call:')
-        builder.append_line('')
+        builder.append_line("No matching expectations found for call:")
+        builder.append_line("")
         builder.append_location(self._actual_call.location)
-        builder.append_line('Called:')
-        builder.append_line('  {}', self._actual_call)
-        builder.append_line('Expected (any of):')
+        builder.append_line("Called:")
+        builder.append_line("  {}", self._actual_call)
+        builder.append_line("Expected (any of):")
         for call in self._expected_calls:
-            builder.append_line('  {}', call)
+            builder.append_line("  {}", call)
         return builder.build()
 
     @property
@@ -160,13 +160,13 @@ class UnexpectedCallOrder(MockifyAssertion):
     @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
         builder = _utils.ErrorMessageBuilder()
-        builder.append_line('Another mock is expected to be called:')
-        builder.append_line('')
+        builder.append_line("Another mock is expected to be called:")
+        builder.append_line("")
         builder.append_location(self._actual_call.location)
-        builder.append_line('Called:')
-        builder.append_line('  {}', self._actual_call)
-        builder.append_line('Expected:')
-        builder.append_line('  {}', self._expected_call)
+        builder.append_line("Called:")
+        builder.append_line("  {}", self._actual_call)
+        builder.append_line("Expected:")
+        builder.append_line("  {}", self._expected_call)
         return builder.build()
 
     @property
@@ -199,11 +199,11 @@ class UninterestedCall(MockifyAssertion):
     @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
         builder = _utils.ErrorMessageBuilder()
-        builder.append_line('No expectations recorded for mock:')
-        builder.append_line('')
+        builder.append_line("No expectations recorded for mock:")
+        builder.append_line("")
         builder.append_location(self._actual_call.location)
-        builder.append_line('Called:')
-        builder.append_line('  {}', self._actual_call)
+        builder.append_line("Called:")
+        builder.append_line("  {}", self._actual_call)
         return builder.build()
 
     @property
@@ -240,23 +240,16 @@ class OversaturatedCall(MockifyAssertion):
     @_utils.log_unhandled_exceptions(logger)
     def __str__(self):
         builder = _utils.ErrorMessageBuilder()
-        builder.append_line('Following expectation was oversaturated:')
-        builder.append_line('')
-        builder.append_location(
-            self._oversaturated_expectation.expected_call.location
-        )
-        builder.append_line('Pattern:')
+        builder.append_line("Following expectation was oversaturated:")
+        builder.append_line("")
+        builder.append_location(self._oversaturated_expectation.expected_call.location)
+        builder.append_line("Pattern:")
+        builder.append_line("  {}", self._oversaturated_expectation.expected_call)
+        builder.append_line("Expected:")
+        builder.append_line("  {}", self._oversaturated_expectation.expected_call_count)
+        builder.append_line("Actual:")
         builder.append_line(
-            '  {}', self._oversaturated_expectation.expected_call
-        )
-        builder.append_line('Expected:')
-        builder.append_line(
-            '  {}', self._oversaturated_expectation.expected_call_count
-        )
-        builder.append_line('Actual:')
-        builder.append_line(
-            '  oversaturated by {} at {} (no more actions)', self._actual_call,
-            self._actual_call.location
+            "  oversaturated by {} at {} (no more actions)", self._actual_call, self._actual_call.location
         )
         return builder.build()
 
@@ -298,33 +291,28 @@ class Unsatisfied(MockifyAssertion):
 
     def __append_title(self, builder):
         if len(self._unsatisfied_expectations) > 1:
-            builder.append_line(
-                'Following {} expectations are not satisfied:',
-                len(self._unsatisfied_expectations)
-            )
+            builder.append_line("Following {} expectations are not satisfied:", len(self._unsatisfied_expectations))
         else:
-            builder.append_line('Following expectation is not satisfied:')
+            builder.append_line("Following expectation is not satisfied:")
 
     @classmethod
     def __append_expectation(cls, builder, expectation):
-        builder.append_line('')
+        builder.append_line("")
         builder.append_location(expectation.expected_call.location)
-        builder.append_line('Pattern:')
-        builder.append_line('  {}', expectation.expected_call)
+        builder.append_line("Pattern:")
+        builder.append_line("  {}", expectation.expected_call)
         cls.__append_action(builder, expectation)
-        builder.append_line('Expected:')
-        builder.append_line('  {}', expectation.expected_call_count)
-        builder.append_line('Actual:')
-        builder.append_line('  {}', expectation.actual_call_count)
+        builder.append_line("Expected:")
+        builder.append_line("  {}", expectation.expected_call_count)
+        builder.append_line("Actual:")
+        builder.append_line("  {}", expectation.actual_call_count)
 
     @staticmethod
     def __append_action(builder, expectation):
-        action = str(
-            expectation.action
-        ) if expectation.action is not None else None
+        action = str(expectation.action) if expectation.action is not None else None
         if action is not None:
-            builder.append_line('Action:')
-            builder.append_line('  {}', action)
+            builder.append_line("Action:")
+            builder.append_line("  {}", action)
 
     @property
     def unsatisfied_expectations(self):

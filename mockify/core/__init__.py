@@ -19,11 +19,17 @@ from ._functions import assert_satisfied, ordered, patched, satisfied
 from ._inspect import MockInfo
 from ._session import Session
 
-BaseMock = _utils.mark_import_deprecated(
-    _base.BaseMock, 'mockify.core.BaseMock', 'mockify.mock.BaseMock', '0.13'
-)
+BaseMock = _utils.mark_import_deprecated(_base.BaseMock, "mockify.core.BaseMock", "mockify.mock.BaseMock", "0.13")
 
 __all__ = [
-    'MockInfo', 'BaseMock', 'Call', 'LocationInfo', 'Expectation', 'Session',
-    'assert_satisfied', 'satisfied', 'ordered', 'patched'
+    "MockInfo",
+    "BaseMock",
+    "Call",
+    "LocationInfo",
+    "Expectation",
+    "Session",
+    "assert_satisfied",
+    "satisfied",
+    "ordered",
+    "patched",
 ]

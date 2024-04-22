@@ -17,7 +17,7 @@ class TestMockInfo:
 
     @pytest.fixture
     def target(self):
-        return Mock('target')
+        return Mock("target")
 
     @pytest.fixture
     def uut(self, target):
@@ -26,40 +26,29 @@ class TestMockInfo:
     def test_when_created_with_invalid_argument_then_raise_type_error(self):
         with pytest.raises(TypeError) as excinfo:
             MockInfo(123)
-        assert str(
-            excinfo.value
-        ) == "__init__() got an invalid value for argument 'target'"
+        assert str(excinfo.value) == "__init__() got an invalid value for argument 'target'"
 
-    def test_calling_mock_property_issues_deprecation_warning_and_returns_target_mock(
-        self, uut, target
-    ):
+    def test_calling_mock_property_issues_deprecation_warning_and_returns_target_mock(self, uut, target):
         with pytest.warns(DeprecationWarning) as rec:
             assert uut.mock is target
         assert len(rec) == 1
-        first, = rec
-        assert str(first.message) ==\
-            "'mockify.core.MockInfo.mock' is deprecated since version 0.8 "\
+        (first,) = rec
+        assert (
+            str(first.message) == "'mockify.core.MockInfo.mock' is deprecated since version 0.8 "
             "and will be removed in next major release - please use 'mockify.core.MockInfo.target' instead."
+        )
         assert first.filename == __file__
 
     def test_calling_target_returns_target_mock(self, uut, target):
         assert uut.target is target
 
-    def test_calling_repr_returns_target_representation_wrapped_with_mock_info(
-        self, uut, target
-    ):
-        assert repr(
-            uut
-        ) == "<mockify.core.MockInfo(target=<mockify.mock.Mock('target')>)>"
+    def test_calling_repr_returns_target_representation_wrapped_with_mock_info(self, uut, target):
+        assert repr(uut) == "<mockify.core.MockInfo(target=<mockify.mock.Mock('target')>)>"
 
-    def test_if_inspected_mock_has_no_parent_then_return_none_from_parent(
-        self, uut
-    ):
+    def test_if_inspected_mock_has_no_parent_then_return_none_from_parent(self, uut):
         assert uut.parent is None
 
-    def test_if_inspected_mock_has_parent_then_return_its_parent_wrapped_with_another_mock_info_object(
-        self, target
-    ):
+    def test_if_inspected_mock_has_parent_then_return_its_parent_wrapped_with_another_mock_info_object(self, target):
         target.foo.expect_call()
         parent = MockInfo(target.foo).parent
         assert isinstance(parent, MockInfo)
@@ -74,17 +63,13 @@ class TestMockInfo:
     def test_mock_info_session_return_target_session(self, uut, target):
         assert uut.session is target.__m_session__
 
-    def test_expectations_method_is_calling_expectations_method_on_target_mock(
-        self, uut, target
-    ):
+    def test_expectations_method_is_calling_expectations_method_on_target_mock(self, uut, target):
         first = target.expect_call()
         second = target.expect_call()
         third = target.expect_call()
         assert list(uut.expectations()) == [first, second, third]
 
-    def test_children_method_is_calling_children_method_on_target_mock(
-        self, uut, target
-    ):
+    def test_children_method_is_calling_children_method_on_target_mock(self, uut, target):
         target.foo.expect_call()
         target.bar.expect_call()
         children = list(uut.children())
@@ -95,9 +80,7 @@ class TestMockInfo:
         assert first.target is target.foo
         assert second.target is target.bar
 
-    def test_walk_method_is_calling_walk_method_on_target_mock(
-        self, uut, target
-    ):
+    def test_walk_method_is_calling_walk_method_on_target_mock(self, uut, target):
         target.foo
         target.bar.baz
         children = list(uut.walk())

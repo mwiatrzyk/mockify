@@ -35,8 +35,7 @@ _submodules = [_core, _mock, _abc, _actions, _cardinality, _exc, _matchers]
 
 __all__ = _utils.ExportList.merge_unique(*(x.__all__ for x in _submodules))
 
-__doc__ =\
-"""A proxy module providing access to all publicly available classes and
+__doc__ = """A proxy module providing access to all publicly available classes and
 functions.
 
 This module automatically imports public names from all other Mockify's
@@ -64,4 +63,6 @@ Currently available classes and functions are:
 {}
 
 .. versionadded:: 0.13
-""".format('\n'.join(itertools.chain(*(_utils.render_public_members_docstring(x) for x in _submodules))))
+""".format(
+    "\n".join(itertools.chain(*(_utils.render_public_members_docstring(x) for x in _submodules)))
+)

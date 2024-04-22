@@ -21,7 +21,7 @@ import re
 
 from mockify import _utils
 
-__all__ = export = _utils.ExportList(['_'])  # pylint: disable=invalid-all-format
+__all__ = export = _utils.ExportList(["_"])  # pylint: disable=invalid-all-format
 
 
 def _format_repr(obj, *args, **kwargs):
@@ -29,9 +29,9 @@ def _format_repr(obj, *args, **kwargs):
     def skip_kwarg_func(value):
         return value is None
 
-    formatted_args_kwargs = _utils.\
-        ArgsKwargsFormatter(sort=False, skip_kwarg_if=skip_kwarg_func).\
-        format(*args, **kwargs)
+    formatted_args_kwargs = _utils.ArgsKwargsFormatter(sort=False, skip_kwarg_if=skip_kwarg_func).format(
+        *args, **kwargs
+    )
     return "{}({})".format(obj.__class__.__name__, formatted_args_kwargs)
 
 
@@ -83,7 +83,7 @@ class AnyOf(Matcher):
         return False
 
     def __repr__(self):
-        return ' | '.join(repr(x) for x in self._values)
+        return " | ".join(repr(x) for x in self._values)
 
 
 @export
@@ -106,7 +106,7 @@ class AllOf(Matcher):
         return True
 
     def __repr__(self):
-        return ' & '.join(repr(x) for x in self._values)
+        return " & ".join(repr(x) for x in self._values)
 
 
 @export
@@ -132,7 +132,7 @@ class Any(Matcher):
         return True
 
     def __repr__(self):
-        return '_'
+        return "_"
 
 
 _ = Any()
@@ -150,9 +150,7 @@ class Type(Matcher):
 
     def __init__(self, *types):
         if not types:
-            raise TypeError(
-                "__init__() requires at least 1 positional argument, got 0"
-            )
+            raise TypeError("__init__() requires at least 1 positional argument, got 0")
         self.__validate_types(types)
         self._types = types
 
@@ -160,18 +158,13 @@ class Type(Matcher):
     def __validate_types(types):
         for type_ in types:
             if not isinstance(type_, type):
-                raise TypeError(
-                    "__init__() requires type instances, got {!r}".
-                    format(type_)
-                )
+                raise TypeError("__init__() requires type instances, got {!r}".format(type_))
 
     def __eq__(self, other):
         return isinstance(other, *self._types)
 
     def __repr__(self):
-        return "{}({})".format(
-            self.__class__.__name__, ', '.join(x.__name__ for x in self._types)
-        )
+        return "{}({})".format(self.__class__.__name__, ", ".join(x.__name__ for x in self._types))
 
 
 @export
@@ -203,14 +196,11 @@ class Regex(Matcher):
         self._name = name
 
     def __eq__(self, other):
-        return isinstance(other, str) and\
-            self._pattern.match(other) is not None
+        return isinstance(other, str) and self._pattern.match(other) is not None
 
     def __repr__(self):
         if self._name is None:
-            return "{}({!r})".format(
-                self.__class__.__name__, self._pattern.pattern
-            )
+            return "{}({!r})".format(self.__class__.__name__, self._pattern.pattern)
         return "{}({})".format(self.__class__.__name__, self._name)
 
 
@@ -251,12 +241,7 @@ class List(Matcher):
         return True
 
     def __repr__(self):
-        return _format_repr(
-            self,
-            self._matcher,
-            min_length=self._min_length,
-            max_length=self._max_length
-        )
+        return _format_repr(self, self._matcher, min_length=self._min_length, max_length=self._max_length)
 
 
 @export
@@ -291,13 +276,12 @@ class Object(Matcher):
     :param ``**kwargs``:
         Arguments to compare value with
     """
+
     _undefined = object()
 
     def __init__(self, **kwargs):
         if not kwargs:
-            raise TypeError(
-                "__init__ must be called with at least 1 named argument"
-            )
+            raise TypeError("__init__ must be called with at least 1 named argument")
         self._kwargs = kwargs
 
     def __eq__(self, other):

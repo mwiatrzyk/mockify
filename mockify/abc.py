@@ -33,12 +33,10 @@ class ICallLocation(abc.ABC):
     * and :attr:`lineno` in both objects is the same
     """
 
-    def __eq__(self, other: 'ICallLocation') -> bool:
-        return isinstance(other, ICallLocation) and\
-            self.filename == other.filename and\
-            self.lineno == other.lineno
+    def __eq__(self, other: "ICallLocation") -> bool:
+        return isinstance(other, ICallLocation) and self.filename == other.filename and self.lineno == other.lineno
 
-    def __ne__(self, other: 'ICallLocation') -> bool:
+    def __ne__(self, other: "ICallLocation") -> bool:
         return not self.__eq__(other)
 
     @property
@@ -71,13 +69,15 @@ class ICall(abc.ABC):
     not.
     """
 
-    def __eq__(self, other: 'ICall') -> bool:
-        return isinstance(other, ICall) and\
-            self.name == other.name and\
-            self.args == other.args and\
-            self.kwargs == other.kwargs
+    def __eq__(self, other: "ICall") -> bool:
+        return (
+            isinstance(other, ICall)
+            and self.name == other.name
+            and self.args == other.args
+            and self.kwargs == other.kwargs
+        )
 
-    def __ne__(self, other: 'ICall') -> bool:
+    def __ne__(self, other: "ICall") -> bool:
         return not self.__eq__(other)
 
     @property
@@ -168,9 +168,7 @@ class IExpectation(abc.ABC):
         methods."""
 
         @abc.abstractmethod
-        def will_once(
-            self, action: IAction
-        ) -> 'IExpectation.IWillOnceMutation':
+        def will_once(self, action: IAction) -> "IExpectation.IWillOnceMutation":
             """Attach next action to the end of action chain of current
             expectation object.
 
@@ -178,9 +176,7 @@ class IExpectation(abc.ABC):
             """
 
         @abc.abstractmethod
-        def will_repeatedly(
-            self, action: IAction
-        ) -> 'IExpectation.IWillRepeatedlyMutation':
+        def will_repeatedly(self, action: IAction) -> "IExpectation.IWillRepeatedlyMutation":
             """Finalize action chain with a repeated action.
 
             See :meth:`IExpectation.will_repeatedly` for more details.
@@ -335,7 +331,7 @@ class IMock(abc.ABC):
             return self.__m_name__
         return "{}.{}".format(parent.__m_fullname__, self.__m_name__)
 
-    def __m_walk__(self) -> typing.Iterator['IMock']:
+    def __m_walk__(self) -> typing.Iterator["IMock"]:
         """Recursively iterate over mock subtree, from root to leafs, using
         *self* as a root.
 
@@ -390,7 +386,7 @@ class IMock(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def __m_parent__(self) -> typing.Optional['IMock']:
+    def __m_parent__(self) -> typing.Optional["IMock"]:
         """A reference to :class:`IMock` object that is a parent of this mock.
 
         If mock has no parent (i.e. if it's a root mock), then this should
@@ -406,7 +402,7 @@ class IMock(abc.ABC):
         """
 
     @abc.abstractmethod
-    def __m_children__(self) -> typing.Iterator['IMock']:
+    def __m_children__(self) -> typing.Iterator["IMock"]:
         """An iterator over :class:`IMock` objects representing direct
         children of this mock.
 
