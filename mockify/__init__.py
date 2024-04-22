@@ -15,8 +15,6 @@
     Mockify's root module will stop working since next major release.
 """
 
-from pkg_resources import DistributionNotFound, get_distribution
-
 from . import _utils, core
 
 Call = _utils.mark_import_deprecated(
@@ -48,10 +46,7 @@ satisfied = _utils.mark_import_deprecated(
 
 __author__ = 'Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>'
 __released__ = 2019
-try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-    __version__ = '0.13.1'  # Use 'inv tag' to update this
+__version__ = '0.13.1'
 
 __all__ = [
     'Call', 'LocationInfo', 'Session', 'Expectation', 'assert_satisfied',
