@@ -65,11 +65,8 @@ def ABCMock(name, abstract_base_class, **kwargs):
 
     .. versionadded:: 0.8
     """
-    if not isinstance(abstract_base_class, type) or\
-        not issubclass(abstract_base_class, abc.ABC):
-        raise TypeError(
-            "__init__() got an invalid value for argument 'abstract_base_class'"
-        )
+    if not isinstance(abstract_base_class, type) or not issubclass(abstract_base_class, abc.ABC):
+        raise TypeError("__init__() got an invalid value for argument 'abstract_base_class'")
 
     class InnerMock(BaseMock):  # pylint: disable=missing-class-docstring
         __abstract_methods__ = {}
@@ -83,8 +80,9 @@ def ABCMock(name, abstract_base_class, **kwargs):
             def expect_call(self, name):  # pylint: disable=missing-function-docstring
                 if name not in self.__m_parent__.__abstract_properties__:
                     raise AttributeError(
-                        "{self.__m_parent__.__class__.__name__!r} object has no attribute {name!r}"
-                        .format(self=self, name=name)
+                        "{self.__m_parent__.__class__.__name__!r} object has no attribute {name!r}".format(
+                            self=self, name=name
+                        )
                     )
                 return self.__m_expect_call__(name)
 
@@ -96,8 +94,7 @@ def ABCMock(name, abstract_base_class, **kwargs):
             def expect_call(self, name, value):
                 if name not in self.__m_parent__.__abstract_properties__:
                     raise AttributeError(
-                        "can't set attribute {name!r} (not defined in the interface)"
-                        .format(name=name)
+                        "can't set attribute {name!r} (not defined in the interface)".format(name=name)
                     )
                 return self.__m_expect_call__(name, value)
 
@@ -117,48 +114,38 @@ def ABCMock(name, abstract_base_class, **kwargs):
 
             def _validate_signature(self, *args, **kwargs):
                 expected_signature = self.__signature
-                expected_signature_str = str(expected_signature).\
-                    replace('self, ', '').\
-                    replace('self', '')  # Drop self from error print
+                expected_signature_str = (
+                    str(expected_signature).replace("self, ", "").replace("self", "")
+                )  # Drop self from error print
                 try:
                     expected_signature.bind(self, *args, **kwargs)
                 except TypeError as err:
                     raise TypeError(
-                        "{self.__m_parent__.__m_name__}.{self.__m_name__}{sig}: {err}"
-                        .format(sig=expected_signature_str, err=err, self=self)
+                        "{self.__m_parent__.__m_name__}.{self.__m_name__}{sig}: {err}".format(
+                            sig=expected_signature_str, err=err, self=self
+                        )
                     ) from None
 
         def __init__(self, name, **kwargs):
             super().__init__(name, **kwargs)
             if self.__abstract_properties__:
-                self.__dict__['__getattr__'] = self._GetAttrProxy(
-                    '__getattr__', parent=self
-                )
-                self.__dict__['__setattr__'] = self._SetAttrProxy(
-                    '__setattr__', parent=self
-                )
+                self.__dict__["__getattr__"] = self._GetAttrProxy("__getattr__", parent=self)
+                self.__dict__["__setattr__"] = self._SetAttrProxy("__setattr__", parent=self)
             for key, signature in self.__abstract_methods__.items():
                 self.__dict__[key] = self._MethodProxy(signature, key, self)
 
         def __setattr__(self, name, value):
-            if name.startswith('_'):
+            if name.startswith("_"):
                 super().__setattr__(name, value)
             elif name in self.__abstract_properties__:
-                self.__dict__['__setattr__'](name, value)
+                self.__dict__["__setattr__"](name, value)
             else:
-                raise AttributeError(
-                    "can't set attribute {!r} (not defined in the interface)".
-                    format(name)
-                )
+                raise AttributeError("can't set attribute {!r} (not defined in the interface)".format(name))
 
         def __getattr__(self, name):
             if name in self.__abstract_properties__:
-                return self.__dict__['__getattr__'](name)
-            raise AttributeError(
-                "{!r} object has no attribute {!r}".format(
-                    self.__class__.__name__, name
-                )
-            )
+                return self.__dict__["__getattr__"](name)
+            raise AttributeError("{!r} object has no attribute {!r}".format(self.__class__.__name__, name))
 
         def __m_children__(self):
             d = dict(self.__dict__)
@@ -175,8 +162,6 @@ def ABCMock(name, abstract_base_class, **kwargs):
         if isinstance(method, property):
             InnerMock.__abstract_properties__.add(method_name)
         else:
-            InnerMock.__abstract_methods__[method_name] = inspect.signature(
-                method
-            )
+            InnerMock.__abstract_methods__[method_name] = inspect.signature(method)
     InnerMock.__name__ = ABCMock.__name__
     return InnerMock(name, **kwargs)

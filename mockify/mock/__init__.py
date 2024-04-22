@@ -21,7 +21,4 @@ from ._factory import MockFactory
 from ._function import BaseFunctionMock, FunctionMock
 from ._mock import Mock
 
-__all__ = [
-    'BaseMock', 'ABCMock', 'MockFactory', 'BaseFunctionMock', 'FunctionMock',
-    'Mock'
-]
+__all__ = ["BaseMock", "ABCMock", "MockFactory", "BaseFunctionMock", "FunctionMock", "Mock"]

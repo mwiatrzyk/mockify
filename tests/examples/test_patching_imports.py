@@ -24,15 +24,12 @@ def list_files(path):
 
 
 def test_list_files():
-    os_mock = Mock('os')
+    os_mock = Mock("os")
 
-    os_mock.listdir.expect_call('/tmp').\
-        will_once(Iterate(['spam', 'foo.txt', 'bar.txt']))
-    os_mock.path.isfile.expect_call('/tmp/spam').\
-        will_once(Return(False))
-    os_mock.path.isfile.expect_call(Regex(r'^/tmp/(.+)\.txt$')).\
-        will_repeatedly(Return(True)).times(2)
+    os_mock.listdir.expect_call("/tmp").will_once(Iterate(["spam", "foo.txt", "bar.txt"]))
+    os_mock.path.isfile.expect_call("/tmp/spam").will_once(Return(False))
+    os_mock.path.isfile.expect_call(Regex(r"^/tmp/(.+)\.txt$")).will_repeatedly(Return(True)).times(2)
 
     with patched(os_mock):
         with satisfied(os_mock):
-            assert list(list_files('/tmp')) == ['/tmp/foo.txt', '/tmp/bar.txt']
+            assert list(list_files("/tmp")) == ["/tmp/foo.txt", "/tmp/bar.txt"]

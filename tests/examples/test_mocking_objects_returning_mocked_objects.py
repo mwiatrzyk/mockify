@@ -20,20 +20,19 @@ class ItemRepositoryFacade:
         self._connection = connection
 
     def get_items(self):
-        return self._connection.get('/api/items').json()
+        return self._connection.get("/api/items").json()
 
 
 class TestItemRepositoryFacade:
 
     def test_invoke_get_items_api_call(self):
-        expected_result = [{'id': 1, 'name': 'foo'}]
+        expected_result = [{"id": 1, "name": "foo"}]
 
         factory = MockFactory()
-        connection = factory.mock('connection')
-        response = factory.mock('response')
-        connection.get.expect_call('/api/items').will_once(Return(response))
+        connection = factory.mock("connection")
+        response = factory.mock("response")
+        connection.get.expect_call("/api/items").will_once(Return(response))
         response.json.expect_call().will_once(Return(expected_result))
 
         with satisfied(factory):
-            assert ItemRepositoryFacade(connection
-                                        ).get_items() == expected_result
+            assert ItemRepositoryFacade(connection).get_items() == expected_result

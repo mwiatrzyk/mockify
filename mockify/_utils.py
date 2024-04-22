@@ -35,20 +35,15 @@ def validate_mock_name(name):
     If name is not valid, this function will raise :exc:`InvalidMockName`
     exception.
     """
-    parts = name.split('.') if isinstance(name, str) else [name]
+    parts = name.split(".") if isinstance(name, str) else [name]
     for part in parts:
         if not is_identifier(part):
-            raise TypeError(
-                "Mock name must be a valid Python identifier, got {!r} instead".
-                format(name)
-            )
+            raise TypeError("Mock name must be a valid Python identifier, got {!r} instead".format(name))
 
 
 def is_identifier(candidate: typing.Any) -> bool:
     """Check if a *candidate* is a valid Python identifier name."""
-    return isinstance(candidate, str) and\
-        candidate.isidentifier() and\
-        not keyword.iskeyword(candidate)
+    return isinstance(candidate, str) and candidate.isidentifier() and not keyword.iskeyword(candidate)
 
 
 def log_unhandled_exceptions(logger):
@@ -66,10 +61,7 @@ def log_unhandled_exceptions(logger):
             try:
                 return func(*args, **kwargs)
             except Exception:
-                logger.error(
-                    'An unhandled exception occurred during {func!r} call:',
-                    exc_info=True
-                )
+                logger.error("An unhandled exception occurred during {func!r} call:", exc_info=True)
                 raise
 
         return proxy
@@ -91,9 +83,9 @@ def get_attr_qualname(prefix: str, attr: typing.Any) -> str:
     """
 
     def get_name(attr):
-        if hasattr(attr, '__qualname__'):
+        if hasattr(attr, "__qualname__"):
             return attr.__qualname__
-        if hasattr(attr, '__name__'):
+        if hasattr(attr, "__name__"):
             return attr.__name__
         if isinstance(attr, property):
             return attr.fget.__qualname__
@@ -105,27 +97,20 @@ def get_attr_qualname(prefix: str, attr: typing.Any) -> str:
 def warn_renamed(old, new, since, stacklevel=3):
     """Issue a :exc:`DeprecationWarning` warning when an old name is used and
     point to the new name to be used instead."""
-    message_template =\
-        "{old!r} is deprecated since version {since} and will be removed "\
+    message_template = (
+        "{old!r} is deprecated since version {since} and will be removed "
         "in next major release - please use {new!r} instead."
-    warnings.warn(
-        message_template.format(old=old, new=new, since=since),
-        DeprecationWarning,
-        stacklevel=stacklevel
     )
+    warnings.warn(message_template.format(old=old, new=new, since=since), DeprecationWarning, stacklevel=stacklevel)
 
 
 def warn_removed(old, since, stacklevel=3):
     """Issue a :exc:`DeprecationWarning` warning to inform that given *obj*
     will no longer be available since next major release."""
-    message_template =\
-        "{old!r} is deprecated since version {since} and will completely be "\
-        "removed in next major release."
-    warnings.warn(
-        message_template.format(old=old, since=since),
-        DeprecationWarning,
-        stacklevel=stacklevel
+    message_template = (
+        "{old!r} is deprecated since version {since} and will completely be " "removed in next major release."
     )
+    warnings.warn(message_template.format(old=old, since=since), DeprecationWarning, stacklevel=stacklevel)
 
 
 def mark_import_deprecated(cls_or_func, old, new, since):
@@ -148,8 +133,10 @@ def mark_import_deprecated(cls_or_func, old, new, since):
     """
 
     def emit_warning(stacklevel):
-        message = "{old!r} is deprecated since {since} and will be completely "\
+        message = (
+            "{old!r} is deprecated since {since} and will be completely "
             "removed in next major release - please use {new!r} instead".format(old=old, new=new, since=since)
+        )
         warnings.warn(message, DeprecationWarning, stacklevel=stacklevel)
 
     if isinstance(cls_or_func, type):
@@ -167,7 +154,9 @@ def mark_import_deprecated(cls_or_func, old, new, since):
             This class was moved and is currently available as
             :class:`{new}` class. Old import will stop working in one of
             upcoming releases.
-        """.format(new=new, since=since)
+        """.format(
+            new=new, since=since
+        )
 
     else:
 
@@ -181,7 +170,9 @@ def mark_import_deprecated(cls_or_func, old, new, since):
             This function was moved and is currently available as
             :func:`{new}` function. Old import will stop working in one of
             upcoming releases.
-        """.format(new=new, since=since)
+        """.format(
+            new=new, since=since
+        )
 
     return factory
 
@@ -214,14 +205,10 @@ class ArgsKwargsFormatter:
         args_gen = map(self._formatter, args)
         kwargs_gen = sorted(kwargs.items()) if self._sort else kwargs.items()
         if self._skip_kwarg_if is not None:
-            kwargs_gen = filter(
-                lambda x: not self._skip_kwarg_if(x[1]), kwargs_gen
-            )
-        kwargs_gen = map(
-            lambda x: "{}={}".format(x[0], self._formatter(x[1])), kwargs_gen
-        )
+            kwargs_gen = filter(lambda x: not self._skip_kwarg_if(x[1]), kwargs_gen)
+        kwargs_gen = map(lambda x: "{}={}".format(x[0], self._formatter(x[1])), kwargs_gen)
         all_gen = itertools.chain(args_gen, kwargs_gen)
-        return ', '.join(all_gen)
+        return ", ".join(all_gen)
 
 
 class ErrorMessageBuilder:
@@ -231,15 +218,13 @@ class ErrorMessageBuilder:
         self._lines = []
 
     def build(self):
-        return '\n'.join(self._lines)
+        return "\n".join(self._lines)
 
     def append_line(self, template, *args, **kwargs):
         self._lines.append(template.format(*args, **kwargs))
 
     def append_location(self, location):
-        self._lines.extend(
-            ["at {}".format(location), "-" * (len(str(location)) + 3)]
-        )
+        self._lines.extend(["at {}".format(location), "-" * (len(str(location)) + 3)])
 
 
 class IterableQuery:
@@ -269,8 +254,7 @@ class DictEqualityMixin:
     """
 
     def __eq__(self, other):
-        return type(self) is type(other) and\
-            self.__dict__ == other.__dict__
+        return type(self) is type(other) and self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -296,7 +280,7 @@ class ExportList(list):
         return member
 
     @classmethod
-    def merge_unique(cls, *other: 'ExportList'):
+    def merge_unique(cls, *other: "ExportList"):
         """Create new :class:`ExportList` object by merging all given *other*
         :class:`ExportList` instances and removing duplicated entries."""
 
@@ -320,9 +304,7 @@ def make_alias(cls_or_func):
     if isinstance(cls_or_func, type):
 
         class class_alias(cls_or_func):
-            """An alias for :class:`{cls.__module__}.{cls.__qualname__}` class.""".format(
-                cls=cls_or_func
-            )
+            """An alias for :class:`{cls.__module__}.{cls.__qualname__}` class.""".format(cls=cls_or_func)
 
             def __new__(cls, *args, **kwargs):
                 return cls_or_func(*args, **kwargs)
@@ -337,9 +319,7 @@ def make_alias(cls_or_func):
     def func_alias(*args, **kwargs):
         return cls_or_func(*args, **kwargs)
 
-    func_alias.__doc__ = "An alias for :func:`{func.__module__}.{func.__qualname__}` function.".format(
-        func=cls_or_func
-    )
+    func_alias.__doc__ = "An alias for :func:`{func.__module__}.{func.__qualname__}` function.".format(func=cls_or_func)
     return func_alias
 
 
@@ -350,15 +330,15 @@ def render_public_members_docstring(module):
     This is a helper for automated rendering of ``__doc__`` property in proxy
     modules.
     """
-    yield '* :mod:`{}`'.format(module.__name__)
+    yield "* :mod:`{}`".format(module.__name__)
     for name in module.__all__:
         obj = getattr(module, name)
         if isinstance(obj, type):
-            yield '    * :class:`{}.{}`'.format(module.__name__, name)
+            yield "    * :class:`{}.{}`".format(module.__name__, name)
         elif isinstance(obj, types.FunctionType):
-            yield '    * :func:`{}.{}`'.format(module.__name__, name)
+            yield "    * :func:`{}.{}`".format(module.__name__, name)
         else:
-            yield '    * :attr:`{}.{}`'.format(module.__name__, name)
+            yield "    * :attr:`{}.{}`".format(module.__name__, name)
 
 
 class memoized_property:

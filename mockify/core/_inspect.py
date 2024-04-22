@@ -35,15 +35,11 @@ class MockInfo:
 
     def __init__(self, target: IMock):
         if not isinstance(target, IMock):
-            raise TypeError(
-                "__init__() got an invalid value for argument 'target'"
-            )
+            raise TypeError("__init__() got an invalid value for argument 'target'")
         self._target = target
 
     def __repr__(self):
-        return "<mockify.core.{self.__class__.__qualname__}(target={self._target!r})>".format(
-            self=self
-        )
+        return "<mockify.core.{self.__class__.__qualname__}(target={self._target!r})>".format(self=self)
 
     @property
     def mock(self) -> IMock:
@@ -53,9 +49,9 @@ class MockInfo:
             This is deprecated since version 0.8 and will be dropped in one
             of upcoming releases. Use :attr:`target` instead.
         """
-        old = _utils.get_attr_qualname('mockify.core', self.__class__.mock)
-        new = _utils.get_attr_qualname('mockify.core', self.__class__.target)
-        _utils.warn_renamed(old, new, '0.8')
+        old = _utils.get_attr_qualname("mockify.core", self.__class__.mock)
+        new = _utils.get_attr_qualname("mockify.core", self.__class__.target)
+        _utils.warn_renamed(old, new, "0.8")
         return self.target
 
     @property
@@ -67,7 +63,7 @@ class MockInfo:
         return self._target
 
     @property
-    def parent(self) -> 'MockInfo':
+    def parent(self) -> "MockInfo":
         """A proxy to access :attr:`BaseMock.__m_parent__`.
 
         Returns ``None`` if target has no parent, or parent wrapped with
@@ -127,7 +123,7 @@ class MockInfo:
         for expectation in self._target.__m_expectations__():
             yield expectation
 
-    def children(self) -> typing.Iterator['MockInfo']:
+    def children(self) -> typing.Iterator["MockInfo"]:
         """Return iterator over target mock's direct children.
 
         This uses :meth:`mockify.abc.IMock.__m_children__` method on a
@@ -137,7 +133,7 @@ class MockInfo:
         for child in self._target.__m_children__():
             yield self.__class__(child)
 
-    def walk(self) -> typing.Iterator['MockInfo']:
+    def walk(self) -> typing.Iterator["MockInfo"]:
         """Recursively iterate over tree structure of given target mock.
 
         Behind the scenes this uses :meth:`mockify.abc.IMock.__m_walk__` method

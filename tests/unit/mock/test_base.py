@@ -34,6 +34,4 @@ class StubMock(BaseMock):
 class TestBaseMock:
 
     def test_mock_repr(self):
-        assert repr(
-            StubMock('dummy')
-        ) == "<tests.unit.mock.test_base.StubMock('dummy')>"
+        assert repr(StubMock("dummy")) == "<tests.unit.mock.test_base.StubMock('dummy')>"

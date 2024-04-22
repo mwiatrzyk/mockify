@@ -67,9 +67,7 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
     .. versionadded:: 0.8
     """
 
-    def __init__(
-        self, name: str, session: ISession = None, parent: IMock = None
-    ):
+    def __init__(self, name: str, session: ISession = None, parent: IMock = None):
         self.__name = name
         self.__parent = _utils.make_weak(parent)
         if name is not None:
@@ -85,11 +83,9 @@ class BaseMock(IMock):  # pylint: disable=too-few-public-methods
 
     def __repr__(self):
         module = self.__module__
-        if module.startswith('mockify.mock'):
-            module = 'mockify.mock'  # Hide private submodule in repr()
-        return "<{module}.{self.__class__.__qualname__}({self.__m_name__!r})>".format(
-            module=module, self=self
-        )
+        if module.startswith("mockify.mock"):
+            module = "mockify.mock"  # Hide private submodule in repr()
+        return "<{module}.{self.__class__.__qualname__}({self.__m_name__!r})>".format(module=module, self=self)
 
     @property
     def __m_name__(self) -> str:

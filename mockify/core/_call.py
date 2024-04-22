@@ -37,9 +37,7 @@ class Call(ICall):
         Now this inherits from :class:`mockify.abc.ICall` abstract base class
     """
 
-    def __init__(
-        self, __m_fullname__: str, *args: typing.Any, **kwargs: typing.Any
-    ):
+    def __init__(self, __m_fullname__: str, *args: typing.Any, **kwargs: typing.Any):
         _utils.validate_mock_name(__m_fullname__)
         self._name = __m_fullname__
         self._args = args
@@ -47,14 +45,11 @@ class Call(ICall):
         self._location = self._CallLocation.get_external()
 
     def __str__(self):
-        return "{}({})".format(
-            self._name, self._format_params(*self._args, **self._kwargs)
-        )
+        return "{}({})".format(self._name, self._format_params(*self._args, **self._kwargs))
 
     def __repr__(self):
         return "<mockify.core.{}({})>".format(
-            self.__class__.__name__,
-            self._format_params(self._name, *self._args, **self._kwargs)
+            self.__class__.__name__, self._format_params(self._name, *self._args, **self._kwargs)
         )
 
     @staticmethod
@@ -105,10 +100,9 @@ class Call(ICall):
             stack = traceback.extract_stack()
             for frame in reversed(stack):
                 # TODO: make this if statement better
-                if not frame.filename.startswith(_globals.ROOT_DIR) and\
-                   not frame.filename.startswith('/usr/lib'):
+                if not frame.filename.startswith(_globals.ROOT_DIR) and not frame.filename.startswith("/usr/lib"):
                     return cls(frame.filename, frame.lineno)
-            return cls('unknown', -1)
+            return cls("unknown", -1)
 
 
 @export
@@ -130,16 +124,17 @@ class LocationInfo(Call._CallLocation):
     :param lineno:
         Line number in given file
     """
+
     _issue_deprecation_warning = True
 
     def __init__(self, filename: str, lineno: int):
         if self._issue_deprecation_warning:
-            _utils.warn_removed("mockify.core.LocationInfo", '0.13')
+            _utils.warn_removed("mockify.core.LocationInfo", "0.13")
         super().__init__(filename, lineno)
 
     @classmethod
     def get_external(cls):
-        _utils.warn_removed("mockify.core.LocationInfo", '0.13')
+        _utils.warn_removed("mockify.core.LocationInfo", "0.13")
         cls._issue_deprecation_warning = False
         obj = super().get_external()
         cls._issue_deprecation_warning = True

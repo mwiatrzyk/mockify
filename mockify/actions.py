@@ -28,10 +28,7 @@ __all__ = export = _utils.ExportList()  # pylint: disable=invalid-all-format
 
 
 def _format_str(obj, *args, **kwargs):
-    return "{}({})".format(
-        obj.__class__.__name__,
-        _utils.ArgsKwargsFormatter().format(*args, **kwargs)
-    )
+    return "{}({})".format(obj.__class__.__name__, _utils.ArgsKwargsFormatter().format(*args, **kwargs))
 
 
 @export

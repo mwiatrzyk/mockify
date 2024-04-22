@@ -41,10 +41,7 @@ def assert_satisfied(mock: IMock, *args: IMock):
     def iter_unsatisfied_expectations(mocks):
         for mock in mocks:
             for child in mock.__m_walk__():
-                yield from (
-                    x for x in child.__m_expectations__()
-                    if not x.is_satisfied()
-                )
+                yield from (x for x in child.__m_expectations__() if not x.is_satisfied())
 
     def impl(*mocks):
         unsatisfied_expectations = list(iter_unsatisfied_expectations(mocks))
@@ -82,9 +79,7 @@ def ordered(mock: IMock, *args: IMock):  # TODO: add more tests
             if session is not second.__m_session__:
                 raise TypeError(
                     "Mocks {!r} and {!r} have to use same "
-                    "session object".format(
-                        first.__m_fullname__, second.__m_fullname__
-                    )
+                    "session object".format(first.__m_fullname__, second.__m_fullname__)
                 )
         return session
 

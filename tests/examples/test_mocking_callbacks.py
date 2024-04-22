@@ -35,7 +35,7 @@ class TestObservable:
         self.uut = Observable()
 
     def test_subscribe_observer_and_notify_once(self):
-        observer = Mock('observer')
+        observer = Mock("observer")
 
         self.uut.subscribe(observer)
 
@@ -45,7 +45,7 @@ class TestObservable:
             self.uut.notify()
 
     def test_when_notify_called_twice__observer_is_triggered_twice(self):
-        observer = Mock('observer')
+        observer = Mock("observer")
         observer.expect_call(self.uut).times(2)
 
         self.uut.subscribe(observer)
@@ -55,7 +55,7 @@ class TestObservable:
                 self.uut.notify()
 
     def test_when_subscribed_twice__it_is_notified_only_once(self):
-        observer = Mock('observer')
+        observer = Mock("observer")
 
         self.uut.subscribe(observer)
         self.uut.subscribe(observer)
@@ -67,7 +67,7 @@ class TestObservable:
 
     def test_observers_are_triggered_in_subscribe_order(self):
         factory = MockFactory()
-        first, second = factory.mock('first'), factory.mock('second')
+        first, second = factory.mock("first"), factory.mock("second")
 
         self.uut.subscribe(first)
         self.uut.subscribe(second)
