@@ -35,7 +35,7 @@ jobs:
       - install-deps:
           ver_major: <<parameters.ver_major>>
           ver_minor: <<parameters.ver_minor>>
-      - run: poetry run pytest
+      - run: poetry run inv check
 
 workflows:
   test:
