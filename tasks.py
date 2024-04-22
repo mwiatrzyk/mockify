@@ -157,7 +157,7 @@ def build_docs(ctx):
 @invoke.task
 def build_pkg(ctx):
     """Build distribution package."""
-    ctx.run('python setup.py sdist bdist_wheel')
+    ctx.run('poetry build')
 
 
 @invoke.task(build_docs, build_pkg)
