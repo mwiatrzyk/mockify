@@ -37,6 +37,12 @@ jobs:
           ver_minor: <<parameters.ver_minor>>
       - run: poetry run inv check
 
+  test-all:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - run: echo "All tests have passed."
+
 workflows:
   test:
     jobs:
