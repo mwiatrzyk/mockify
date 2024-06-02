@@ -112,6 +112,9 @@ workflows:
       - bump:
           requires:
             - "test-all"
+          filters:
+            branches:
+              only: master
       - deploy:
           filters:
             branches:
