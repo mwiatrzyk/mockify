@@ -1,6 +1,11 @@
 version: 2.1
 
 commands:
+  configure-git:
+    steps:
+      - run: git config --global user.name "CircleCI"
+      - run: git config --global user.email "circleci@noreply.circleci.com"
+
   install-deps:
     parameters:
       ver_major:
@@ -20,6 +25,11 @@ commands:
           key: poetry-py<<parameters.ver_major>><<parameters.ver_minor>>-{{ checksum "poetry.lock" }}
           paths:
             - ~/.cache/pypoetry/
+
+  push-to-git:
+    steps:
+      - run: git push --set-upstream origin $CIRCLE_BRANCH
+      - run: git push --tags
 
 jobs:
   test:
@@ -42,6 +52,32 @@ jobs:
       - image: cimg/python:3.12
     steps:
       - run: echo "All tests have passed."
+
+  bump:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - configure-git
+      - install-deps:
+          ver_major: 3
+          ver_minor: 12
+      - run: poetry run bumpify bump
+      - push-to-git
+
+  deploy:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - configure-git
+      - install-deps:
+          ver_major: 3
+          ver_minor: 12
+      - run: poetry run pytest
+      - run: poetry build
+      - run: poetry config pypi-token.pypi $PYPI_TOKEN
+      - run: poetry publish
 
 workflows:
   test:
@@ -73,3 +109,12 @@ workflows:
             - test-py310
             - test-py311
             - test-py312
+      - bump:
+          requires:
+            - "test-all"
+      - deploy:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*$/
