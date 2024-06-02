@@ -10,7 +10,7 @@ version_tag_name_template = "v{version_str}"
 paths = [".bumpify/commit_parser_hook.py"]
 
 [[semver.bump_rules]]
-branch = "misc/migrate-to-github"
+branch = "master"
 when_breaking = "minor"
 when_feat = "minor"
 when_fix = "patch"
