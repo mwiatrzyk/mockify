@@ -59,7 +59,7 @@ Newest documentation can be found at https://mockify.readthedocs.org/.
 Source
 ------
 
-Source code is available at https://gitlab.com/zef1r/mockify/.
+Source code is available at https://github.com/mwiatrzyk/mockify.
 
 License
 -------
