@@ -1,286 +1,232 @@
-0.13.1 (2021-09-20)
--------------------
+## 0.14.0 (2024-06-12)
 
-**Fixed**
+### BREAKING CHANGES
 
-  * Fixed issue #37 (dictionary changed size during iteration in
-    :class:`ABCMock` when used with no expectations set)
+- Drop support for Python 3.6 and 3.7
 
-0.13.0 (2021-09-10)
--------------------
+### Feat
 
-**Added**
+- add support for Python 3.10, 3.11 and 3.12
 
-  * Introducing :mod:`mockify.abc` module - a set of ABC classes for Mockify
-  * Introducing :mod:`mockify.api` module - a proxy for doing single-line
-    imports of Mockify classes and functions
-  * Added :class:`mockify.mock.BaseFunctionMock` for making function mocks with
-    user-defined fixed set of parameters
-  * Added support for mocking magic methods in :class:`mockify.mock.Mock` class
-  * Added *max_depth* parameter to :class:`mockify.mock.Mock` class
-    constructor, so it can have limited depth of method namespacing (by
-    default, the depth is unlimited)
+## 0.13.1 (2021-09-20)
 
-**Changed**
+### Fix
 
-  * Class :class:`mockify.mock.FunctionMock` now inherits from
-    :class:`mockify.mock.BaseFunctionMock`
-  * Class :class:`mockify.core.BaseMock` was moved to
-    :class:`mockify.mock.BaseMock` (old location is marked as deprecated)
+- ABCMock with no expectations set fails on assert_satisfied
 
-**Deprecated**
+## 0.13.0 (2021-09-10)
 
-  * Current core module :mod:`mockify` is now made deprecated, so using names
-    from that module will cause deprecation warnings. Please use
-    :mod:`mockify.core` instead.
-  * Class :class:`mockify.core.LocationInfo` is made deprecated and will be
-    removed soon
+### Fix
 
-0.12.0 (2020-11-29)
--------------------
+- fix some of the lint errors in ObjectMock by extracting decorator
+- fix mockify.api module
+- fixing before release
+- fix versioning in setup.py
+- fix some of the linter errors
 
-**Added**
+### Feat
 
-  * New action added: :class:`mockify.actions.YieldAsync`
-  * New action added: :class:`mockify.actions.ReturnContext`
-  * New action added: :class:`mockify.actions.ReturnAsyncContext`
+- add docstrings explaining interface classes
+- add more magic methods that are ready for mocking to ObjectMock class
+- add unary __pos__ and __neg__ operators to ObjectMock class
+- add __abs__ method to ObjectMock
+- add __invert__ method to ObjectMock class
+- add __round__, __floor__, __ceil__ and __trunc__ magic methods to ObjectMock
+- add more magic method to ObjectMock
+- add magic methods to ObjectMock
+- add d and tb names to pylint's "good-names" setting
+- add BaseFunctionMock and use it as a base for FunctionMock
+- add more magic methods to ObjectMock
+- add possibilty to mock expect_call method of ObjectMock
+- add __all__ property to private submodules
 
-0.11.0 (2020-11-24)
--------------------
+## 0.12.0 (2020-11-29)
 
-**Added**
+### Fix
 
-  * New action added: :class:`mockify.actions.ReturnAsync`
-  * New action added: :class:`mockify.actions.IterateAsync`
-  * New action added: :class:`mockify.actions.RaiseAsync`
-  * New action added: :class:`mockify.actions.InvokeAsync`
+- fix test failure on py36 by replacing non-existing asynccontextmanager with explicitly created proxy class
 
-**Changed**
+### Feat
 
-  * Abstract method :meth:`mockify.actions.Action.format_params` was removed
-    and :meth:`mockify.actions.Action.__str__` is now made abstract instead
+- add YieldAsync action
+- add ReturnContext action
+- add ReturnAsyncContext action
 
-  * Abstract method :meth:`mockify.cardinality.ExpectedCallCount.format_params`
-    was removed and :meth:`mockify.cardinality.ExpectedCallCount.__repr__` is
-    now made abstract instead
+## 0.11.0 (2020-11-24)
 
-**Deprecated**
+### Fix
 
-  * Methods :meth:`mockify.core.BaseMock.__m_fullname__` and
-    :meth:`mockify.core.BaseMock.__m_walk__` are made deprecated and will be
-    removed in one of upcoming releases; functionality is now provided
-    completely by class :class:`mockify.core.MockInfo` (which was previously
-    acting as a proxy)
+- fix failing test on Py36
+- fix tag.py script to update (unreleased) also in docstrings
+- fix failing py36 and py37 tests
+- fix scripts/tag.py
 
-**Other**
+### Feat
 
-  * Added CLI tasks to serve documentation and coverage locally for development
-    purposes
+- add ReturnAsync action
+- add IterateAsync action
+- add changelog entry
+- add InvokeAsync action
 
-0.10.0 (2020-11-13)
--------------------
+## 0.10.0 (2020-11-13)
 
-**Added**
+### Fix
 
-  * Added support for Python 3.9
+- fix in .gitlab-ci.yml
 
-**Other**
+### Feat
 
-  * Using ``tox`` to run tests against supported Python versions
-  * Improved packaging according to https://github.com/pypa/sampleproject
-    example project
+- add tox with some basic configuration
+- add MANIFEST.in and add tox-based tests to pipeline
+- add setup.cfg and pyproject.toml files for better packaging compatibility
+- add more metadata info to setup.py
+- add documentation link to setup.py
+- add support for Python 3.9
 
-0.9.1 (2020-11-09)
-------------------
+## 0.9.1 (2020-11-09)
 
-**Other**
+### Feat
 
-  * Added job to publish coverage reports to https://codecov.io/gl/zef1r/mockify
-  * Using ``-pe`` as default mode to ``invoke`` task runner (with help of
-    config file)
-  * Since now, tags are verified by CI **before** publishing to any PyPI, so it
-    will not be possible to publish to test PyPI and to not publish to production
-    PyPI (or vice-versa)
+- add invoke.yml config file
+- add coverage publish & tag validation jobs
+- add codecov.io badge to readme
 
-0.9.0 (2020-11-08)
-------------------
+## 0.9.0 (2020-11-08)
 
-**Added**
+### Fix
 
-  * Added :mod:`mockify.core` module to replace importing of core stuff directly
-    from ``mockify`` root module.
+- fix mock parent/child hierarchy processing
+- fix linter errors
+- more pylint errors fixed
+- add yapf and reformat code with it
+- adjust code with yapf, isort and other tools
+- fix more pylint errors in code
+- fix coverage task
+- fixing linter errors
+- fix invoke tasks in pipeline file
+- fix .gitlab-ci.yml
+- fix docs config
+- fix references after creating mockify.core module
+- fix in changelog and __init__.py
+- fix typo
 
-    So instead of doing this::
+### Feat
 
-      from mockify import satisfied
+- add gitchangelog to automatically update project's changelog
+- add mockify.core documentation
+- add some PyPI badges
+- add script for updating tag info in __init__.py and CHANGELOG.md
 
-    It is recommended to do this::
+## 0.8.1 (2020-08-17)
 
-      from mockify.core import satisfied
+### Fix
 
-    This was changed because importing things directly from root module is
-    discouraged, as it leads to longer import times.
+- fix in Object matcher
 
-**Deprecated**
+## 0.8.0 (2020-08-08)
 
-  * Importing core parts of library directly from ``mockify`` core module is now
-    deprecated - use :mod:`mockify.core` instead.
+### Feat
 
-    Since one of upcoming non-fix releases importing core parts of library
-    from ``mockify`` core module will not work, unless you will use this::
+- add ABCMock for automatic mocking of abc.ABC-based interfaces
+- add FunctionMock class as a mechanism for easier building of more complex mocks
 
-      from mockify import core
+## 0.7.1 (2020-06-17)
 
-**Fixed**
+### Fix
 
-  * Fixed some ``pylint`` bugs
+- Fix object matcher
 
-**Other**
+## 0.7.0 (2020-06-17)
 
-  * Changelog was reformatted and split into sections in accordance to
-    https://keepachangelog.com/en/1.0.0/
-  * Added tools for code formatting
-  * Added ``pylint`` linter
-  * Small refactoring of project's development tools
+### Fix
 
-0.8.1 (2020-08-17)
-------------------
+- fix fallback version
 
-**Fixed**
+## 0.6.5 (2020-05-15)
 
-  * Small fix in :class:`mockify.matchers.Object` class to make it work when
-    :class:`mockify.matchers.Any` matcher is used as its argument and always
-    inequal object is used when comparing
+### Feat
 
-0.8.0 (2020-08-08)
-------------------
+- add Object matcher
 
-**Added**
+## 0.6.4 (2020-02-26)
 
-  * Added :class:`mockify.core.BaseMock` that acts as common abstract base class
-    for all mocks.
+### Fix
 
-    Already existing classes :class:`mockify.mock.Mock` and
-    :class:`mockify.mock.MockFactory` now inherit from it.
-  * Added :class:`mockify.mock.FunctionMock` for mocking Python functions and to
-    be used internally when implementing complex mock classes
-  * Added :class:`mockify.mock.ABCMock` for implementing interfaces defined with
-    help of :mod:`abc` module
+- fix failing tests and do testing in more functional way
+- fix matchers tests and add some handy matchers
+- fix tests for exceptions
+- fix API docs for mockify module
+- fix docstring for matchers
+- fix docstring for exc.py
+- fix failing tests
+- fix last remaining f"" format
+- fix failing tests (forgot to save file)
+- fix deploy job
+- fix deploy job
+- fix versioning scheme
+- fix classifier
+- fix version formatting
 
-0.7.1 (2020-06-17)
-------------------
+### Feat
 
-**Fixed**
+- added quickstart guide and started doctesting using Sphinx
+- added UnexpectedCall exception (partial, not yet tested)
+- add examples in form of tests (first example, first test)
+- add example with ProtocolReader class
+- add ItemRepositoryFacade test example
+- add tests for context managers
+- add tests for remaining Mock functionality
+- add missing tests for cardinality.py module
+- add tutorial for creating mocks
+- add tutorial for using mock factories
+- add tutorial for using sessions
+- add tutorial about creating mocks
+- add tests to MockFactory class
+- add patching modules tutorial
+- add tests for Py3.8 and Py3.4 and add more classifiers
 
-  * Fix :class:`mockify.matchers.Object` matcher to be inequal to reference
-    object if reference object does not have one or more properties listed in
-    matcher
+## 0.5.0 (2019-07-27)
 
-0.7.0 (2020-06-17)
-------------------
+### Fix
 
-**Fixed**
+- fix clean task
+- fix failing doctest in tutorial
+- fix changelog
 
-  * An alias to 0.6.5 to fix versioning (new feature was introduced, and wrong
-    version part was increased by mistake)
+### Feat
 
-0.6.5 (2020-05-15)
-------------------
+- add regression task
+- add module rename to changelog
+- add build task for building all - docs and package
+- add Namespace mock
 
-**Added**
+## 0.4.0 (2019-07-24)
 
-  * Added :class:`mockify.matchers.Object` matcher
+### Feat
 
-0.6.4 (2020-02-26)
-------------------
+- add strategies for dealing with uninterested calls
 
-**Added**
+## 0.3.1 (2019-01-16)
 
-  * New actions introduced (see :mod:`mockify.actions`)
-  * New matchers introduced (see :mod:`mockify.matchers`)
-  * New assertion errors introduced and improved exception hierarchy (see
-    :mod:`mockify.exc`)
-  * Can now define ordered expectations with :func:`mockify.core.ordered` context manager
-  * Can now patch imports using :func:`mockify.core.patched` context manager
+### Feat
 
-**Changed**
+- add expecting property getting
+- add docstring
+- add UninterestedGetterCall and UninterestedSetterCall exceptions
 
-  * Deprecated code was removed
-  * Class **Registry** was renamed to :class:`mockify.core.Session`
-  * All classes for making mocks were replaced by single generic
-    :class:`mockify.mock.Mock` class, supported by
-    :class:`mockify.mock.MockFactory` class
+## 0.2.1 (2019-01-05)
 
-**Fixed**
+### Feat
 
-  * Better reporting of expectation location in assertion messages
+- add description to sidebar
+- add regression.sh file to wrap pytest
+- add FunctionFactory utility
+- add runtest.sh to scripts and reorganize scripts
+- add tutorial chapter about FunctionFactory objects usage
+- add missing docstring
+- add CHANGELOG.txt
 
-**Other**
+## 0.1.12 (2019-01-01)
 
-  * Improved documentation
-  * Documentation is now tested by Sphinx
-  * CI workflow updated + added testing against various Python versions (3.x for
-    now)
-  * Many other improvements in the code and the tests
+Initial release.
 
-0.5.0 (2019-07-27)
-------------------
-
-**Added**
-
-  * Added :class:`mockify.mock.Namespace` mock class
-
-**Changed**
-
-  * Class :class:`mockify.mock.Object` can now be used without subclassing and
-    has API similar to other mock classes
-  * Module *mockify.helpers* was merged to library core
-  * Module *mockify.times* was renamed to :mod:`mockify.cardinality`
-  * Module *mockify.engine* is now available via :mod:`mockify`
-  * Modules *mockify.mock.function* and *mockify.mock.object* are now merged into
-    :mod:`mockify.mock`
-
-**Other**
-
-  * Dependency management provided by **pipenv**
-  * Project's CLI provided by Invoke library
-  * Use Sphinx Read The Docs theme for documentation
-
-0.4.0 (2019-07-24)
-------------------
-
-**Added**
-
-  * Added strategies for dealing with unexpected calls
-
-0.3.1 (2019-01-16)
-------------------
-
-**Added**
-
-  * Added frontend for mocking Python objects
-
-0.2.1 (2019-01-05)
-------------------
-
-**Added**
-
-  * Added *FunctionFactory* mocking utility
-
-**Changed**
-
-  * Changed Registry.assert_satisfied method to allow it to get mock names to
-    check using positional args
-
-**Other**
-
-  * Updated copyright notice
-  * Added description to Alabaster Sphinx theme used for docs
-  * Script for running tests added (pytest wrapper)
-  * Updated copyright.py script and hardcode year the project was started and
-    author's name
-
-0.1.12 (2019-01-01)
--------------------
-
-* First release published to PyPI

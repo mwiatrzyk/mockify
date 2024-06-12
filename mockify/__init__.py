@@ -32,6 +32,6 @@ satisfied = _utils.mark_import_deprecated(core.satisfied, "mockify.satisfied", "
 
 __author__ = "Maciej Wiatrzyk <maciej.wiatrzyk@gmail.com>"
 __released__ = 2019
-__version__ = "0.13.1"
+__version__ = "0.14.0"
 
 __all__ = ["Call", "LocationInfo", "Session", "Expectation", "assert_satisfied", "ordered", "satisfied", "patched"]
