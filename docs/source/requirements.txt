@@ -1,0 +1,3 @@
+# Requirements file for ReadTheDocs
+
+recommonmark==0.7.1
